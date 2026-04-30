@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account — LamGen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: calc(100vh - 68px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+    .auth-card {
+        width: 100%;
+        max-width: 460px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: var(--glow);
+        animation: fadeUp 0.5s ease forwards;
+    }
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .auth-logo .logo-icon {
+        width: 52px; height: 52px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 14px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 0.75rem;
+    }
+    .auth-logo h2 {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    .auth-logo p { color: var(--muted); font-size: 0.875rem; }
+
+    .form-group { margin-bottom: 1rem; }
+
+    .auth-submit {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--primary), #8B85FF);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        box-shadow: 0 0 20px rgba(108,99,255,0.35);
+        margin-top: 0.5rem;
+    }
+    .auth-submit:hover { transform: translateY(-2px); box-shadow: 0 0 35px rgba(108,99,255,0.55); }
+
+    .auth-footer {
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--muted);
+        margin-top: 1.25rem;
+    }
+    .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    .error-alert {
+        padding: 10px 14px;
+        background: rgba(255,107,107,0.08);
+        border: 1px solid rgba(255,107,107,0.25);
+        border-radius: 10px;
+        color: var(--danger);
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Password strength */
+    .pw-strength-bar {
+        height: 3px;
+        border-radius: 2px;
+        background: var(--border);
+        margin-top: 6px;
+        overflow: hidden;
+    }
+    .pw-strength-fill {
+        height: 100%;
+        border-radius: 2px;
+        width: 0%;
+        transition: width 0.3s, background 0.3s;
+    }
+    .pw-strength-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="logo-icon">✦</div>
+            <h2>Create Account</h2>
+            <p>Join the LamGen platform</p>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="error-alert">
+            {% for error in form.non_field_errors %}
+            <div><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label-nexus" for="{{ form.username.id_for_label }}">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <div class="invalid-msg">{{ form.username.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label-nexus" for="{{ form.email.id_for_label }}">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <div class="invalid-msg">{{ form.email.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label-nexus" for="{{ form.university.id_for_label }}">University</label>
+                {{ form.university }}
+                {% if form.university.errors %}
+                <div class="invalid-msg">{{ form.university.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label-nexus" for="{{ form.bio.id_for_label }}">
+                    Bio <span style="color:var(--muted);font-weight:400;">(optional)</span>
+                </label>
+                {{ form.bio }}
+                {% if form.bio.errors %}
+                <div class="invalid-msg">{{ form.bio.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label-nexus" for="{{ form.password1.id_for_label }}">Password</label>
+                {{ form.password1 }}
+                <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+                <div class="pw-strength-label" id="pwStrengthLabel"></div>
+                {% if form.password1.errors %}
+                <div class="invalid-msg">{{ form.password1.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label-nexus" for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                <div class="invalid-msg">{{ form.password2.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="auth-submit">
+                <i class="bi bi-person-plus"></i> Create Account
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password strength indicator
+const pw1 = document.getElementById('{{ form.password1.id_for_label }}') ||
+            document.querySelector('input[name="password1"]');
+const fill = document.getElementById('pwStrengthFill');
+const label = document.getElementById('pwStrengthLabel');
+
+if (pw1 && fill && label) {
+    pw1.addEventListener('input', () => {
+        const val = pw1.value;
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const levels = [
+            { pct: '0%',   color: 'transparent', text: '' },
+            { pct: '25%',  color: 'var(--danger)', text: 'Weak' },
+            { pct: '50%',  color: '#FFC107',       text: 'Fair' },
+            { pct: '75%',  color: 'var(--primary)', text: 'Good' },
+            { pct: '100%', color: 'var(--accent)',  text: 'Strong' },
+        ];
+        const lvl = levels[score] || levels[0];
+        fill.style.width = lvl.pct;
+        fill.style.background = lvl.color;
+        label.textContent = lvl.text;
+        label.style.color = lvl.color;
+    });
+}
+</script>
+{% endblock %}

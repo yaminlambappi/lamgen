@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}Generating: {{ thesis.title }} — LamGen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-page {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem;
+    }
+    .status-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2.5rem;
+        backdrop-filter: blur(20px);
+    }
+    .status-title {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+    }
+    .status-meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+
+    /* ── Steps ── */
+    .progress-steps {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        position: relative;
+        margin-bottom: 2rem;
+    }
+    .progress-steps::before {
+        content: '';
+        position: absolute;
+        top: 20px; left: 20px; right: 20px;
+        height: 2px;
+        background: var(--border);
+        z-index: 0;
+    }
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    .step-icon {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        border: 2px solid var(--border);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.9rem;
+        color: var(--muted);
+        transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+    .step-label {
+        font-size: 0.7rem;
+        color: var(--muted);
+        text-align: center;
+        transition: color 0.3s;
+    }
+    .step.active .step-icon {
+        background: rgba(108,99,255,0.15);
+        border-color: var(--primary);
+        color: var(--primary);
+        box-shadow: 0 0 16px rgba(108,99,255,0.4);
+        animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+    .step.active .step-label { color: var(--primary); }
+    .step.completed .step-icon {
+        background: rgba(0,245,212,0.12);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    .step.completed .step-label { color: var(--accent); }
+
+    /* ── Progress bar ── */
+    .progress-wrap { margin-bottom: 2rem; }
+    .progress-info {
+        display: flex; justify-content: space-between;
+        font-size: 0.8rem; color: var(--muted);
+        margin-bottom: 8px;
+    }
+    .progress-track {
+        height: 6px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+        width: 0%;
+        position: relative;
+    }
+    .progress-fill::after {
+        content: '';
+        position: absolute;
+        top: 0; right: 0; bottom: 0;
+        width: 40px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+        animation: shimmer 1.5s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0%,100% { opacity: 0; } 50% { opacity: 1; } }
+
+    /* ── Result states ── */
+    .result-box {
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex; align-items: flex-start; gap: 12px;
+    }
+    .result-box.success {
+        background: rgba(0,245,212,0.06);
+        border: 1px solid rgba(0,245,212,0.2);
+    }
+    .result-box.error {
+        background: rgba(255,107,107,0.06);
+        border: 1px solid rgba(255,107,107,0.2);
+    }
+    .result-box i { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+    .result-box.success i { color: var(--accent); }
+    .result-box.error   i { color: var(--danger); }
+    .result-box strong { display: block; font-weight: 600; margin-bottom: 2px; }
+    .result-box small  { color: var(--muted); font-size: 0.85rem; }
+
+    .result-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    @media (max-width: 600px) {
+        .progress-steps { gap: 4px; }
+        .step-label { display: none; }
+        .status-card { padding: 1.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="status-page">
+    <div class="status-card fade-up">
+        <div class="status-title">{{ thesis.title }}</div>
+        <div class="status-meta">Submitted {{ thesis.created_at|date:"N j, Y, g:i a" }}</div>
+
+        <!-- Steps -->
+        <div class="progress-steps" id="progressSteps">
+            <div class="step" id="step-uploading">
+                <div class="step-icon"><i class="bi bi-upload"></i></div>
+                <div class="step-label">Uploading</div>
+            </div>
+            <div class="step" id="step-extracting">
+                <div class="step-icon"><i class="bi bi-file-text"></i></div>
+                <div class="step-label">Extracting</div>
+            </div>
+            <div class="step" id="step-analyzing">
+                <div class="step-icon"><i class="bi bi-cpu"></i></div>
+                <div class="step-label">Analyzing</div>
+            </div>
+            <div class="step" id="step-generating">
+                <div class="step-icon"><i class="bi bi-pencil-square"></i></div>
+                <div class="step-label">Generating</div>
+            </div>
+            <div class="step" id="step-creating">
+                <div class="step-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+                <div class="step-label">Creating PDF</div>
+            </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-wrap">
+            <div class="progress-info">
+                <span id="statusText">Initializing...</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <!-- Completed -->
+        <div id="completedActions" style="display:none;">
+            <div class="result-box success">
+                <i class="bi bi-check-circle-fill"></i>
+                <div>
+                    <strong>Thesis generated successfully!</strong>
+                    <small>Your thesis is ready to preview and download.</small>
+                </div>
+            </div>
+            <div class="result-actions">
+                <a href="{% url 'thesis:preview' thesis.pk %}" class="btn-ghost-nexus">
+                    <i class="bi bi-eye"></i> Preview Thesis
+                </a>
+                <a href="{% url 'thesis:download' thesis.pk %}" class="btn-primary-nexus">
+                    <i class="bi bi-download"></i> Download PDF
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn-ghost-nexus">
+                    <i class="bi bi-grid-1x2"></i> Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Failed -->
+        <div id="failedState" style="display:none;">
+            <div class="result-box error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>
+                    <strong>Generation failed</strong>
+                    <small id="errorMessage">An error occurred during thesis generation.</small>
+                </div>
+            </div>
+            <div class="result-actions">
+                <a href="{% url 'thesis:upload' %}" class="btn-primary-nexus">
+                    <i class="bi bi-arrow-repeat"></i> Try Again
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn-ghost-nexus">
+                    <i class="bi bi-grid-1x2"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/status_poll.js"></script>
+<script>
+    // Override updateUI to use new progress bar element
+    const _origUpdateUI = updateUI;
+    function updateUI(data) {
+        const progress = data.progress_percentage || 0;
+        const bar = document.getElementById('progressBar');
+        if (bar) bar.style.width = progress + '%';
+        const pct = document.getElementById('progressPercent');
+        if (pct) pct.textContent = progress + '%';
+
+        const STATUS_LABELS = {
+            'PENDING': 'Waiting to start...', 'PROCESSING': 'Processing your document...',
+            'processing': 'Processing your document...', 'extracted': 'Text extracted, chunking...',
+            'chunked': 'Analyzing content with AI...', 'llm_done': 'Creating PDF document...',
+            'pdf_rendered': 'Finalizing PDF...', 'COMPLETED': 'Thesis generated successfully!',
+            'FAILED': 'Generation failed.',
+        };
+        const statusText = document.getElementById('statusText');
+        if (statusText) statusText.textContent = STATUS_LABELS[data.status] || 'Processing...';
+
+        const STEP_MAP = { 'PENDING':0,'processing':1,'PROCESSING':1,'extracted':2,'chunked':3,'llm_done':4,'pdf_rendered':4,'COMPLETED':5,'FAILED':-1 };
+        const STEP_IDS = ['step-uploading','step-extracting','step-analyzing','step-generating','step-creating'];
+        const stepIndex = STEP_MAP[data.status] !== undefined ? STEP_MAP[data.status] : 0;
+        if (stepIndex >= 0) {
+            STEP_IDS.forEach((id, i) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('active','completed');
+                if (i < stepIndex) { el.classList.add('completed'); el.querySelector('.step-icon').innerHTML = '<i class="bi bi-check-lg"></i>'; }
+                else if (i === stepIndex) el.classList.add('active');
+            });
+        }
+
+        if (data.status === 'COMPLETED') {
+            document.getElementById('completedActions').style.display = 'block';
+            if (bar) bar.style.background = 'linear-gradient(90deg, var(--accent), #00c9a7)';
+            STEP_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.classList.remove('active'); el.classList.add('completed'); el.querySelector('.step-icon').innerHTML = '<i class="bi bi-check-lg"></i>'; }
+            });
+        }
+        if (data.status === 'FAILED') {
+            document.getElementById('failedState').style.display = 'block';
+            if (bar) bar.style.background = 'var(--danger)';
+            if (data.error_message) {
+                const errEl = document.getElementById('errorMessage');
+                if (errEl) errEl.textContent = data.error_message;
+            }
+        }
+    }
+    startPolling({{ thesis.pk }}, '{{ thesis.status }}');
+</script>
+{% endblock %}

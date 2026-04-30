@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title|truncatechars:40 }} — LamGen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-page {
+        min-height: calc(100vh - 68px);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 3rem 1rem;
+    }
+    .status-card {
+        width: 100%;
+        max-width: 680px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: var(--glow);
+        animation: fadeUp 0.5s ease forwards;
+    }
+
+    /* ── Header ── */
+    .status-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    .status-title {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 1.35rem;
+        margin-bottom: 0.25rem;
+        line-height: 1.3;
+    }
+    .status-meta { color: var(--muted); font-size: 0.82rem; }
+
+    /* ── Status badge ── */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .badge-pending    { background: rgba(255,193,7,0.12);  color: #FFC107; border: 1px solid rgba(255,193,7,0.25); }
+    .badge-analysing  { background: rgba(108,99,255,0.12); color: var(--primary); border: 1px solid rgba(108,99,255,0.25); }
+    .badge-awaiting   { background: rgba(0,245,212,0.10);  color: var(--accent); border: 1px solid rgba(0,245,212,0.25); }
+    .badge-processing { background: rgba(108,99,255,0.12); color: var(--primary); border: 1px solid rgba(108,99,255,0.25); }
+    .badge-completed  { background: rgba(0,245,212,0.10);  color: var(--accent); border: 1px solid rgba(0,245,212,0.25); }
+    .badge-failed     { background: rgba(255,107,107,0.10); color: var(--danger); border: 1px solid rgba(255,107,107,0.25); }
+
+    /* ── Progress ── */
+    .progress-section { margin-bottom: 2rem; }
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.83rem;
+    }
+    .progress-stage { color: var(--muted); }
+    .progress-pct   { font-weight: 700; color: var(--primary); }
+    .progress-bar-track {
+        width: 100%;
+        height: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        border-radius: 50px;
+        transition: width 0.6s ease;
+    }
+
+    /* ── Stage label map ── */
+    /* Friendly names are applied via JS */
+
+    /* ── Outline review ── */
+    .outline-section { margin-top: 2rem; }
+    .outline-section h3 {
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+        color: var(--accent);
+    }
+    .outline-section .outline-sub {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-bottom: 1rem;
+    }
+    .outline-list { list-style: none; margin-bottom: 1.5rem; }
+    .outline-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 6px;
+        font-size: 0.875rem;
+        gap: 1rem;
+    }
+    .outline-section-title { font-weight: 500; }
+    .outline-word-count {
+        color: var(--muted);
+        font-size: 0.76rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .confirm-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--accent), #00c9a7);
+        color: #0a0a0f;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        box-shadow: 0 0 20px rgba(0,245,212,0.25);
+    }
+    .confirm-btn:hover { transform: translateY(-2px); box-shadow: 0 0 35px rgba(0,245,212,0.45); }
+
+    /* ── Result boxes ── */
+    .result-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 20px;
+        border-radius: 14px;
+        margin-top: 1.5rem;
+        font-size: 0.88rem;
+        font-weight: 500;
+    }
+    .result-box.success {
+        background: rgba(0,245,212,0.07);
+        border: 1px solid rgba(0,245,212,0.22);
+        color: var(--accent);
+    }
+    .result-box.error {
+        background: rgba(255,107,107,0.07);
+        border: 1px solid rgba(255,107,107,0.22);
+        color: var(--danger);
+    }
+    .result-box i { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+    .result-box-body { flex: 1; }
+    .result-box-body strong { display: block; margin-bottom: 4px; }
+    .result-meta {
+        font-size: 0.76rem;
+        opacity: 0.8;
+        margin-top: 4px;
+        font-weight: 400;
+    }
+
+    /* ── Cost chip ── */
+    .cost-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        background: rgba(0,245,212,0.06);
+        border: 1px solid rgba(0,245,212,0.15);
+        border-radius: 6px;
+        font-size: 0.72rem;
+        color: var(--accent);
+        margin-top: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="status-page">
+    <div class="status-card">
+
+        <!-- Header -->
+        <div class="status-header">
+            <div>
+                <div class="status-title">{{ job.title }}</div>
+                <div class="status-meta">Submitted {{ job.created_at|date:"M j, Y, g:i a" }}</div>
+            </div>
+
+            {% if job.status == 'PENDING' %}
+                <span class="status-badge badge-pending"><i class="bi bi-clock"></i> Queued</span>
+            {% elif job.status == 'ANALYSING' %}
+                <span class="status-badge badge-analysing"><span class="pulse-dot"></span> Analysing Brief</span>
+            {% elif job.status == 'AWAITING_OUTLINE_REVIEW' %}
+                <span class="status-badge badge-awaiting"><i class="bi bi-eye"></i> Review Outline</span>
+            {% elif job.status == 'PROCESSING' %}
+                <span class="status-badge badge-processing"><span class="pulse-dot"></span> Writing</span>
+            {% elif job.status == 'COMPLETED' %}
+                <span class="status-badge badge-completed"><i class="bi bi-check-circle-fill"></i> Complete</span>
+            {% elif job.status == 'FAILED' %}
+                <span class="status-badge badge-failed"><i class="bi bi-x-circle-fill"></i> Failed</span>
+            {% endif %}
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-section">
+            <div class="progress-label">
+                <span class="progress-stage" id="stage-text">
+                    {% if job.current_stage %}
+                        {{ job.current_stage }}
+                    {% else %}
+                        Waiting to start
+                    {% endif %}
+                </span>
+                <span class="progress-pct" id="progress-pct">{{ job.progress_percentage }}%</span>
+            </div>
+            <div class="progress-bar-track">
+                <div
+                    class="progress-bar-fill"
+                    id="progress-bar"
+                    style="width: {{ job.progress_percentage }}%;"
+                    role="progressbar"
+                    aria-valuenow="{{ job.progress_percentage }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                ></div>
+            </div>
+        </div>
+
+        <!-- Outline review -->
+        {% if job.status == 'AWAITING_OUTLINE_REVIEW' and outline %}
+        <div class="outline-section">
+            <h3><i class="bi bi-list-check"></i> Proposed Outline</h3>
+            <p class="outline-sub">Review the section structure before writing begins. Confirm to proceed.</p>
+            <ul class="outline-list">
+                {% for section in outline.sections %}
+                <li>
+                    <span class="outline-section-title">{{ section.title }}</span>
+                    <span class="outline-word-count">~{{ section.target_word_count }} words</span>
+                </li>
+                {% empty %}
+                <li><span class="outline-section-title" style="color:var(--muted);">No sections found.</span></li>
+                {% endfor %}
+            </ul>
+            <form method="post" action="{% url 'generation:confirm_outline' job.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="confirm-btn">
+                    <i class="bi bi-check2-circle"></i>&nbsp; Confirm Outline &amp; Begin Writing
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Completed -->
+        {% if job.status == 'COMPLETED' %}
+        <div class="result-box success">
+            <i class="bi bi-check-circle-fill"></i>
+            <div class="result-box-body">
+                <strong>Assignment draft complete.</strong>
+                {% if job.generated_word_count %}
+                <div class="result-meta">{{ job.generated_word_count|floatformat:"0" }} words generated.</div>
+                {% endif %}
+                {% if cost_cents %}
+                <div class="cost-chip">
+                    <i class="bi bi-lightning-charge"></i>
+                    Generation cost: ~${{ cost_cents|floatformat:"4" }}
+                    &nbsp;·&nbsp;
+                    {{ job.total_input_tokens|default:"0" }} in / {{ job.total_output_tokens|default:"0" }} out tokens
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Failed -->
+        {% if job.status == 'FAILED' %}
+        <div class="result-box error">
+            <i class="bi bi-x-circle-fill"></i>
+            <div class="result-box-body">
+                <strong>Generation failed.</strong>
+                {% if job.error_message %}
+                <div class="result-meta">{{ job.error_message }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    // Human-readable stage labels
+    var STAGE_LABELS = {
+        'instruction_analysis':       'Analysing assignment brief',
+        'combined_analysis':          'Analysing assignment brief',
+        'rubric_extraction':          'Extracting rubric criteria',
+        'outline_generation':         'Generating document outline',
+        'section_planning':           'Planning sections',
+        'research_context_preparation': 'Preparing research context',
+        'section_generation':         'Writing sections',
+        'humanization_pass':          'Refining prose',
+        'academic_reviewer_pass':     'Reviewing quality',
+        'coherence_pass':             'Checking coherence',
+        'export_formatting':          'Formatting document',
+    };
+
+    function friendlyStage(raw) {
+        return STAGE_LABELS[raw] || raw.replace(/_/g, ' ');
+    }
+
+    // Set initial stage label
+    var stageEl = document.getElementById('stage-text');
+    if (stageEl && stageEl.textContent.trim()) {
+        stageEl.textContent = friendlyStage(stageEl.textContent.trim());
+    }
+
+    // Polling
+    var JOB_STATUS    = "{{ job.status }}";
+    var POLL_STATUSES = ["PROCESSING", "ANALYSING"];
+
+    if (!POLL_STATUSES.includes(JOB_STATUS)) return;
+
+    var jsonUrl  = "{% url 'generation:job_status_json' job.pk %}";
+    var bar      = document.getElementById("progress-bar");
+    var pctLabel = document.getElementById("progress-pct");
+
+    function updateUI(data) {
+        var pct = data.progress_percentage || 0;
+        bar.style.width = pct + "%";
+        bar.setAttribute("aria-valuenow", pct);
+        pctLabel.textContent = pct + "%";
+        if (data.stage) stageEl.textContent = friendlyStage(data.stage);
+        if (!POLL_STATUSES.includes(data.status)) {
+            window.location.reload();
+        }
+    }
+
+    function poll() {
+        fetch(jsonUrl, { credentials: "same-origin" })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) { if (d) updateUI(d); })
+            .catch(function () {});
+    }
+
+    var intervalId = setInterval(poll, 3000);
+    window.addEventListener("beforeunload", function () { clearInterval(intervalId); });
+})();
+</script>
+{% endblock %}
