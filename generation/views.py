@@ -165,6 +165,10 @@ def submit_job(request):
         user=request.user,
         title=title,
         target_word_count=target_word_count,
+        assignment_type_hint=assignment_type,
+        citation_style_hint=citation_style,
+        writing_tone_hint=writing_tone,
+        generation_mode=generation_mode,
         status=GenerationJob.Status.PENDING,
     )
     if uploaded_file:

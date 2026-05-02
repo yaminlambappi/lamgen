@@ -109,7 +109,7 @@ PROVIDER_MODELS = {
     'groq':       'llama-3.3-70b-versatile',
     'openrouter': 'meta-llama/llama-3.3-70b-instruct:free',
     'gemini':     'gemini-2.0-flash',
-    'anthropic':  'claude-haiku-4-5-20251001',
+    'anthropic': 'claude-opus-4-7',
 }
 
 

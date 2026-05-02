@@ -23,6 +23,11 @@ class GenerationJob(models.Model):
     input_file = models.FileField(upload_to='uploads/', blank=True)
     prompt_text = models.TextField(blank=True)
     target_word_count = models.PositiveIntegerField(default=3000)
+    # User-selected generation settings — saved from the submit form
+    assignment_type_hint = models.CharField(max_length=30, blank=True)
+    citation_style_hint = models.CharField(max_length=50, blank=True)
+    writing_tone_hint = models.CharField(max_length=30, blank=True)
+    generation_mode = models.CharField(max_length=20, blank=True, default='standard')
     status = models.CharField(
         max_length=30,
         choices=Status.choices,

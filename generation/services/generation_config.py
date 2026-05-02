@@ -3,6 +3,7 @@ GenerationConfig — runtime configuration resolver for the LamGen pipeline.
 
 Reads Django settings once per pipeline execution and exposes:
 - Per-stage token budgets keyed by generation mode (economy / standard / quality)
+- Model routing: Haiku for analysis, Sonnet for outline/validation, Opus for section writing
 - Feature flags controlling prompt verbosity and memory injection
 - Budget protection helpers
 - Cost estimation utilities
@@ -14,11 +15,28 @@ from django.conf import settings
 
 
 # ---------------------------------------------------------------------------
+# Model routing — specialised per pipeline role
+# ---------------------------------------------------------------------------
+
+# Haiku: fast, cheap — document parsing, analysis, metadata extraction
+HAIKU_MODEL = 'claude-haiku-4-5'
+# Sonnet: balanced — outline generation, validation, citation alignment
+SONNET_MODEL = 'claude-sonnet-4-5'
+# Opus: highest quality — section writing, analytical reasoning, natural generation
+OPUS_MODEL = 'claude-opus-4-5'
+
+# Opus generation settings — tuned for natural, varied academic writing
+OPUS_GENERATION_SETTINGS = {
+    'temperature': 0.82,
+    'top_p': 0.92,
+}
+
+# ---------------------------------------------------------------------------
 # Token budgets per generation mode
 # ---------------------------------------------------------------------------
 
 _MODE_BUDGETS = {
-    # economy: minimal prompts, tightest token caps — lowest cost per assignment
+    # economy: Haiku analysis, Sonnet outline, Sonnet sections — lowest cost
     'economy': {
         'analysis_max_tokens': 600,
         'outline_max_tokens': 800,
@@ -27,32 +45,45 @@ _MODE_BUDGETS = {
         'inject_full_brief': False,
         'inject_memory': False,
         'inject_research_context': False,
+        'section_model': SONNET_MODEL,  # economy uses Sonnet for sections
     },
-    # standard: balanced quality and cost — recommended for production
+    # standard: Haiku analysis, Sonnet outline, Opus sections — recommended
     'standard': {
         'analysis_max_tokens': 800,
         'outline_max_tokens': 1000,
-        'section_token_multiplier': 1.35,
-        'section_token_cap': 4000,
+        'section_token_multiplier': 1.5,
+        'section_token_cap': 5000,
         'inject_full_brief': False,
         'inject_memory': True,
         'inject_research_context': False,
+        'section_model': OPUS_MODEL,
     },
-    # quality: fuller context injection, higher token caps — highest output quality
+    # quality: Haiku analysis, Sonnet outline, Opus sections — full context injection
     'quality': {
         'analysis_max_tokens': 1000,
         'outline_max_tokens': 1200,
-        'section_token_multiplier': 1.5,
+        'section_token_multiplier': 1.6,
         'section_token_cap': 6000,
         'inject_full_brief': True,
         'inject_memory': True,
         'inject_research_context': True,
+        'section_model': OPUS_MODEL,
     },
 }
 
-# Sonnet pricing (USD per million tokens) — update if pricing changes
-_INPUT_PRICE_PER_M = 3.0
-_OUTPUT_PRICE_PER_M = 15.0
+# Pricing (USD per million tokens) — Opus rates
+_OPUS_INPUT_PRICE_PER_M = 15.0
+_OPUS_OUTPUT_PRICE_PER_M = 75.0
+# Sonnet rates
+_SONNET_INPUT_PRICE_PER_M = 3.0
+_SONNET_OUTPUT_PRICE_PER_M = 15.0
+# Haiku rates
+_HAIKU_INPUT_PRICE_PER_M = 0.8
+_HAIKU_OUTPUT_PRICE_PER_M = 4.0
+
+# Default to Sonnet blended rate for cost estimation
+_INPUT_PRICE_PER_M = _SONNET_INPUT_PRICE_PER_M
+_OUTPUT_PRICE_PER_M = _SONNET_OUTPUT_PRICE_PER_M
 
 
 class GenerationConfig:
@@ -60,25 +91,39 @@ class GenerationConfig:
     Resolved configuration for a single generation run.
 
     Instantiate once per pipeline execution and pass to all services that
-    need token budgets, feature flags, or cost estimates.
+    need token budgets, feature flags, model routing, or cost estimates.
+
+    Model routing:
+    - analysis_model  → Haiku  (fast, cheap metadata extraction)
+    - outline_model   → Sonnet (structured planning)
+    - section_model   → Opus   (natural long-form writing, standard/quality modes)
+    - validation_model → Sonnet (light citation/rubric checks)
     """
 
-    def __init__(self) -> None:
-        mode = getattr(settings, 'GENERATION_MODE', 'standard')
-        if mode not in _MODE_BUDGETS:
-            mode = 'standard'
-        self.mode = mode
-        self._budget = _MODE_BUDGETS[mode]
+    def __init__(self, mode: str | None = None) -> None:
+        raw_mode = mode or getattr(settings, 'GENERATION_MODE', 'standard')
+        if raw_mode not in _MODE_BUDGETS:
+            raw_mode = 'standard'
+        self.mode = raw_mode
+        self._budget = _MODE_BUDGETS[self.mode]
 
-        self.model = getattr(settings, 'CLAUDE_MODEL', 'claude-sonnet-4-5')
         self.mock_mode = getattr(settings, 'CLAUDE_MOCK_MODE', False)
-        self.max_tokens_per_job = getattr(settings, 'CLAUDE_MAX_TOKENS_PER_JOB', 40000)
+        self.max_tokens_per_job = getattr(settings, 'CLAUDE_MAX_TOKENS_PER_JOB', 80000)
         self.assignment_type_default = getattr(settings, 'ASSIGNMENT_TYPE_DEFAULT', 'essay')
         self.citation_style_default = getattr(settings, 'CITATION_STYLE_DEFAULT', 'APA')
         self.writing_tone_default = getattr(settings, 'WRITING_TONE_DEFAULT', 'critical_analytical')
         self.section_mode = getattr(settings, 'SECTION_MODE', 'auto')
         self.section_count_default = getattr(settings, 'SECTION_COUNT_DEFAULT', 5)
-        self.max_budget_cents = getattr(settings, 'MAX_GENERATION_BUDGET_CENTS', 25)
+        self.max_budget_cents = getattr(settings, 'MAX_GENERATION_BUDGET_CENTS', 150)
+
+        # Model routing — can be overridden per-role via env vars
+        self.analysis_model = getattr(settings, 'HAIKU_MODEL', HAIKU_MODEL)
+        self.outline_model = getattr(settings, 'SONNET_MODEL', SONNET_MODEL)
+        self.section_model = self._budget['section_model']
+        self.validation_model = getattr(settings, 'SONNET_MODEL', SONNET_MODEL)
+
+        # Opus generation settings for natural writing
+        self.opus_settings = OPUS_GENERATION_SETTINGS.copy()
 
     # ------------------------------------------------------------------
     # Token budget accessors
@@ -131,7 +176,7 @@ class GenerationConfig:
     # ------------------------------------------------------------------
 
     def estimate_cost_cents(self, input_tokens: int, output_tokens: int) -> float:
-        """Estimate cost in USD cents for the given token counts."""
+        """Estimate cost in USD cents using blended Sonnet rates."""
         input_cost = (input_tokens / 1_000_000) * _INPUT_PRICE_PER_M * 100
         output_cost = (output_tokens / 1_000_000) * _OUTPUT_PRICE_PER_M * 100
         return round(input_cost + output_cost, 4)
@@ -145,16 +190,16 @@ class GenerationConfig:
         Pre-generation cost estimate for a job.
 
         Assumptions:
-        - 1 combined analysis call: ~1,500 input + analysis_max_tokens output
-        - 1 outline call: ~600 input + outline_max_tokens output
-        - n_sections generation calls: ~800 input each + section_max_tokens output
+        - 1 Haiku analysis call: ~1,500 input + analysis_max_tokens output
+        - 1 Sonnet outline call: ~600 input + outline_max_tokens output
+        - n_sections Opus generation calls: ~1,200 input each + section_max_tokens output
         """
         analysis_in = 1500
         analysis_out = self.analysis_max_tokens
         outline_in = 600
         outline_out = self.outline_max_tokens
         words_per_section = target_word_count // max(n_sections, 1)
-        section_in = 800
+        section_in = 1200  # larger due to persona + memory injection
         section_out = self.section_max_tokens(words_per_section)
 
         total_in = analysis_in + outline_in + (section_in * n_sections)

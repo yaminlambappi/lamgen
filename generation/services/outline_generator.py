@@ -137,6 +137,7 @@ class OutlineGenerationService:
             job=job,
             stage_label='outline_generation',
             config=self.config,
+            model_override='sonnet',  # Sonnet: structured planning
         )
 
         cleaned = response.strip()

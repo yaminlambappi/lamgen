@@ -39,7 +39,7 @@ def run_generation_pipeline(job_id: str) -> None:
         logger.error("generation.pipeline | job=%s status=not_found stage=analysis", job_id)
         return
 
-    config = GenerationConfig()
+    config = GenerationConfig(mode=job.generation_mode or None)
     orchestrator = GenerationPipelineOrchestrator()
     pipeline_start = time.monotonic()
 
@@ -144,7 +144,7 @@ def continue_generation_pipeline(job_id: str) -> None:
         )
         return
 
-    config = GenerationConfig()
+    config = GenerationConfig(mode=job.generation_mode or None)
     orchestrator = GenerationPipelineOrchestrator()
     generation_start = time.monotonic()
 

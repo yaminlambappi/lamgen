@@ -2,19 +2,15 @@
 Prompt templates for the LamGen academic generation pipeline.
 
 Design principles:
-- Analysis prompt extracts precise metadata in one call (Stages 1+2 combined)
-- Outline prompt produces a structured, rubric-weighted document plan
-- Section generation prompt drives postgraduate-quality analytical writing
-- All templates use Python .format() substitution
-- Optional context blocks are assembled by the calling service, not inside templates
+- Analysis (Haiku): extract precise metadata in one call
+- Outline (Sonnet): structured, rubric-weighted document plan
+- Section generation (Opus): natural long-form writing with persona + continuity memory
+- Prompts avoid "write professionally and academically" framing
+- Prompts encourage natural reasoning, contextual analysis, realistic pacing
 """
 
 # ---------------------------------------------------------------------------
-# Stages 1 + 2 combined: assignment brief + rubric extraction
-#
-# {rubric_instruction} is filled by build_combined_analysis_prompt() with
-# either the rubric schema (when rubric keywords are detected in the document)
-# or an empty array literal (when no rubric is present).
+# Stages 1 + 2 combined: assignment brief + rubric extraction (Haiku)
 # ---------------------------------------------------------------------------
 
 COMBINED_ANALYSIS_PROMPT = """You are analysing an academic assignment document. Extract all structured metadata precisely.
@@ -39,25 +35,22 @@ Return ONLY valid JSON — no markdown fences, no commentary, no extra text:
 Extraction rules:
 - topic: extract the actual question or task, not a paraphrase
 - academic_level: default to "postgraduate" if not explicitly stated
-- writing_tone: infer from assignment type and level — reports and case studies are typically "professional_report" or "critical_analytical"; reflective journals are "reflective"
-- required_sections: list only sections explicitly named in the brief; leave empty if none specified
-- required_frameworks: include only frameworks, models, or theorists explicitly named
-- Return ONLY the JSON object — no preamble, no explanation
+- writing_tone: infer from assignment type and level
+- required_sections: list only sections explicitly named in the brief
+- required_frameworks: include only frameworks explicitly named
+- Return ONLY the JSON object
 
 Assignment document:
 {document_text}"""
 
-# Injected as {rubric_instruction} when rubric keywords are detected in the document
 _RUBRIC_SCHEMA = (
     '[{{"name": "<criterion name>", "weight": <proportion of total marks as float 0.0–1.0>, '
     '"distinction_descriptor": "<quality descriptor for distinction-level performance>"}}]'
 )
-# Injected when no rubric is present
 _RUBRIC_EMPTY = '[]'
 
 
 def build_combined_analysis_prompt(document_text: str, has_rubric: bool) -> str:
-    """Return the combined analysis prompt with the appropriate rubric instruction."""
     return COMBINED_ANALYSIS_PROMPT.format(
         document_text=document_text,
         rubric_instruction=_RUBRIC_SCHEMA if has_rubric else _RUBRIC_EMPTY,
@@ -65,7 +58,7 @@ def build_combined_analysis_prompt(document_text: str, has_rubric: bool) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Stage 3: Outline generation
+# Stage 3: Outline generation (Sonnet)
 # ---------------------------------------------------------------------------
 
 OUTLINE_GENERATION_PROMPT = """Generate a structured document outline for the following assignment.
@@ -84,7 +77,7 @@ Outline rules:
 - Word counts must sum to approximately {target_word_count}
 - Where a rubric is provided, allocate more words to higher-weighted criteria
 - Section titles must match or closely follow required_sections from the brief where specified
-- Each section requires at least 3 substantive key_points — not generic headings, but specific arguments or analytical moves
+- Each section requires at least 3 substantive key_points — specific arguments, not generic headings
 - Introduction and Conclusion should each receive 8–12% of the total word count
 - Body sections should reflect the analytical weight of the assignment
 
@@ -98,31 +91,33 @@ Total word count: {target_word_count}"""
 
 
 # ---------------------------------------------------------------------------
-# Stage 6: Section generation
+# Stage 6: Section generation (Opus)
 #
-# This is the core generation call. The prompt is designed to produce
-# postgraduate-quality analytical writing with natural sentence rhythm,
-# appropriate hedging, and rubric-aligned depth.
+# Designed for natural, human-like academic writing.
+# Avoids "write professionally and academically" framing.
+# Encourages contextual reasoning, realistic pacing, natural variation.
 # ---------------------------------------------------------------------------
 
-SECTION_GENERATION_PROMPT = """Write the "{section_title}" section of a {academic_level}-level {assignment_type}.
+SECTION_GENERATION_PROMPT = """Write the "{section_title}" section of this {academic_level}-level {assignment_type}.
 
-Target length: {target_word_count} words (±5%). Writing tone: {writing_tone}. Citation style: {citation_style}.
+Target: approximately {target_word_count} words.
 
-Points to develop in this section:
+Points to develop:
 {key_points}
 {optional_context}
-Writing standards:
-1. Reach {target_word_count} words (±5%). Count carefully before finishing.
-2. Open with a clear analytical claim — not a definition or background statement.
-3. Develop each key point with evidence, critical evaluation, and a clear line of argument. Do not summarise; analyse.
-4. Where competing perspectives exist, engage with them directly — acknowledge limitations, tensions, and scholarly disagreement.
-5. Vary sentence length and structure naturally. Mix short declarative sentences with longer analytical ones. Avoid uniform rhythm.
-6. Use hedging language where appropriate: "suggests", "indicates", "may", "tends to" — not overconfident assertions.
-7. Use placeholder citations in the form [Author, Year] where a real source would appear. Do not fabricate statistics or invent authors.
-8. Write in flowing academic prose. No bullet points, numbered lists, or subheadings in the output.
-9. Close the section with a synthesising statement that connects the analysis to the broader argument of the assignment.
-10. Do not begin the section with the section title or a meta-statement about what the section will do.
+How to write this section:
+- Write naturally and analytically — like a capable student who has genuinely thought about this
+- Prioritise contextual reasoning over textbook explanation
+- Let paragraph length vary naturally — some short and punchy, some longer analytical blocks
+- Open with a substantive claim or observation, not a definition or meta-statement
+- Develop each point with evidence, critical evaluation, and a clear line of reasoning
+- Where competing perspectives exist, engage with them directly — acknowledge tensions and tradeoffs
+- Use hedging where appropriate: "suggests", "indicates", "may", "tends to"
+- Use placeholder citations in the form [Author, Year] where a real source would appear
+- Avoid predictable transitions like "Furthermore", "Moreover", "Additionally" — use contextual flow instead
+- Do not begin with the section title or announce what the section will do
+- Close with a synthesising thought that connects naturally to the broader argument
+- Write in flowing prose — no bullet points, no subheadings
 
 Write the section now:"""
 
@@ -140,28 +135,29 @@ def build_section_prompt(
     generation_memory: str = '',
 ) -> str:
     """
-    Assemble the section generation user prompt.
+    Assemble the Opus section generation user prompt.
 
-    Optional context blocks (organisational context, rubric, prior section memory)
-    are only injected when they contain meaningful content, keeping token usage lean.
+    Optional context blocks are only injected when they contain meaningful content.
+    Organisational context is framed as something to integrate analytically,
+    not as background to describe.
     """
     optional_parts = []
 
     if organisational_context and organisational_context.strip() not in ('', 'None'):
         optional_parts.append(
-            f"Organisational context (integrate this into the analysis, do not treat it as background):\n"
+            f"Organisational context (weave this into the analysis — do not describe it separately):\n"
             f"{organisational_context}"
         )
 
     if rubric_criteria and rubric_criteria.strip() not in ('', 'No rubric provided'):
         optional_parts.append(
-            f"Rubric criteria (weight your analytical depth and emphasis accordingly):\n"
+            f"Rubric criteria (let these shape your analytical emphasis, not your structure):\n"
             f"{rubric_criteria}"
         )
 
     if generation_memory and generation_memory.strip() not in ('', 'No prior sections generated.'):
         optional_parts.append(
-            f"Consistency with prior sections (maintain these positions and do not repeat covered ground):\n"
+            f"Writing continuity (pick up naturally from where the previous section left off):\n"
             f"{generation_memory}"
         )
 
@@ -177,3 +173,73 @@ def build_section_prompt(
         citation_style=citation_style,
         optional_context=optional_context,
     )
+
+
+# ---------------------------------------------------------------------------
+# Reflection section prompt (Opus) — personal, experiential, non-generic
+# ---------------------------------------------------------------------------
+
+REFLECTION_SECTION_PROMPT = """Write the "{section_title}" section of this {academic_level}-level {assignment_type}.
+
+Target: approximately {target_word_count} words.
+
+Points to reflect on:
+{key_points}
+{optional_context}
+How to write this reflection:
+- Write from a genuine first-person perspective — this is personal and experiential
+- Show evolving understanding, not a polished summary of what you learned
+- Include realistic implementation challenges and tradeoffs you encountered or considered
+- Avoid motivational language and generic reflective clichés ("this experience taught me...")
+- Let the reflection feel like it was written over time, not in one sitting
+- Acknowledge uncertainty and complexity where it genuinely exists
+- Connect personal observations to the broader analytical context of the assignment
+- Use natural, slightly informal academic register — not robotic self-analysis
+
+Write the reflection now:"""
+
+
+def build_reflection_prompt(
+    section_title: str,
+    target_word_count: int,
+    key_points: str,
+    academic_level: str,
+    assignment_type: str,
+    organisational_context: str = '',
+    generation_memory: str = '',
+) -> str:
+    optional_parts = []
+    if organisational_context and organisational_context.strip() not in ('', 'None'):
+        optional_parts.append(f"Context: {organisational_context}")
+    if generation_memory and generation_memory.strip():
+        optional_parts.append(f"Prior sections covered: {generation_memory}")
+    optional_context = ('\n' + '\n\n'.join(optional_parts) + '\n') if optional_parts else '\n'
+
+    return REFLECTION_SECTION_PROMPT.format(
+        section_title=section_title,
+        target_word_count=target_word_count,
+        key_points=key_points,
+        academic_level=academic_level,
+        assignment_type=assignment_type,
+        optional_context=optional_context,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Light validation prompt (Sonnet) — citation alignment only
+# ---------------------------------------------------------------------------
+
+CITATION_VALIDATION_PROMPT = """Review the following academic text for citation consistency only.
+
+Check:
+1. All in-text citations follow {citation_style} format
+2. Citation placeholders [Author, Year] are consistently formatted
+3. No citation appears in a format inconsistent with the rest of the document
+
+Do NOT rewrite content. Do NOT change analytical substance. Do NOT restructure paragraphs.
+Make only the minimum citation formatting corrections needed.
+
+If no citation issues are found, return the text unchanged.
+
+Text:
+{section_content}"""

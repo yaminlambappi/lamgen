@@ -67,6 +67,7 @@ class AssignmentIntelligenceEngine:
             max_tokens=self.config.analysis_max_tokens,
             job=job,
             stage_label='combined_analysis',
+            model_override='haiku',  # Haiku: fast, cheap metadata extraction
         )
 
         data = self._parse_response(response)
@@ -102,7 +103,13 @@ class AssignmentIntelligenceEngine:
         return parsed
 
     def _persist_brief(self, job: GenerationJob, fields: dict) -> AssignmentBrief:
-        """Validate, normalise, and persist an AssignmentBrief from parsed fields."""
+        """Validate, normalise, and persist an AssignmentBrief from parsed fields.
+
+        User-supplied hints (job.assignment_type_hint, citation_style_hint,
+        writing_tone_hint) are used as fallbacks when the document analysis
+        doesn't produce a valid value — giving the user's explicit choice
+        priority over the config default.
+        """
         academic_level = fields.get('academic_level', '')
         if academic_level not in self.VALID_ACADEMIC_LEVELS:
             academic_level = AssignmentBrief.AcademicLevel.POSTGRADUATE
@@ -112,13 +119,25 @@ class AssignmentIntelligenceEngine:
 
         assignment_type = fields.get('assignment_type', '')
         if assignment_type not in self.VALID_ASSIGNMENT_TYPES:
-            assignment_type = self.config.assignment_type_default
+            # Prefer user's explicit choice over config default
+            assignment_type = (
+                job.assignment_type_hint
+                if job.assignment_type_hint in self.VALID_ASSIGNMENT_TYPES
+                else self.config.assignment_type_default
+            )
 
         writing_tone = fields.get('writing_tone', '')
         if writing_tone not in self.VALID_WRITING_TONES:
-            writing_tone = self.config.writing_tone_default
+            writing_tone = (
+                job.writing_tone_hint
+                if job.writing_tone_hint in self.VALID_WRITING_TONES
+                else self.config.writing_tone_default
+            )
 
-        citation_style = fields.get('citation_style', '') or self.config.citation_style_default
+        # Citation style: document value wins; fall back to user hint, then config default
+        citation_style = fields.get('citation_style', '').strip()
+        if not citation_style:
+            citation_style = job.citation_style_hint or self.config.citation_style_default
 
         return AssignmentBrief.objects.create(
             job=job,

@@ -1,9 +1,13 @@
 """
 SectionGenerationService — Stage 6 of the LamGen generation pipeline.
 
-Generates each document section in outline order, maintaining cross-section
-memory and emitting structured logs per section (duration, tokens, cost).
-Applies deterministic post-processing to reduce mechanical AI patterns.
+Uses Claude Opus for all section writing with:
+- Student persona injection for consistent writing identity
+- Full continuity memory (previous section summary, argument thread, rhythm notes)
+- Natural writing prompts — no "write professionally" framing
+- Reflection sections get a dedicated personal/experiential prompt
+- Minimal post-processing: only removes the most egregious mechanical phrases
+  without normalising paragraph structure or enforcing symmetry
 """
 
 import time
@@ -14,81 +18,75 @@ from generation.models import AssignmentBrief, DocumentOutline, GeneratedSection
 from generation.services.claude_service import ClaudeService, BudgetExhaustedError, _estimate_cost_cents
 from generation.services.generation_config import GenerationConfig
 from generation.services.section_memory import SectionMemory, SectionMemoryService
-from generation.prompts.templates import build_section_prompt
+from generation.prompts.templates import build_section_prompt, build_reflection_prompt
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Deterministic post-processing — zero additional API calls
+# Minimal post-processing — only the most egregious mechanical phrases
 #
-# Targets the most common mechanical patterns in LLM-generated academic text.
-# Replacements are chosen to preserve meaning while varying register.
+# Deliberately light: we do NOT normalise paragraph lengths, enforce sentence
+# symmetry, or aggressively clean transitions. Natural variation is the goal.
 # ---------------------------------------------------------------------------
 
 _PHRASE_REPLACEMENTS = [
-    # Filler openers
-    (re.compile(r'\bIt is important to note that\b', re.I), 'Notably,'),
-    (re.compile(r'\bIt is worth noting that\b', re.I), 'Of note,'),
-    (re.compile(r'\bIt should be noted that\b', re.I), ''),
-    (re.compile(r'\bIt can be seen that\b', re.I), ''),
-    (re.compile(r'\bIt is clear that\b', re.I), ''),
-    (re.compile(r'\bIt is evident that\b', re.I), 'The evidence suggests that'),
-    # Mechanical transitions
-    (re.compile(r'\bFurthermore,\b', re.I), 'Beyond this,'),
-    (re.compile(r'\bMoreover,\b', re.I), 'Additionally,'),
-    (re.compile(r'\bIn addition,\b', re.I), 'Further,'),
-    (re.compile(r'\bIn conclusion,\b', re.I), 'Taken together,'),
-    (re.compile(r'\bIn summary,\b', re.I), 'Overall,'),
-    (re.compile(r'\bTo summarise,\b', re.I), 'In aggregate,'),
-    (re.compile(r'\bTo summarize,\b', re.I), 'In aggregate,'),
-    # Verbose constructions
-    (re.compile(r'\bIn order to\b', re.I), 'To'),
-    (re.compile(r'\bDue to the fact that\b', re.I), 'Because'),
-    (re.compile(r'\bAt this point in time\b', re.I), 'Currently'),
-    (re.compile(r'\bIn the event that\b', re.I), 'If'),
-    (re.compile(r'\bWith regard to\b', re.I), 'Regarding'),
-    (re.compile(r'\bWith respect to\b', re.I), 'Regarding'),
-    # Self-referential meta-statements
+    # Self-referential meta-openers that Opus occasionally produces
     (re.compile(r'\bThis essay will\b', re.I), 'This section'),
     (re.compile(r'\bThis report will\b', re.I), 'This section'),
     (re.compile(r'\bThis paper will\b', re.I), 'This section'),
     (re.compile(r'\bThis assignment will\b', re.I), 'This section'),
-    (re.compile(r'\bThis section will explore\b', re.I), 'This section examines'),
-    (re.compile(r'\bThis section will discuss\b', re.I), 'This section analyses'),
-    (re.compile(r'\bThis section will examine\b', re.I), 'This section considers'),
+    # Filler openers — remove entirely (collapse double space after)
+    (re.compile(r'\bIt is important to note that\b', re.I), ''),
+    (re.compile(r'\bIt should be noted that\b', re.I), ''),
+    (re.compile(r'\bIt is worth noting that\b', re.I), ''),
+    # Verbose constructions
+    (re.compile(r'\bIn order to\b', re.I), 'To'),
+    (re.compile(r'\bDue to the fact that\b', re.I), 'Because'),
+]
+
+# Blacklisted transitions — only replace when they appear at sentence start
+# (preserves natural mid-sentence usage)
+_TRANSITION_REPLACEMENTS = [
+    (re.compile(r'(?<=[.!?]\s)Furthermore,\s', re.I), ''),
+    (re.compile(r'(?<=[.!?]\s)Moreover,\s', re.I), ''),
+    (re.compile(r'(?<=[.!?]\s)Additionally,\s', re.I), ''),
+    (re.compile(r'(?<=[.!?]\s)In conclusion,\s', re.I), 'Taken together, '),
+    (re.compile(r'(?<=[.!?]\s)In summary,\s', re.I), 'Overall, '),
 ]
 
 
-def _apply_post_processing(text: str) -> str:
+def _apply_minimal_post_processing(text: str) -> str:
     """
-    Apply deterministic phrase substitutions to reduce mechanical AI patterns.
-    Collapses any double spaces introduced by empty replacements.
+    Apply only the minimum phrase substitutions to remove the most obvious
+    mechanical patterns. Does NOT normalise paragraph structure.
     """
     for pattern, replacement in _PHRASE_REPLACEMENTS:
         text = pattern.sub(replacement, text)
+    for pattern, replacement in _TRANSITION_REPLACEMENTS:
+        text = pattern.sub(replacement, text)
+    # Collapse any double spaces introduced by empty replacements
     text = re.sub(r'  +', ' ', text)
-    # Remove any leading comma+space left by empty replacements at sentence start
-    text = re.sub(r'(?<=[.!?]\s),\s*', '', text)
     return text.strip()
 
 
 # ---------------------------------------------------------------------------
-# Section type classification — controls token budget allocation
+# Section type classification
 # ---------------------------------------------------------------------------
 
-_STRUCTURAL_SECTION_PATTERN = re.compile(
+_REFLECTION_PATTERN = re.compile(r'\breflect', re.IGNORECASE)
+_STRUCTURAL_PATTERN = re.compile(
     r'\b(introduction|conclusion|background|methodology|methods|references|'
     r'bibliography|executive summary|table of contents|appendix|abstract)\b',
     re.IGNORECASE,
 )
 
 
+def _is_reflection_section(title: str) -> bool:
+    return bool(_REFLECTION_PATTERN.search(title))
+
+
 def _is_structural_section(title: str) -> bool:
-    """
-    Return True for sections that are structurally predictable.
-    These receive a tighter token cap since they require less analytical depth.
-    """
-    return bool(_STRUCTURAL_SECTION_PATTERN.search(title))
+    return bool(_STRUCTURAL_PATTERN.search(title))
 
 
 class SectionGenerationService:
@@ -104,10 +102,16 @@ class SectionGenerationService:
         memory: SectionMemory,
     ) -> list:
         """
-        Generate all sections in outline order.
+        Generate all sections in outline order using Opus with full continuity memory.
 
-        Emits a structured log entry per section and a summary log on completion.
-        Stops gracefully if the job token budget is exhausted.
+        Each section call receives:
+        - Student persona (persistent writing identity)
+        - Previous section summary
+        - Argument continuity thread
+        - Writing rhythm notes
+        - Established terminology
+        - Organisational context already introduced
+
         Returns a list of GeneratedSection objects.
         """
         sections = outline.sections
@@ -145,27 +149,27 @@ class SectionGenerationService:
                     "status=section_failed error=%s",
                     job.id, section_title, exc,
                 )
-                # Continue to next section rather than aborting the entire job
                 continue
 
             section_duration = time.monotonic() - section_start
             generated_sections.append(generated_section)
 
-            # Structured per-section log
-            section_tokens_in = job.total_input_tokens
-            section_tokens_out = job.total_output_tokens
             logger.info(
                 "generation.section_generator | job=%s section=%r status=complete "
-                "word_count=%d duration=%.2fs order=%d/%d",
+                "word_count=%d duration=%.2fs order=%d/%d model=opus",
                 job.id, section_title,
                 generated_section.word_count, section_duration,
                 i + 1, len(sections),
             )
 
-            # Update cross-section memory
+            # Update continuity memory with rich context from this section
+            content = generated_section.content
+            words = content.split()
             SectionMemoryService.update(str(job.id), {
-                "thesis_argument": generated_section.content[:150],
-                "citations_used": [],
+                "previous_section_summary": " ".join(words[:60]),  # first ~60 words as summary
+                "argument_continuity": " ".join(words[-40:]),       # last ~40 words as thread
+                "writing_rhythm_memory": _extract_rhythm_note(content),
+                "thesis_argument": content[:150],
                 "analytical_positions": [f"{section_title} analysed"],
                 "section_summary": {
                     "title": section_title,
@@ -174,8 +178,8 @@ class SectionGenerationService:
             })
             memory = SectionMemoryService.get(str(job.id))
 
-            # Progress: 25–60% range spread across sections
-            progress = 25 + int((i + 1) / len(sections) * 35)
+            # Progress: 25–90% range spread across sections
+            progress = 25 + int((i + 1) / len(sections) * 65)
             job.progress_percentage = progress
             job.current_stage = "section_generation"
             job.save(update_fields=["progress_percentage", "current_stage"])
@@ -184,7 +188,9 @@ class SectionGenerationService:
         total_duration = time.monotonic() - job_start
         total_words = sum(s.word_count for s in generated_sections)
         job.refresh_from_db()
-        total_cost = _estimate_cost_cents(job.total_input_tokens, job.total_output_tokens)
+        total_cost = _estimate_cost_cents(
+            job.total_input_tokens, job.total_output_tokens, self.config.section_model
+        )
 
         logger.info(
             "generation.section_generator | job=%s status=generation_complete "
@@ -215,18 +221,18 @@ class SectionGenerationService:
     ) -> GeneratedSection:
         section_title = outline_section["title"]
         target_word_count = outline_section.get("target_word_count", 500)
-        structural = _is_structural_section(section_title)
+        is_reflection = _is_reflection_section(section_title)
+        is_structural = _is_structural_section(section_title)
 
-        # Key points — prefer expanded if section planning ran, fall back to key_points
         key_points_raw = outline_section.get(
             "expanded_key_points",
             outline_section.get("key_points", []),
         )
         key_points = "\n".join(f"- {p}" for p in key_points_raw) if key_points_raw else ""
 
-        # Rubric criteria — only inject for analytical sections
+        # Rubric criteria — only for analytical sections
         rubric_criteria = ""
-        if not structural:
+        if not is_structural and not is_reflection:
             try:
                 rubric = brief.rubric
                 if rubric and rubric.criteria:
@@ -239,55 +245,61 @@ class SectionGenerationService:
             except Exception:
                 pass
 
-        # Memory context — only inject when config enables it and memory has content
-        generation_memory = ""
-        if self.config.inject_memory and (
-            memory.thesis_argument or memory.analytical_positions
-        ):
-            parts = []
-            if memory.thesis_argument:
-                parts.append(f"Central argument: {memory.thesis_argument}")
-            if memory.analytical_positions:
-                parts.append(f"Sections covered: {'; '.join(memory.analytical_positions[-3:])}")
-            generation_memory = " | ".join(parts)
+        # Build continuity memory string for the user prompt
+        generation_memory = _build_continuity_string(memory, self.config)
 
-        user_prompt = build_section_prompt(
-            section_title=section_title,
-            target_word_count=target_word_count,
-            key_points=key_points,
-            writing_tone=brief.writing_tone,
-            academic_level=brief.academic_level,
-            assignment_type=brief.assignment_type,
-            citation_style=brief.citation_style,
-            organisational_context=brief.organisational_context or '',
-            rubric_criteria=rubric_criteria,
-            generation_memory=generation_memory,
-        )
+        # Build the appropriate user prompt
+        if is_reflection:
+            user_prompt = build_reflection_prompt(
+                section_title=section_title,
+                target_word_count=target_word_count,
+                key_points=key_points,
+                academic_level=brief.academic_level,
+                assignment_type=brief.assignment_type,
+                organisational_context=brief.organisational_context or '',
+                generation_memory=generation_memory,
+            )
+        else:
+            user_prompt = build_section_prompt(
+                section_title=section_title,
+                target_word_count=target_word_count,
+                key_points=key_points,
+                writing_tone=brief.writing_tone,
+                academic_level=brief.academic_level,
+                assignment_type=brief.assignment_type,
+                citation_style=brief.citation_style,
+                organisational_context=brief.organisational_context or '',
+                rubric_criteria=rubric_criteria,
+                generation_memory=generation_memory,
+            )
 
-        system_prompt = ClaudeService().build_system_prompt(
-            brief,
-            memory if self.config.inject_memory else None,
+        # Build Opus system prompt with student persona + continuity memory
+        claude = ClaudeService()
+        system_prompt = claude.build_opus_system_prompt(
+            brief=brief,
+            student_persona=memory.student_persona,
+            memory=memory if self.config.inject_memory else None,
             inject_full_brief=self.config.inject_full_brief,
-            inject_memory=False,  # memory already embedded in user_prompt above
         )
 
-        # Structural sections get a tighter token cap
-        if structural:
-            max_tokens = min(int(target_word_count * 1.2), 2000)
+        # Token cap: structural sections get tighter budget
+        if is_structural:
+            max_tokens = min(int(target_word_count * 1.3), 2500)
         else:
             max_tokens = self.config.section_max_tokens(target_word_count)
 
-        content = ClaudeService().call(
-            system_prompt,
-            user_prompt,
-            max_tokens,
-            job,
+        content = claude.call(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+            max_tokens=max_tokens,
+            job=job,
             stage_label=f"section_{section_title[:30]}",
             config=self.config,
+            model_override='opus',
         )
 
-        # Deterministic post-processing — no additional API calls
-        content = _apply_post_processing(content)
+        # Minimal post-processing — no paragraph normalisation
+        content = _apply_minimal_post_processing(content)
         word_count = len(content.split())
 
         return GeneratedSection.objects.create(
@@ -297,3 +309,41 @@ class SectionGenerationService:
             content=content,
             word_count=word_count,
         )
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _build_continuity_string(memory: SectionMemory, config: GenerationConfig) -> str:
+    """
+    Build the generation_memory string injected into the user prompt.
+    Only populated when config.inject_memory is True and memory has content.
+    """
+    if not config.inject_memory:
+        return ''
+
+    parts = []
+    if memory.previous_section_summary:
+        parts.append(f"Previous section ended with: {memory.previous_section_summary}")
+    if memory.argument_continuity:
+        parts.append(f"Argument thread: {memory.argument_continuity}")
+    if memory.analytical_positions:
+        parts.append(f"Sections already covered: {'; '.join(memory.analytical_positions[-3:])}")
+    if memory.terminology:
+        terms = list(memory.terminology.keys())[-6:]
+        parts.append(f"Terms already established: {', '.join(terms)}")
+
+    return "\n".join(parts) if parts else ''
+
+
+def _extract_rhythm_note(content: str) -> str:
+    """
+    Extract a brief rhythm note from the generated content.
+    Counts paragraphs and notes average length for continuity.
+    """
+    paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
+    if not paragraphs:
+        return ''
+    avg_words = sum(len(p.split()) for p in paragraphs) // max(len(paragraphs), 1)
+    return f"{len(paragraphs)} paragraphs, avg {avg_words} words each"

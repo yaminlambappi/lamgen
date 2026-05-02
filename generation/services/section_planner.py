@@ -66,6 +66,7 @@ class SectionPlanningService:
                 max_tokens=1024,
                 job=job,
                 stage_label=f'section_planning_{i}',
+                model_override='sonnet',  # Sonnet: structural planning
             )
 
             # Strip markdown fences if present

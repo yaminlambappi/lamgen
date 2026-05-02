@@ -3,10 +3,11 @@ ClaudeService — Anthropic API wrapper for the LamGen generation pipeline.
 
 Responsibilities:
 - Mock mode (CLAUDE_MOCK_MODE=True) for zero-cost local development
+- Per-call model routing: Haiku / Sonnet / Opus via model_override
+- Opus generation settings (temperature=0.82, top_p=0.92) for natural writing
 - Retry only on transient errors: network failures, 429, 5xx
 - Hard per-job token budget guard
-- Structured per-call logging: stage, tokens, cost, duration, retry count
-- Token-efficient system prompt construction with selective memory injection
+- Structured per-call logging: stage, model, tokens, cost, duration, retry count
 """
 
 import time
@@ -59,23 +60,22 @@ _MOCK_RESPONSES: dict[str, str] = {
         "banking environments reveals significant tensions between standardisation and "
         "contextual adaptation [Smith, 2021]. This section examines these tensions critically, "
         "drawing on recent empirical work to evaluate the practical limitations of "
-        "framework-based governance. "
+        "framework-based governance.\n\n"
         "The evidence suggests that organisations frequently adopt compliance-oriented "
         "interpretations of governance frameworks, prioritising audit readiness over "
         "substantive risk reduction [Jones & Patel, 2022]. This tendency, while "
         "understandable given regulatory pressures, may paradoxically increase systemic "
         "vulnerability by directing resources toward documentation rather than capability "
         "development. A more effective approach, as argued by Chen et al. [2023], involves "
-        "integrating framework requirements with organisation-specific threat modelling. "
+        "integrating framework requirements with organisation-specific threat modelling.\n\n"
         "The implications for the organisation under examination are considerable. "
         "Operating across three jurisdictions introduces regulatory fragmentation that "
         "standard frameworks do not adequately address, requiring a governance architecture "
         "that can accommodate divergent compliance requirements without sacrificing coherence. "
-        "The analysis presented here suggests that hybrid governance models, combining "
-        "elements of NIST and ISO 27001, offer the most viable path forward, though "
-        "their implementation demands sustained executive commitment and cross-functional "
-        "coordination that many organisations struggle to maintain [Williams, 2023]. "
-    ) * 2,
+        "Hybrid governance models, combining elements of NIST and ISO 27001, offer the most "
+        "viable path forward, though their implementation demands sustained executive "
+        "commitment and cross-functional coordination [Williams, 2023]."
+    ),
 }
 
 
@@ -92,17 +92,30 @@ def _get_mock_response(stage_label: str) -> str:
 # Retry policy
 # ---------------------------------------------------------------------------
 
-# Only retry on transient conditions — never on client errors (4xx except 429)
 _RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
-# Approximate Sonnet pricing for cost logging (USD per million tokens)
-_INPUT_PRICE_PER_M = 3.0
-_OUTPUT_PRICE_PER_M = 15.0
+# Pricing per million tokens (USD) — used for cost logging
+_MODEL_PRICING = {
+    'haiku':  {'input': 0.8,  'output': 4.0},
+    'sonnet': {'input': 3.0,  'output': 15.0},
+    'opus':   {'input': 15.0, 'output': 75.0},
+}
+# Default to Sonnet rates for unknown models
+_DEFAULT_PRICING = _MODEL_PRICING['sonnet']
 
 
-def _estimate_cost_cents(input_tokens: int, output_tokens: int) -> float:
-    input_cost = (input_tokens / 1_000_000) * _INPUT_PRICE_PER_M * 100
-    output_cost = (output_tokens / 1_000_000) * _OUTPUT_PRICE_PER_M * 100
+def _get_pricing(model_name: str) -> dict:
+    model_lower = model_name.lower()
+    for key in _MODEL_PRICING:
+        if key in model_lower:
+            return _MODEL_PRICING[key]
+    return _DEFAULT_PRICING
+
+
+def _estimate_cost_cents(input_tokens: int, output_tokens: int, model: str = '') -> float:
+    pricing = _get_pricing(model)
+    input_cost = (input_tokens / 1_000_000) * pricing['input'] * 100
+    output_cost = (output_tokens / 1_000_000) * pricing['output'] * 100
     return round(input_cost + output_cost, 4)
 
 
@@ -118,6 +131,27 @@ class ClaudeService:
     MAX_RETRIES = 3
     BACKOFF_BASE = 2  # seconds; delays are 2s, 4s, 8s
 
+    def _resolve_model(self, model_override: str | None, config=None) -> str:
+        """
+        Resolve the model to use for this call.
+
+        Priority:
+        1. model_override string (e.g. 'opus', 'sonnet', 'haiku', or full model name)
+        2. config.section_model (if config provided)
+        3. settings.CLAUDE_MODEL fallback
+        """
+        from generation.services.generation_config import HAIKU_MODEL, SONNET_MODEL, OPUS_MODEL
+        _ALIASES = {
+            'haiku': HAIKU_MODEL,
+            'sonnet': SONNET_MODEL,
+            'opus': OPUS_MODEL,
+        }
+        if model_override:
+            return _ALIASES.get(model_override.lower(), model_override)
+        if config and hasattr(config, 'section_model'):
+            return config.section_model
+        return getattr(settings, 'CLAUDE_MODEL', SONNET_MODEL)
+
     def call(
         self,
         system_prompt: str,
@@ -126,18 +160,17 @@ class ClaudeService:
         job: GenerationJob,
         stage_label: str,
         config=None,
+        model_override: str | None = None,
     ) -> str:
         """
         Call the Anthropic Messages API and return the response text.
 
-        Behaviour:
-        - Returns a canned response immediately when CLAUDE_MOCK_MODE is enabled.
-        - Raises BudgetExhaustedError before calling the API if the job has
-          consumed its CLAUDE_MAX_TOKENS_PER_JOB limit.
-        - Retries on network errors, 429, and 5xx responses with exponential
-          backoff. Raises ClaudeAPIError immediately on 4xx client errors.
-        - Logs structured metrics (stage, tokens, cost, duration, retries) on
-          every call — successful or failed.
+        model_override accepts a short alias ('haiku', 'sonnet', 'opus') or a
+        full model name. When omitted, falls back to config.section_model or
+        settings.CLAUDE_MODEL.
+
+        Opus calls automatically apply temperature=0.82 and top_p=0.92 for
+        natural, varied writing output.
         """
         # --- Development mock mode ---
         if getattr(settings, 'CLAUDE_MOCK_MODE', False):
@@ -153,7 +186,7 @@ class ClaudeService:
             return mock_text
 
         # --- Budget guard ---
-        max_per_job = getattr(settings, 'CLAUDE_MAX_TOKENS_PER_JOB', 40000)
+        max_per_job = getattr(settings, 'CLAUDE_MAX_TOKENS_PER_JOB', 80000)
         used = job.total_input_tokens + job.total_output_tokens
         if used >= max_per_job:
             logger.error(
@@ -166,18 +199,27 @@ class ClaudeService:
                 f"(limit: {max_per_job}). Stage: {stage_label}."
             )
 
+        model = self._resolve_model(model_override, config)
         client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
         last_exception = None
         retry_count = 0
         call_start = time.monotonic()
 
+        # Opus-specific generation settings for natural writing variation
+        extra_kwargs = {}
+        if 'opus' in model.lower():
+            from generation.services.generation_config import OPUS_GENERATION_SETTINGS
+            extra_kwargs['temperature'] = OPUS_GENERATION_SETTINGS['temperature']
+            extra_kwargs['top_p'] = OPUS_GENERATION_SETTINGS['top_p']
+
         for attempt in range(1, self.MAX_RETRIES + 1):
             try:
                 response = client.messages.create(
-                    model=settings.CLAUDE_MODEL,
+                    model=model,
                     max_tokens=max_tokens,
                     system=system_prompt,
                     messages=[{"role": "user", "content": user_prompt}],
+                    **extra_kwargs,
                 )
             except anthropic.APIConnectionError as exc:
                 last_exception = exc
@@ -185,9 +227,9 @@ class ClaudeService:
                 if attempt < self.MAX_RETRIES:
                     wait = self.BACKOFF_BASE ** attempt
                     logger.warning(
-                        "generation.claude | stage=%s job=%s attempt=%d/%d "
+                        "generation.claude | stage=%s job=%s model=%s attempt=%d/%d "
                         "status=connection_error retry_in=%ds error=%s",
-                        stage_label, job.id, attempt, self.MAX_RETRIES, wait, exc,
+                        stage_label, job.id, model, attempt, self.MAX_RETRIES, wait, exc,
                     )
                     time.sleep(wait)
                 continue
@@ -196,9 +238,9 @@ class ClaudeService:
                 if exc.status_code not in _RETRYABLE_STATUS_CODES:
                     duration = time.monotonic() - call_start
                     logger.error(
-                        "generation.claude | stage=%s job=%s attempt=%d "
+                        "generation.claude | stage=%s job=%s model=%s attempt=%d "
                         "status=client_error http=%d duration=%.2fs error=%s",
-                        stage_label, job.id, attempt, exc.status_code, duration, exc,
+                        stage_label, job.id, model, attempt, exc.status_code, duration, exc,
                     )
                     raise ClaudeAPIError(
                         f"Non-retryable API error (HTTP {exc.status_code}) "
@@ -210,9 +252,9 @@ class ClaudeService:
                 if attempt < self.MAX_RETRIES:
                     wait = self.BACKOFF_BASE ** attempt
                     logger.warning(
-                        "generation.claude | stage=%s job=%s attempt=%d/%d "
+                        "generation.claude | stage=%s job=%s model=%s attempt=%d/%d "
                         "status=rate_limit_or_server_error http=%d retry_in=%ds",
-                        stage_label, job.id, attempt, self.MAX_RETRIES,
+                        stage_label, job.id, model, attempt, self.MAX_RETRIES,
                         exc.status_code, wait,
                     )
                     time.sleep(wait)
@@ -222,24 +264,24 @@ class ClaudeService:
             duration = time.monotonic() - call_start
             input_tokens = response.usage.input_tokens
             output_tokens = response.usage.output_tokens
-            cost_cents = _estimate_cost_cents(input_tokens, output_tokens)
+            cost_cents = _estimate_cost_cents(input_tokens, output_tokens, model)
 
             TokenUsageLog.objects.create(
                 job=job,
                 stage=stage_label,
                 input_tokens=input_tokens,
                 output_tokens=output_tokens,
-                model=settings.CLAUDE_MODEL,
+                model=model,
             )
             job.total_input_tokens += input_tokens
             job.total_output_tokens += output_tokens
             job.save(update_fields=["total_input_tokens", "total_output_tokens"])
 
             logger.info(
-                "generation.claude | stage=%s job=%s status=success "
+                "generation.claude | stage=%s job=%s model=%s status=success "
                 "input_tokens=%d output_tokens=%d cost_cents=%.4f "
                 "duration=%.2fs retries=%d",
-                stage_label, job.id,
+                stage_label, job.id, model,
                 input_tokens, output_tokens, cost_cents,
                 duration, retry_count,
             )
@@ -248,9 +290,9 @@ class ClaudeService:
 
         duration = time.monotonic() - call_start
         logger.error(
-            "generation.claude | stage=%s job=%s status=failed "
+            "generation.claude | stage=%s job=%s model=%s status=failed "
             "attempts=%d duration=%.2fs error=%s",
-            stage_label, job.id, self.MAX_RETRIES, duration, last_exception,
+            stage_label, job.id, model, self.MAX_RETRIES, duration, last_exception,
         )
         raise ClaudeAPIError(
             f"API call failed after {self.MAX_RETRIES} attempts "
@@ -265,11 +307,9 @@ class ClaudeService:
         inject_memory: bool = True,
     ) -> str:
         """
-        Build a token-efficient system prompt.
+        Build a token-efficient system prompt for Sonnet/Haiku calls.
 
-        Base (inject_full_brief=False): persona + 3 core fields (~30 tokens).
-        Full brief (inject_full_brief=True): adds topic, type, org context, frameworks.
-        Memory injection is gated by inject_memory and only fires when memory has content.
+        For Opus section generation, use build_opus_system_prompt() instead.
         """
         lines = [
             f"You are an expert {brief.academic_level} academic writer specialising in "
@@ -299,6 +339,78 @@ class ClaudeService:
                 mem_parts.append(f"Positions taken: {'; '.join(positions)}")
             if mem_parts:
                 lines += ["", "Cross-section context: " + " | ".join(mem_parts)]
+
+        return "\n".join(lines)
+
+    def build_opus_system_prompt(
+        self,
+        brief: AssignmentBrief,
+        student_persona: dict,
+        memory: SectionMemory | None = None,
+        inject_full_brief: bool = False,
+    ) -> str:
+        """
+        Build the system prompt for Opus section generation calls.
+
+        Injects the student persona identity and writing continuity memory.
+        Avoids "write professionally and academically" framing — uses natural,
+        contextual writing instructions instead.
+        """
+        persona = student_persona
+        lines = [
+            f"You are a {brief.academic_level} student writing a {brief.assignment_type} "
+            f"on {brief.subject_area}.",
+            "",
+            "Your writing identity:",
+            f"- Style: {persona.get('writing_style', 'analytical but natural')}",
+            f"- Tone: {persona.get('tone', 'professional university student')}",
+            f"- Strength: {persona.get('strength', 'critical reasoning')}",
+            f"- Natural tendency: {persona.get('weakness', 'slightly uneven pacing — this is fine')}",
+            f"- Verbosity: {persona.get('verbosity', 'moderate')}",
+            f"- Transitions: {persona.get('transition_style', 'subtle and varied')}",
+            f"- Argument style: {persona.get('argument_style', 'practical and realistic')}",
+            "",
+            "How to write:",
+            "- Write naturally, analytically, and contextually — not like a textbook",
+            "- Prioritise realistic reasoning over polished perfection",
+            "- Let paragraph length vary naturally — some short, some longer analytical blocks",
+            "- Use subtle, contextual transitions rather than 'Furthermore' or 'Moreover'",
+            "- Avoid encyclopedic tone — write like someone who has thought about this, not memorised it",
+            f"- Apply {brief.citation_style} citation style",
+        ]
+
+        if inject_full_brief and brief.topic:
+            lines += ["", f"Assignment topic: {brief.topic}"]
+            if brief.organisational_context:
+                lines.append(f"Organisational context: {brief.organisational_context}")
+            if brief.required_frameworks:
+                lines.append(f"Required frameworks: {', '.join(brief.required_frameworks)}")
+
+        if memory is not None:
+            mem_parts = []
+            if memory.previous_section_summary:
+                mem_parts.append(
+                    f"Previous section summary: {memory.previous_section_summary[:200]}"
+                )
+            if memory.argument_continuity:
+                mem_parts.append(
+                    f"Argument thread to continue: {memory.argument_continuity[:150]}"
+                )
+            if memory.writing_rhythm_memory:
+                mem_parts.append(
+                    f"Writing rhythm established: {memory.writing_rhythm_memory}"
+                )
+            if memory.terminology:
+                recent = list(memory.terminology.items())[-6:]
+                terms = "; ".join(f"{k}" for k, _ in recent)
+                mem_parts.append(f"Terminology already used: {terms}")
+            if memory.organisation_context_memory:
+                mem_parts.append(
+                    f"Organisational details established: {memory.organisation_context_memory[:150]}"
+                )
+            if mem_parts:
+                lines += ["", "Writing continuity (maintain consistency with prior sections):"]
+                lines.extend(f"- {p}" for p in mem_parts)
 
         return "\n".join(lines)
 
