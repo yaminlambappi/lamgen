@@ -1,0 +1,50 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Django
+*.sqlite3
+media/
+staticfiles/
+celerybeat-schedule
+celerybeat.pid
+
+# Testing
+.pytest_cache/
+.hypothesis/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
