@@ -18,6 +18,15 @@ from django.conf import settings
 
 from generation.models import AssignmentBrief, GenerationJob, TokenUsageLog
 from generation.services.section_memory import SectionMemory
+from generation.services.author_identity import (
+    AUTHOR_PROFILE,
+    CONFIDENCE_ENGINE,
+    get_energy_depth_instruction,
+    get_citation_density_instruction,
+    check_transition_repetition,
+    check_reflection_cliches,
+    STRUCTURAL_ENTROPY,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -348,41 +357,84 @@ class ClaudeService:
         student_persona: dict,
         memory: SectionMemory | None = None,
         inject_full_brief: bool = False,
+        is_reflection: bool = False,
     ) -> str:
         """
-        Build the system prompt for Opus section generation calls.
+        Build the authored-personality system prompt for Opus section generation calls.
 
-        Injects the student persona identity and writing continuity memory.
-        Avoids "write professionally and academically" framing — uses natural,
-        contextual writing instructions instead.
+        Injects the full AUTHOR_PROFILE identity with:
+        - Stable writing personality (name, style, tone, argument behaviour)
+        - Confidence drift instructions (hedging probability, softened conclusions)
+        - Attention calibration (interest-driven depth, compact routine sections)
+        - Session energy depth instruction
+        - Citation density guidance appropriate for section type
+        - Structural entropy nudges (paragraph variation, anti-symmetry)
+        - Anti-AI controls (blacklisted transitions, anti-encyclopedic tone)
+        - Writing continuity memory from prior sections
+
+        DOES NOT use "write professionally and academically" framing.
+        DOES NOT inject fake grammar errors or artificial weakness.
+        DOES optimize for believable authorship.
         """
         persona = student_persona
+        energy = persona.get("session_energy", "normal")
+        energy_instruction = get_energy_depth_instruction(energy)
+        session_title = brief.topic[:60] if brief.topic else "this topic"
+        citation_instruction = get_citation_density_instruction(
+            section_title=session_title, is_reflection=is_reflection
+        )
+
+        # Confidence drift thresholds — surfaced as natural writing instructions
+        hedge_pct = int(CONFIDENCE_ENGINE["hedging_probability"] * 100)
+        softened_pct = int(CONFIDENCE_ENGINE["softened_conclusion_probability"] * 100)
+
         lines = [
-            f"You are a {brief.academic_level} student writing a {brief.assignment_type} "
-            f"on {brief.subject_area}.",
+            f"You are a {brief.academic_level} student named {persona.get('name', AUTHOR_PROFILE['identity']['name'])} "
+            f"writing a {brief.assignment_type} on {brief.subject_area}.",
             "",
-            "Your writing identity:",
-            f"- Style: {persona.get('writing_style', 'analytical but natural')}",
-            f"- Tone: {persona.get('tone', 'professional university student')}",
-            f"- Strength: {persona.get('strength', 'critical reasoning')}",
-            f"- Natural tendency: {persona.get('weakness', 'slightly uneven pacing — this is fine')}",
-            f"- Verbosity: {persona.get('verbosity', 'moderate')}",
-            f"- Transitions: {persona.get('transition_style', 'subtle and varied')}",
-            f"- Argument style: {persona.get('argument_style', 'practical and realistic')}",
+            "Your authored writing identity:",
+            f"- Academic range: {AUTHOR_PROFILE['identity']['academic_range']} — capable but not a perfectionist",
+            f"- Style: {persona.get('writing_style', 'analytical but grounded')}",
+            f"- Tone: {persona.get('tone', 'practical university student register — not robotic or encyclopedic')}",
+            f"- Strength: {persona.get('strength', 'practical reasoning and real-world application')}",
+            f"- Natural tendency: {persona.get('weakness', 'slight unevenness in paragraph rhythm — this is authentic')}",
+            f"- Verbosity: {persona.get('verbosity', 'moderate; naturally more detailed on interesting points')}",
+            f"- Transitions: {persona.get('transition_style', 'contextual — avoids Furthermore / Moreover / Additionally')}",
+            f"- Argument style: {persona.get('argument_style', 'balanced, practical, aware of tradeoffs')}",
+            f"- Confidence: {persona.get('confidence', 'moderate — occasionally hedges, avoids absolute claims')}",
+            "",
+            "Confidence behaviour (apply naturally throughout):",
+            f"- Roughly {hedge_pct}% of claims should use hedging language: 'suggests', 'indicates', 'may', 'tends to', 'arguably'",
+            f"- Roughly {softened_pct}% of conclusions or closing paragraphs should use a softened opener",
+            "- Do not present every argument as fully resolved — allow some analytical uncertainty",
+            "- Never fake insecurity. The uncertainty must feel like genuine careful reasoning, not self-doubt.",
+            "",
+            "Structural entropy (prevent AI-detectable symmetry):",
+            f"- Paragraph variation: {STRUCTURAL_ENTROPY['paragraph_variation']} — vary lengths naturally",
+            "- Do NOT normalise paragraph sizes or equalize section density",
+            "- Do NOT maintain perfect pacing consistency across paragraphs",
+            "- Some paragraphs will be shorter analytical observations; others will develop reasoning at length",
             "",
             "How to write:",
-            "- Write naturally, analytically, and contextually — not like a textbook",
-            "- Prioritise realistic reasoning over polished perfection",
-            "- Let paragraph length vary naturally — some short, some longer analytical blocks",
-            "- Use subtle, contextual transitions rather than 'Furthermore' or 'Moreover'",
-            "- Avoid encyclopedic tone — write like someone who has thought about this, not memorised it",
+            "- Write analytically and contextually — like someone who has genuinely thought about this, not memorised it",
+            "- Prioritise real-world reasoning over abstract theory",
+            "- Allow reasoning to evolve naturally through the section — not every idea needs to be fully resolved immediately",
+            "- Open with a substantive claim or observation, never a meta-statement about what the section will do",
+            "- Where competing perspectives exist, acknowledge tensions and tradeoffs directly",
+            "- Close analytical sections with a synthesising thought, not a grand conclusion",
+            "- Write in flowing prose — no bullet points, no subheadings",
             f"- Apply {brief.citation_style} citation style",
+            "",
+            f"Citations: {citation_instruction}",
         ]
+
+        if energy_instruction:
+            lines += ["", f"Session note: {energy_instruction}"]
 
         if inject_full_brief and brief.topic:
             lines += ["", f"Assignment topic: {brief.topic}"]
             if brief.organisational_context:
-                lines.append(f"Organisational context: {brief.organisational_context}")
+                lines.append(f"Organisational context (weave analytically — do not describe separately): {brief.organisational_context}")
             if brief.required_frameworks:
                 lines.append(f"Required frameworks: {', '.join(brief.required_frameworks)}")
 
@@ -390,7 +442,7 @@ class ClaudeService:
             mem_parts = []
             if memory.previous_section_summary:
                 mem_parts.append(
-                    f"Previous section summary: {memory.previous_section_summary[:200]}"
+                    f"Previous section ended with: {memory.previous_section_summary[:200]}"
                 )
             if memory.argument_continuity:
                 mem_parts.append(
@@ -398,18 +450,17 @@ class ClaudeService:
                 )
             if memory.writing_rhythm_memory:
                 mem_parts.append(
-                    f"Writing rhythm established: {memory.writing_rhythm_memory}"
+                    f"Established rhythm: {memory.writing_rhythm_memory}"
                 )
             if memory.terminology:
-                recent = list(memory.terminology.items())[-6:]
-                terms = "; ".join(f"{k}" for k, _ in recent)
-                mem_parts.append(f"Terminology already used: {terms}")
+                recent = list(memory.terminology.keys())[-6:]
+                mem_parts.append(f"Terminology already used: {', '.join(recent)}")
             if memory.organisation_context_memory:
                 mem_parts.append(
-                    f"Organisational details established: {memory.organisation_context_memory[:150]}"
+                    f"Organisational details already introduced: {memory.organisation_context_memory[:150]}"
                 )
             if mem_parts:
-                lines += ["", "Writing continuity (maintain consistency with prior sections):"]
+                lines += ["", "Writing continuity (maintain natural consistency with prior sections):"]
                 lines.extend(f"- {p}" for p in mem_parts)
 
         return "\n".join(lines)

@@ -18,6 +18,15 @@ from generation.models import AssignmentBrief, DocumentOutline, GeneratedSection
 from generation.services.claude_service import ClaudeService, BudgetExhaustedError, _estimate_cost_cents
 from generation.services.generation_config import GenerationConfig
 from generation.services.section_memory import SectionMemory, SectionMemoryService
+from generation.services.author_identity import (
+    build_student_persona,
+    get_attention_modifier,
+    get_session_energy,
+    get_energy_depth_instruction,
+    check_transition_repetition,
+    check_reflection_cliches,
+    BLACKLISTED_REFLECTION_PHRASES,
+)
 from generation.prompts.templates import build_section_prompt, build_reflection_prompt
 
 logger = logging.getLogger(__name__)
@@ -55,10 +64,12 @@ _TRANSITION_REPLACEMENTS = [
 ]
 
 
-def _apply_minimal_post_processing(text: str) -> str:
+def _apply_minimal_post_processing(text: str, is_reflection: bool = False) -> str:
     """
     Apply only the minimum phrase substitutions to remove the most obvious
     mechanical patterns. Does NOT normalise paragraph structure.
+
+    For reflection sections, additionally strips blacklisted generic phrases.
     """
     for pattern, replacement in _PHRASE_REPLACEMENTS:
         text = pattern.sub(replacement, text)
@@ -66,6 +77,13 @@ def _apply_minimal_post_processing(text: str) -> str:
         text = pattern.sub(replacement, text)
     # Collapse any double spaces introduced by empty replacements
     text = re.sub(r'  +', ' ', text)
+
+    if is_reflection:
+        # Remove blacklisted generic reflection phrases (case-insensitive)
+        for phrase in BLACKLISTED_REFLECTION_PHRASES:
+            text = re.sub(re.escape(phrase), '', text, flags=re.IGNORECASE)
+        text = re.sub(r'  +', ' ', text)
+
     return text.strip()
 
 
@@ -220,9 +238,19 @@ class SectionGenerationService:
         order: int = 0,
     ) -> GeneratedSection:
         section_title = outline_section["title"]
-        target_word_count = outline_section.get("target_word_count", 500)
+        base_word_count = outline_section.get("target_word_count", 500)
         is_reflection = _is_reflection_section(section_title)
         is_structural = _is_structural_section(section_title)
+
+        # Attention variability: adjust word count based on author interest profile
+        attention_modifier = get_attention_modifier(section_title)
+        target_word_count = int(base_word_count * attention_modifier)
+        if attention_modifier != 1.0:
+            logger.debug(
+                "generation.section_generator | job=%s section=%r "
+                "attention_modifier=%.3f base_wc=%d adjusted_wc=%d",
+                job.id, section_title, attention_modifier, base_word_count, target_word_count,
+            )
 
         key_points_raw = outline_section.get(
             "expanded_key_points",
@@ -273,13 +301,14 @@ class SectionGenerationService:
                 generation_memory=generation_memory,
             )
 
-        # Build Opus system prompt with student persona + continuity memory
+        # Build Opus system prompt with full authored-personality identity + continuity memory
         claude = ClaudeService()
         system_prompt = claude.build_opus_system_prompt(
             brief=brief,
             student_persona=memory.student_persona,
             memory=memory if self.config.inject_memory else None,
             inject_full_brief=self.config.inject_full_brief,
+            is_reflection=is_reflection,
         )
 
         # Token cap: structural sections get tighter budget
@@ -298,8 +327,25 @@ class SectionGenerationService:
             model_override='opus',
         )
 
-        # Minimal post-processing — no paragraph normalisation
-        content = _apply_minimal_post_processing(content)
+        # Minimal post-processing — no paragraph normalisation; reflection cliché strip
+        content = _apply_minimal_post_processing(content, is_reflection=is_reflection)
+
+        # Log flagged transitions for observability (does not mutate content further)
+        flagged = check_transition_repetition(content)
+        if flagged:
+            logger.debug(
+                "generation.section_generator | job=%s section=%r flagged_transitions=%s",
+                job.id, section_title, flagged,
+            )
+
+        if is_reflection:
+            cliches = check_reflection_cliches(content)
+            if cliches:
+                logger.debug(
+                    "generation.section_generator | job=%s section=%r reflection_cliches_stripped=%s",
+                    job.id, section_title, cliches,
+                )
+
         word_count = len(content.split())
 
         return GeneratedSection.objects.create(

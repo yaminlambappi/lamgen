@@ -107,17 +107,21 @@ Points to develop:
 {optional_context}
 How to write this section:
 - Write naturally and analytically — like a capable student who has genuinely thought about this
-- Prioritise contextual reasoning over textbook explanation
-- Let paragraph length vary naturally — some short and punchy, some longer analytical blocks
-- Open with a substantive claim or observation, not a definition or meta-statement
-- Develop each point with evidence, critical evaluation, and a clear line of reasoning
-- Where competing perspectives exist, engage with them directly — acknowledge tensions and tradeoffs
-- Use hedging where appropriate: "suggests", "indicates", "may", "tends to"
+- Prioritise contextual, practical reasoning over textbook explanation or theory recitation
+- Allow reasoning to develop as you write — not every point needs to be fully resolved at the outset
+- Let paragraph length vary naturally: some short analytical observations, some longer developed arguments
+- Open with a substantive claim or observation — not a definition, not a meta-statement about the section
+- Develop each point with evidence, evaluation, and a clear line of reasoning
+- Where competing perspectives exist, engage with them directly — acknowledge tensions and real tradeoffs
+- Use hedging where appropriate: "suggests", "indicates", "may", "tends to", "arguably", "in some respects"
+- Roughly a quarter of major claims should be softened with hedging — avoid projecting false certainty
+- Do NOT present every conclusion as fully resolved — some analytical uncertainty is authentic and expected
 - Use placeholder citations in the form [Author, Year] where a real source would appear
-- Avoid predictable transitions like "Furthermore", "Moreover", "Additionally" — use contextual flow instead
+- Avoid predictable transitions like "Furthermore", "Moreover", "Additionally" — use contextual flow
 - Do not begin with the section title or announce what the section will do
-- Close with a synthesising thought that connects naturally to the broader argument
-- Write in flowing prose — no bullet points, no subheadings
+- Close with a synthesising thought that connects naturally to the broader argument — not a grand conclusion
+- Write in flowing prose — no bullet points, no subheadings, no numbered lists
+- Some sections may be tighter or more compact than others — uneven density is natural and desirable
 
 Write the section now:"""
 
@@ -189,12 +193,15 @@ Points to reflect on:
 How to write this reflection:
 - Write from a genuine first-person perspective — this is personal and experiential
 - Show evolving understanding, not a polished summary of what you learned
-- Include realistic implementation challenges and tradeoffs you encountered or considered
-- Avoid motivational language and generic reflective clichés ("this experience taught me...")
-- Let the reflection feel like it was written over time, not in one sitting
-- Acknowledge uncertainty and complexity where it genuinely exists
+- Include realistic implementation challenges, uncertainties, and tradeoffs you encountered or considered
+- Avoid motivational language and generic reflective clichés
+- Do NOT use phrases like: "this assignment enhanced my understanding", "I gained valuable insight",
+  "this experience taught me", "this task was extremely beneficial"
+- Let the reflection feel like it was reasoned through while writing, not tidied up afterwards
+- Acknowledge where things were genuinely unclear, difficult, or less interesting than expected
 - Connect personal observations to the broader analytical context of the assignment
 - Use natural, slightly informal academic register — not robotic self-analysis
+- Write in flowing prose — no subheadings, no structured bullet-point self-assessment
 
 Write the reflection now:"""
 

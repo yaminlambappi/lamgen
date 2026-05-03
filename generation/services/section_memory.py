@@ -23,6 +23,8 @@ from dataclasses import asdict, dataclass, field
 import redis
 from django.conf import settings
 
+from generation.services.author_identity import build_student_persona, DEFAULT_STUDENT_PERSONA as _AUTHOR_PERSONA
+
 logger = logging.getLogger(__name__)
 
 # Hard caps — keep memory blob under ~300 tokens regardless of document length
@@ -35,17 +37,9 @@ _MAX_CONTINUITY_CHARS = 200
 _MAX_RHYTHM_CHARS = 120
 _MAX_ORG_CONTEXT_CHARS = 200
 
-# Default student persona — injected into all Opus section generation calls
-DEFAULT_STUDENT_PERSONA = {
-    "writing_style": "analytical but natural",
-    "tone": "professional university student",
-    "strength": "critical reasoning",
-    "weakness": "slightly uneven pacing",
-    "verbosity": "moderate",
-    "flow": "natural and contextual",
-    "transition_style": "subtle and varied",
-    "argument_style": "practical and realistic",
-}
+# Default student persona — sourced from the canonical AUTHOR_PROFILE
+# Import alias kept for backward-compatibility with any code that references this name.
+DEFAULT_STUDENT_PERSONA = _AUTHOR_PERSONA
 
 
 class SectionMemoryError(Exception):
@@ -89,8 +83,13 @@ class SectionMemoryService:
 
     @classmethod
     def initialise(cls, job_id: str, student_persona: dict | None = None) -> SectionMemory:
-        """Create a fresh SectionMemory and store it in Redis with a 4-hour TTL."""
-        persona = student_persona or dict(DEFAULT_STUDENT_PERSONA)
+        """
+        Create a fresh SectionMemory and store it in Redis with a 4-hour TTL.
+
+        When no persona is supplied, builds one from the canonical AUTHOR_PROFILE
+        via build_student_persona() so every job starts with the authored identity.
+        """
+        persona = student_persona or build_student_persona()
         memory = SectionMemory(job_id=job_id, student_persona=persona)
         r = cls._get_redis()
         r.setex(cls._redis_key(job_id), cls.TTL_SECONDS, json.dumps(asdict(memory)))
