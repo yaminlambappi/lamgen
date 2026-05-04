@@ -42,7 +42,7 @@ AUTHOR_PROFILE = {
         "paragraph_uniformity": "low",
         "transition_usage": "minimal and contextual",
         "tone": "grounded and realistic",
-        "reflection_style": "practical rather than emotional",
+        "reflection_style": "observational, grounded, and context-aware",
         "vocabulary_level": "moderately advanced",
         "argument_style": "balanced and practical",
     },
