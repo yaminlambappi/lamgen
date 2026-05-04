@@ -216,8 +216,6 @@ class LLMService:
         # === Pass 1: Generate high-quality draft (core content) ===
         generation_prompt = f"""You are a high-achieving Master's student who consistently scores High Distinction (HD).
 
-        Write a complete, rubric-aligned assignment of **1800-2000 words** on the topic above.
-
         Requirements:
         - Use natural, intelligent academic tone (vary sentence length, avoid robotic transitions like "Furthermore", "Moreover", "In conclusion").
         - Show strong critical analysis (why and how, not just what).
