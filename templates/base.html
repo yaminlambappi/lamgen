@@ -295,36 +295,36 @@
         }
 
         /* ── OS Global Layout Shell ── */
-        .workspace-shell {
+        .tools-shell {
             display: grid;
-            grid-template-columns: 1fr 260px;
+            grid-template-columns: 1fr 280px;
             gap: 2rem;
-            min-height: calc(100vh - 120px);
-            max-width: 1800px;
+            min-height: calc(100vh - 100px);
+            max-width: 1440px;
             margin: 0 auto;
-            padding: 80px 2rem 100px;
-            perspective: 1500px;
+            padding: 100px 2rem 60px;
+            perspective: 2000px;
         }
 
         /* Floating Panels General */
         .spatial-panel {
-            background: rgba(20, 20, 30, 0.4);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(50px) saturate(200%);
+            -webkit-backdrop-filter: blur(50px) saturate(200%);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 24px;
-            padding: clamp(1rem, 4vw, 1.5rem);
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+            gap: 1.5rem;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         /* Left Sidebar */
-        .workspace-sidebar { transform: translateZ(-20px) rotateY(5deg); position: sticky; top: 100px; height: calc(100vh - 140px); overflow-y: auto; }
-        .workspace-sidebar::-webkit-scrollbar { display: none; }
-        .workspace-sidebar:hover { transform: translateZ(0) rotateY(0); box-shadow: var(--glow); }
+        .tools-sidebar { transform: translateZ(-20px) rotateY(5deg); position: sticky; top: 100px; height: calc(100vh - 140px); overflow-y: auto; }
+        .tools-sidebar::-webkit-scrollbar { display: none; }
+        .tools-sidebar:hover { transform: translateZ(0) rotateY(0); box-shadow: var(--glow); }
         
         .sidebar-section h4 {
             font-size: 0.75rem;
@@ -336,33 +336,39 @@
         }
         .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
         .sidebar-link {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            color: var(--text);
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            color: rgba(255,255,255,0.6);
             text-decoration: none;
-            font-size: 0.9rem;
-            transition: all 0.2s;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid transparent;
         }
-        .sidebar-link:hover, .sidebar-link.active {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.1);
-            color: var(--primary);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        .sidebar-link:hover {
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            transform: translateX(4px);
+        }
+        .sidebar-link.active {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.15);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(108,99,255,0.2);
         }
 
         /* Center Content */
-        .workspace-main {
+        .tools-main {
             transform: translateZ(30px);
             min-width: 0;
             padding-bottom: 4rem;
         }
 
         /* Right Panel */
-        .workspace-actions { transform: translateZ(-20px) rotateY(-5deg); position: sticky; top: 100px; height: calc(100vh - 140px); overflow-y: auto; }
-        .workspace-actions::-webkit-scrollbar { display: none; }
-        .workspace-actions:hover { transform: translateZ(0) rotateY(0); box-shadow: var(--glow); }
+        .tools-actions { transform: translateZ(-20px) rotateY(-5deg); position: sticky; top: 100px; height: calc(100vh - 140px); overflow-y: auto; }
+        .tools-actions::-webkit-scrollbar { display: none; }
+        .tools-actions:hover { transform: translateZ(0) rotateY(0); box-shadow: var(--glow); }
 
         .action-card {
             background: rgba(255,255,255,0.02);
@@ -372,13 +378,13 @@
         }
 
         @media (max-width: 1200px) {
-            .workspace-shell { grid-template-columns: 260px 1fr; }
-            .workspace-actions { display: none; }
+            .tools-shell { grid-template-columns: 260px 1fr; }
+            .tools-actions { display: none; }
         }
         @media (max-width: 992px) {
-            .workspace-shell { grid-template-columns: 1fr; padding: 80px 1rem 100px; overflow-x: hidden; }
-            .workspace-sidebar { display: none; }
-            .workspace-main { transform: none; min-width: 0; max-width: 100vw; }
+            .tools-shell { grid-template-columns: 1fr; padding: 80px 1rem 100px; overflow-x: hidden; }
+            .tools-sidebar { display: none; }
+            .tools-main { transform: none; min-width: 0; max-width: 100vw; }
         }
 
         .dock-item {
@@ -410,9 +416,11 @@
             box-shadow: 0 0 20px rgba(108,99,255,0.3);
         }
         @media (max-width: 768px) {
-            .os-dock { display: flex; padding: 8px 16px; bottom: 16px; gap: 8px; }
-            .dock-item { width: 40px; height: 40px; font-size: 1.2rem; }
-            .workspace-actions { display: none !important; }
+            .os-dock { display: flex; padding: 8px 16px; bottom: 16px; gap: 10px; width: auto; min-width: 240px; }
+            .dock-item { width: 44px; height: 44px; font-size: 1.25rem; }
+            .tools-actions { display: none !important; }
+            .cat-dock-link { display: none !important; }
+            .dock-divider { display: none !important; }
         }
         .dock-item::after {
             content: attr(data-tooltip);
@@ -442,11 +450,15 @@
             margin: 0 4px;
         }
 
+        @media (max-width: 640px) {
+            .hide-on-mobile { display: none !important; }
+        }
+
         /* ── Floating Profile Widget & Dropdown ── */
         .profile-widget {
             pointer-events: auto;
             position: absolute;
-            right: 0;
+            left: 0;
         }
         .profile-btn {
             display: flex;
@@ -468,7 +480,7 @@
             display: none;
             position: absolute;
             top: calc(100% + 10px);
-            right: 0;
+            left: 0;
             min-width: 200px;
             background: rgba(20, 20, 30, 0.8);
             backdrop-filter: blur(30px);
@@ -546,70 +558,68 @@
         }
 
         /* ── Buttons ── */
-        .btn-primary-nexus {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 10px 24px;
+        .btn-primary-nexus, .btn-nexus {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 28px;
             background: linear-gradient(135deg, var(--primary), #8B85FF);
-            color: #fff;
-            border: none; border-radius: 50px;
+            color: #fff !important;
+            border: none; border-radius: 14px;
             font-family: 'DM Sans', sans-serif;
-            font-weight: 600; font-size: 0.9rem;
+            font-weight: 600; font-size: 0.95rem;
             cursor: pointer; text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: 0 0 20px rgba(108,99,255,0.35);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 20px rgba(108,99,255,0.2);
         }
-        .btn-primary-nexus:hover {
+        .btn-primary-nexus:hover, .btn-nexus:hover {
             transform: translateY(-2px);
-            box-shadow: 0 0 35px rgba(108,99,255,0.55);
+            box-shadow: 0 15px 30px rgba(108,99,255,0.4);
+            filter: brightness(1.1);
+        }
+        .btn-ghost-nexus, .btn-nexus-secondary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 28px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500; font-size: 0.95rem;
+            cursor: pointer; text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-ghost-nexus:hover, .btn-nexus-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
             color: #fff;
         }
-        .btn-ghost-nexus {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 10px 24px;
-            background: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 500; font-size: 0.9rem;
-            cursor: pointer; text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .btn-ghost-nexus:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: rgba(108,99,255,0.08);
-        }
-        .btn-danger-nexus {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 8px 18px;
-            background: rgba(255,107,107,0.12);
-            color: var(--danger);
-            border: 1px solid rgba(255,107,107,0.3);
-            border-radius: 8px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 500; font-size: 0.875rem;
-            cursor: pointer; text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .btn-danger-nexus:hover { background: rgba(255,107,107,0.22); color: var(--danger); }
 
-        /* ── Inputs ── */
-        .nexus-input {
+        /* ── Inputs & Form Elements ── */
+        .nexus-input, .input-nexus {
             width: 100%;
-            padding: 10px 14px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.9rem;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             outline: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
-        .nexus-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
-        .nexus-input::placeholder { color: var(--muted); }
-        .nexus-input option { background: #0F0F1A; color: var(--text); }
+        .nexus-input:focus, .input-nexus:focus { 
+            background: rgba(255,255,255,0.06);
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(108,99,255,0.15), inset 0 2px 4px rgba(0,0,0,0.2); 
+        }
+        .nexus-input::placeholder, .input-nexus::placeholder { color: rgba(255,255,255,0.3); }
+        .nexus-input option, .input-nexus option { background: #0F0F1A; color: #fff; }
+        
+        textarea.nexus-input, textarea.input-nexus {
+            line-height: 1.6;
+            resize: vertical;
+        }
 
         /* ── Animations ── */
         @keyframes fadeUp {
@@ -781,7 +791,7 @@
                     <i class="bi bi-person"></i>
                     {% endif %}
                 </button>
-                <div class="nav-dropdown-menu" style="right: 0; min-width: 200px;">
+                <div class="nav-dropdown-menu" style="left: 0; min-width: 200px;">
                     {% if user.is_authenticated %}
                     <div class="menu-label">{{ user.username }}</div>
                     <div class="divider"></div>
@@ -801,16 +811,16 @@
     </div>
 
     <!-- Main content Wrapper -->
-    <main class="workspace-shell">
+    <main class="tools-shell">
 
 
-        <!-- Center Workspace Content -->
-        <div class="workspace-main">
+        <!-- Center Tools Content -->
+        <div class="tools-main">
             {% block content %}{% endblock %}
         </div>
 
         <!-- Default Right Sidebar: Navigation -->
-        <aside class="spatial-panel workspace-actions" style="padding: 1.5rem; justify-content: flex-start; overflow-y: auto; display: flex; flex-direction: column; gap: 2rem;">
+        <aside class="spatial-panel tools-actions" style="padding: 1.5rem; justify-content: flex-start; overflow-y: auto; display: flex; flex-direction: column; gap: 2rem;">
             {% block right_sidebar %}
             
             <!-- CORE OS NAVIGATION -->
@@ -822,23 +832,23 @@
                         <span style="font-weight: 700; font-size: 1.05rem; letter-spacing: 0.5px;">Home</span>
                     </a>
                     
-                    <!-- All Workspaces -->
+                    <!-- All Tools -->
                     <a href="{% url 'tools:index' %}" style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: {% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}transparent{% endif %}; transition: all 0.2s;" onmouseover="this.style.background='{% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}rgba(255,255,255,0.05){% endif %}'" onmouseout="this.style.background='{% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}transparent{% endif %}'">
                         <div style="width: 32px; height: 32px; border-radius: 8px; background: {% if request.path == '/tools/' %}rgba(108,99,255,0.2){% else %}rgba(255,255,255,0.05){% endif %}; display: flex; align-items: center; justify-content: center;"><i class="bi bi-grid" style="color: {% if request.path == '/tools/' %}#fff{% else %}var(--muted){% endif %};"></i></div>
-                        <span style="font-weight: 600; font-size: 0.95rem; color: {% if request.path == '/tools/' %}#fff{% else %}var(--muted){% endif %};">All Workspaces</span>
+                        <span style="font-weight: 600; font-size: 0.95rem; color: {% if request.path == '/tools/' %}#fff{% else %}var(--muted){% endif %};">All Tools</span>
                     </a>
                 </div>
             </div>
 
             <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 0 0.5rem;"></div>
 
-            <!-- WORKSPACES GROUP -->
+            <!-- TOOLS GROUP -->
             <div class="sidebar-group">
                 <div style="display: flex; flex-direction: column; gap: 4px;">
                     {% for cat in nav_categories %}
                     <a href="{{ cat.get_absolute_url }}" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; text-decoration: none; color: var(--text); background: {% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}transparent{% endif %}; transition: all 0.2s;" onmouseover="this.style.background='{% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}rgba(255,255,255,0.05){% endif %}'" onmouseout="this.style.background='{% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}transparent{% endif %}'">
                         <div style="width: 32px; height: 32px; border-radius: 8px; background: {% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.15){% else %}rgba(255,255,255,0.05){% endif %}; display: flex; align-items: center; justify-content: center;"><i class="{{ cat.icon }}" style="color: {{ cat.color_from }};"></i></div>
-                        <span style="font-weight: 600; font-size: 0.95rem;">{{ cat.name }} Workspace</span>
+                        <span style="font-weight: 600; font-size: 0.95rem;">{{ cat.name }}</span>
                     </a>
                     {% endfor %}
                 </div>
@@ -852,11 +862,14 @@
         <a href="{% url 'home' %}" class="dock-item {% if request.path == '/' %}active{% endif %}" data-tooltip="Home">
             <i class="bi bi-cpu-fill" style="color: {% if request.path == '/' %}#fff{% else %}var(--primary){% endif %};"></i>
         </a>
-        <a href="{% url 'tools:index' %}" class="dock-item {% if request.path == '/tools/' %}active{% endif %}" data-tooltip="All Workspaces">
+        <a href="{% url 'tools:index' %}" class="dock-item {% if request.path == '/tools/' %}active{% endif %}" data-tooltip="All Tools">
             <i class="bi bi-grid-fill"></i>
         </a>
+        <a href="javascript:void(0)" class="dock-item" data-tooltip="Search (⌘K)" onclick="toggleInlineSearch(true)">
+            <i class="bi bi-search"></i>
+        </a>
         {% for cat in nav_categories %}
-        <a href="{{ cat.get_absolute_url }}" class="dock-item {% if request.path == cat.get_absolute_url %}active{% endif %}" data-tooltip="{{ cat.name }}" style="color: {{ cat.color_from }};">
+        <a href="{{ cat.get_absolute_url }}" class="dock-item cat-dock-link {% if request.path == cat.get_absolute_url %}active{% endif %}" data-tooltip="{{ cat.name }}" style="color: {{ cat.color_from }};">
             <i class="{{ cat.icon }}"></i>
         </a>
         {% endfor %}

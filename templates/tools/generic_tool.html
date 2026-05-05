@@ -1,26 +1,30 @@
 {% extends "tools/tool_base.html" %}
 
-{% block tool_workspace %}
-<div class="generic-workspace" style="display: flex; flex-direction: column; gap: 2rem;">
+{% block tool_content %}
+<div class="generic-tool-area" style="display: flex; flex-direction: column; gap: 2rem;">
     <div class="input-section">
-        <label style="display: block; font-size: 0.9rem; color: var(--muted); margin-bottom: 0.5rem;">Input Data</label>
-        <textarea id="generic-input" class="input-nexus" style="min-height: 200px; width: 100%;" placeholder="Paste your data here..."></textarea>
+        <label style="display: block; font-size: 0.95rem; color: rgba(255,255,255,0.5); margin-bottom: 0.8rem; font-weight: 600;">Input Data</label>
+        <textarea id="generic-input" class="nexus-input" style="min-height: 250px;" placeholder="Paste your data here..."></textarea>
     </div>
 
     <div class="action-section" style="display: flex; gap: 1rem;">
-        <button id="process-btn" class="btn-nexus flex-1">Process Data</button>
-        <button id="clear-btn" class="btn-nexus-secondary">Clear</button>
+        <button id="process-btn" class="btn-nexus flex-1">
+            <i class="bi bi-gear-fill"></i> Process Data
+        </button>
+        <button id="clear-btn" class="btn-nexus-secondary">
+            <i class="bi bi-trash"></i> Clear
+        </button>
     </div>
 
     <div class="output-section">
-        <label style="display: block; font-size: 0.9rem; color: var(--muted); margin-bottom: 0.5rem;">Result</label>
-        <textarea id="generic-output" class="input-nexus" style="min-height: 200px; width: 100%;" readonly placeholder="Result will appear here..."></textarea>
+        <label style="display: block; font-size: 0.95rem; color: rgba(255,255,255,0.5); margin-bottom: 0.8rem; font-weight: 600;">Result</label>
+        <textarea id="generic-output" class="nexus-input" style="min-height: 250px;" readonly placeholder="Result will appear here..."></textarea>
     </div>
 
-    <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 12px; padding: 1rem; display: flex; gap: 12px; align-items: flex-start;">
-        <i class="bi bi-info-circle text-warning"></i>
-        <div style="font-size: 0.85rem; color: var(--muted);">
-            <strong>Beta Workspace:</strong> This tool is currently running on our Generic Engine. We are working on a specialized UI for this specific workflow. All processing remains 100% browser-side.
+    <div style="background: rgba(108, 99, 255, 0.05); border: 1px solid rgba(108, 99, 255, 0.1); border-radius: 16px; padding: 1.2rem; display: flex; gap: 14px; align-items: flex-start;">
+        <i class="bi bi-info-circle-fill" style="color: var(--primary);"></i>
+        <div style="font-size: 0.9rem; color: rgba(255,255,255,0.5); line-height: 1.5;">
+            <strong>Beta Engine:</strong> This tool is currently powered by our <strong>Generic Logic Core</strong>. We are refining a specialized high-density UI for this specific workflow. All processing occurs locally in your browser.
         </div>
     </div>
 </div>

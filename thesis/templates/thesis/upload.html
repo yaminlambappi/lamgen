@@ -35,14 +35,18 @@
 }
 .up-header h1 {
     font-family: 'Syne', sans-serif;
-    font-size: 1.9rem;
-    font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 0.3rem;
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 .up-header p {
-    color: var(--muted);
-    font-size: 0.9rem;
+    color: rgba(255,255,255,0.5);
+    font-size: 1rem;
+    max-width: 600px;
 }
 
 /* ── Server-side error banner ── */
@@ -63,8 +67,8 @@
 /* ── Two-column grid ── */
 .up-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 32px;
     align-items: start;
 }
 @media (max-width: 768px) {
@@ -651,13 +655,6 @@
 {% block content %}
 <main class="spatial-panel" style="height:100%; border:none; box-shadow:none;">
 <div class="up-page">
-
-    <!-- Breadcrumb -->
-    <nav class="up-breadcrumb fade-up">
-        <a href="{% url 'home' %}"><i class="bi bi-house"></i> Home</a>
-        <span class="sep"><i class="bi bi-chevron-right"></i></span>
-        <span class="current">Upload PDF</span>
-    </nav>
 
     <!-- Page header -->
     <div class="up-header fade-up stagger-1">

@@ -4,7 +4,7 @@ from . import views
 app_name = 'tools'
 
 urlpatterns = [
-    path('', views.workspaces_view, name='index'),
+    path('', views.tools_index_view, name='index'),
     path('search/', views.search_view, name='search'),
     path('trending/', views.trending_view, name='trending'),
     path('bookmark/toggle/', views.toggle_bookmark, name='bookmark'),

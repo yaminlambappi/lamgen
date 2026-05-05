@@ -4,12 +4,12 @@ from .models import ToolCategory, Tool, ToolBookmark
 
 def tools_context(request):
     """Global context processor — inject tool categories & bookmarks into every template."""
-    categories = cache.get('tool_categories_nav')
+    categories = cache.get('tool_categories_nav_v2')
     if categories is None:
         categories = list(
             ToolCategory.objects.filter(is_active=True).prefetch_related('tools').order_by('order', 'name')
         )
-        cache.set('tool_categories_nav', categories, 60 * 30)
+        cache.set('tool_categories_nav_v2', categories, 60 * 30)
 
     bookmarked_slugs = []
     if request.user.is_authenticated:

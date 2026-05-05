@@ -256,7 +256,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- Dashboard Content starts natively inside the master workspace-main shell -->
+<!-- Dashboard Content starts natively inside the master tools-main shell -->
 <!-- Top bar Hero -->
         <div class="dash-topbar" style="margin-bottom: 4rem; justify-content: center; flex-direction: column; text-align: center;">
             {% if user.is_authenticated %}
@@ -285,12 +285,12 @@
         </div>
         {% endif %}
 
-        <!-- 2. Workspace Shortcuts -->
+        <!-- 2. Tools Shortcuts -->
         <div style="margin-bottom: 4rem;">
-            <div class="section-header"><i class="bi bi-grid-1x2 text-accent"></i> Workspaces</div>
+            <div class="section-header"><i class="bi bi-grid-1x2 text-accent"></i> Tools</div>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; perspective: 1200px;">
                 {% for cat in categories %}
-                <a href="{{ cat.get_absolute_url }}" class="ws-module" onclick="openWorkspacePanel(event, '{{ cat.slug }}', this.href)">
+                <a href="{{ cat.get_absolute_url }}" class="ws-module" onclick="openToolsPanel(event, '{{ cat.slug }}', this.href)">
                     <style>.ws-{{ cat.slug }}::before { background: radial-gradient(circle at top right, {{ cat.color_from }}, transparent 70%); }</style>
                     <div class="module-icon ws-{{ cat.slug }}" style="color: {{ cat.color_from }};">
                         <i class="{{ cat.icon }}"></i>
@@ -359,8 +359,8 @@
 
 {% block extra_js %}
 <script>
-    function openWorkspacePanel(e, slug, url) {
-        // If dock links or dashboard workspace links are clicked, we can intercept them here
+    function openToolsPanel(e, slug, url) {
+        // If dock links or dashboard tools links are clicked, we can intercept them here
         // Currently, it just navigates normally, but the user requested "NO page reload feeling".
         // To achieve this fully, we would render a modal overlay here and fetch the category content.
         // For now, intercept and fetch the tool grid.
@@ -372,7 +372,7 @@
         // Show palette as a makeshift loading indicator / quick launcher overlay
         toggleCmdPalette(true);
         document.getElementById('cmdInput').value = 'Loading ' + slug + '...';
-        results.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--muted);">Fetching workspace...</div>';
+        results.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--muted);">Fetching tools...</div>';
         
         fetch(url)
             .then(res => res.text())

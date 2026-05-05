@@ -38,18 +38,18 @@ def index(request):
         'trending': trending,
         'recent_tools': recent_tools[:5],
         'bookmarked_slugs': bookmarked_slugs,
-        'page_title': 'Home — LamGen OS',
-        'meta_description': 'LamGen OS Home. Access your workflows, active nodes, and smart systems.',
+        'page_title': 'Home — LamGen',
+        'meta_description': 'LamGen Home. Access your tools, active nodes, and smart systems.',
     })
 
 @cache_control(public=True, max_age=60)
-def workspaces_view(request):
-    """All workspaces ecosystem explorer."""
+def tools_index_view(request):
+    """All tools ecosystem explorer."""
     categories = ToolCategory.objects.filter(is_active=True).prefetch_related('tools')
     return render(request, 'tools/workspaces.html', {
         'categories': categories,
-        'page_title': 'All Workspaces — LamGen OS',
-        'meta_description': 'Browse all LamGen OS ecosystems and tool categories.',
+        'page_title': 'All Tools — LamGen',
+        'meta_description': 'Browse all LamGen ecosystems and tool categories.',
     })
 
 
@@ -57,19 +57,53 @@ def workspaces_view(request):
 def category_view(request, category_slug):
     """Category listing page."""
     category = get_object_or_404(ToolCategory, slug=category_slug, is_active=True)
-    tools = Tool.objects.filter(category=category, is_active=True).order_by('order', 'name')
+    tools = list(Tool.objects.filter(category=category, is_active=True).order_by('order', 'name'))
 
     bookmarked_slugs = []
     if request.user.is_authenticated:
         bookmarked_slugs = list(
             ToolBookmark.objects.filter(user=request.user, tool__category=category).values_list('tool__slug', flat=True)
         )
+        
+    # Group tools dynamically for mega-menu style
+    tool_groups = {}
+    for tool in tools:
+        group_name = "Other Utilities"
+        if tool.tags:
+            group_name = tool.tags.split(',')[0].strip().title()
+        else:
+            name_lower = tool.name.lower()
+            if "format" in name_lower or "valid" in name_lower or "lint" in name_lower:
+                group_name = "Formatting & Validation"
+            elif "convert" in name_lower or " to " in name_lower:
+                group_name = "Converters"
+            elif "generat" in name_lower or "build" in name_lower or "creat" in name_lower:
+                group_name = "Generators"
+            elif "encod" in name_lower or "decod" in name_lower or "hash" in name_lower or "cipher" in name_lower:
+                group_name = "Security & Encoding"
+            elif "compress" in name_lower or "minif" in name_lower or "optimiz" in name_lower:
+                group_name = "Optimization"
+            elif "split" in name_lower or "merg" in name_lower or "extract" in name_lower:
+                group_name = "Manipulation"
+
+        if group_name not in tool_groups:
+            tool_groups[group_name] = []
+        tool_groups[group_name].append(tool)
+
+    # Sort groups alphabetically, but keep "Other Utilities" at the end
+    sorted_groups = []
+    for k in sorted(tool_groups.keys()):
+        if k != "Other Utilities":
+            sorted_groups.append((k, tool_groups[k]))
+    if "Other Utilities" in tool_groups:
+        sorted_groups.append(("Other Utilities", tool_groups["Other Utilities"]))
 
     return render(request, 'tools/category.html', {
         'category': category,
         'tools': tools,
+        'tool_groups': sorted_groups,
         'bookmarked_slugs': bookmarked_slugs,
-        'page_title': f'{category.name} Tools — Free Online | LamGen',
+        'page_title': f'{category.name} — LamGen',
         'meta_description': category.description[:160] if category.description else f'Free {category.name.lower()} tools online. No download, no signup required.',
     })
 
@@ -101,14 +135,14 @@ def tool_view(request, category_slug, tool_slug):
         ToolUsageHistory.objects.update_or_create(
             user=request.user, 
             tool=tool,
-            defaults={'last_used': None} # last_used is auto_now, so this triggers update
+            defaults={} # auto_now=True on used_at handles the timestamp
         )
 
     is_bookmarked = False
     if request.user.is_authenticated:
         is_bookmarked = ToolBookmark.objects.filter(user=request.user, tool=tool).exists()
 
-    # Related tools in the same workspace
+    # Related tools in the same toolset
     related_tools = Tool.objects.filter(category=category, is_active=True).exclude(id=tool.id)[:10]
 
     # Handle missing templates gracefully

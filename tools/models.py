@@ -96,7 +96,7 @@ class ToolUsageHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='tool_history')
     session_key = models.CharField(max_length=40, blank=True)
     tool = models.ForeignKey(Tool, on_delete=models.CASCADE, related_name='usage_history')
-    used_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-used_at']

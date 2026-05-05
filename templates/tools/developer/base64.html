@@ -1,25 +1,25 @@
 {% extends "tools/tool_base.html" %}
 
-{% block tool_workspace %}
+{% block tool_content %}
 <div class="flex flex-col gap-6">
     <div class="input-group">
         <label class="block text-sm font-medium text-muted mb-2">Input Text / Base64</label>
-        <textarea id="base64-input" class="input-nexus min-h-[200px]" placeholder="Type or paste here..."></textarea>
+        <textarea id="base64-input" class="nexus-input" style="min-height: 200px;" placeholder="Type or paste here..."></textarea>
     </div>
 
-    <div class="flex gap-4">
-        <button id="encode-btn" class="btn-nexus flex-1">Encode to Base64</button>
-        <button id="decode-btn" class="btn-nexus flex-1">Decode from Base64</button>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <button id="encode-btn" class="btn-nexus flex-1" style="min-width: 140px;">Encode to Base64</button>
+        <button id="decode-btn" class="btn-nexus flex-1" style="min-width: 140px;">Decode from Base64</button>
     </div>
 
     <div class="input-group">
         <label class="block text-sm font-medium text-muted mb-2">Output</label>
-        <textarea id="base64-output" class="input-nexus min-h-[200px]" readonly placeholder="Result will appear here..."></textarea>
+        <textarea id="base64-output" class="nexus-input" style="min-height: 200px;" readonly placeholder="Result will appear here..."></textarea>
     </div>
     
-    <div class="flex gap-4">
-        <button id="copy-btn" class="btn-nexus-secondary flex-1">Copy Result</button>
-        <button id="clear-btn" class="btn-nexus-secondary flex-1">Clear All</button>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <button id="copy-btn" class="btn-nexus-secondary flex-1" style="min-width: 140px;">Copy Result</button>
+        <button id="clear-btn" class="btn-nexus-secondary flex-1" style="min-width: 140px;">Clear All</button>
     </div>
 </div>
 {% endblock %}

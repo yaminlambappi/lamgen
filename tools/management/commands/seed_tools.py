@@ -6,19 +6,19 @@ class Command(BaseCommand):
     help = 'Seeds the database with the COMPLETE LamGen Productivity OS ecosystem'
 
     def handle(self, *args, **kwargs):
-        # Workspaces
-        workspaces = [
-            {'name': 'Content Workspace', 'slug': 'create', 'icon': 'bi-pencil-square', 'color_from': '#FF6B6B', 'color_to': '#FF8E8E', 'description': 'Writing, humanizing, and content generation.', 'order': 10},
-            {'name': 'Developer Workspace', 'slug': 'developer', 'icon': 'bi-code-slash', 'color_from': '#6C63FF', 'color_to': '#8B85FF', 'description': 'Engineering utilities, formatters, and dev tools.', 'order': 20},
-            {'name': 'Media Workspace', 'slug': 'media', 'icon': 'bi-images', 'color_from': '#FFC107', 'color_to': '#FFD54F', 'description': 'Image, PDF, and file processing.', 'order': 30},
-            {'name': 'Student Workspace', 'slug': 'student', 'icon': 'bi-mortarboard', 'color_from': '#00F5D4', 'color_to': '#4DFFEB', 'description': 'Academic calculators and study tools.', 'order': 40},
-            {'name': 'SEO Workspace', 'slug': 'seo', 'icon': 'bi-search', 'color_from': '#4CAF50', 'color_to': '#81C784', 'description': 'SEO analyzers and meta generators.', 'order': 50},
-            {'name': 'Career Workspace', 'slug': 'career', 'icon': 'bi-briefcase', 'color_from': '#2196F3', 'color_to': '#64B5F6', 'description': 'Resume, CV, and professional tools.', 'order': 60},
-            {'name': 'Utility Workspace', 'slug': 'utility', 'icon': 'bi-tools', 'color_from': '#9C27B0', 'color_to': '#BA68C8', 'description': 'General purpose tools and calculators.', 'order': 70},
-            {'name': 'Viral Workspace', 'slug': 'viral', 'icon': 'bi-share', 'color_from': '#FF9800', 'color_to': '#FFB74D', 'description': 'Social media and viral content tools.', 'order': 80},
+        # Tools Sets
+        tool_sets = [
+            {'name': 'Content Tools', 'slug': 'create', 'icon': 'bi-pencil-square', 'color_from': '#FF6B6B', 'color_to': '#FF8E8E', 'description': 'Writing, humanizing, and content generation.', 'order': 10},
+            {'name': 'Developer Tools', 'slug': 'developer', 'icon': 'bi-code-slash', 'color_from': '#6C63FF', 'color_to': '#8B85FF', 'description': 'Engineering utilities, formatters, and dev tools.', 'order': 20},
+            {'name': 'Media Tools', 'slug': 'media', 'icon': 'bi-images', 'color_from': '#FFC107', 'color_to': '#FFD54F', 'description': 'Image, PDF, and file processing.', 'order': 30},
+            {'name': 'Student Tools', 'slug': 'student', 'icon': 'bi-mortarboard', 'color_from': '#00F5D4', 'color_to': '#4DFFEB', 'description': 'Academic calculators and study tools.', 'order': 40},
+            {'name': 'SEO Tools', 'slug': 'seo', 'icon': 'bi-search', 'color_from': '#4CAF50', 'color_to': '#81C784', 'description': 'SEO analyzers and meta generators.', 'order': 50},
+            {'name': 'Career Tools', 'slug': 'career', 'icon': 'bi-briefcase', 'color_from': '#2196F3', 'color_to': '#64B5F6', 'description': 'Resume, CV, and professional tools.', 'order': 60},
+            {'name': 'Utility Tools', 'slug': 'utility', 'icon': 'bi-tools', 'color_from': '#9C27B0', 'color_to': '#BA68C8', 'description': 'General purpose tools and calculators.', 'order': 70},
+            {'name': 'Viral Tools', 'slug': 'viral', 'icon': 'bi-share', 'color_from': '#FF9800', 'color_to': '#FFB74D', 'description': 'Social media and viral content tools.', 'order': 80},
         ]
 
-        for w_data in workspaces:
+        for w_data in tool_sets:
             ToolCategory.objects.update_or_create(slug=w_data['slug'], defaults=w_data)
 
         cats = {c.slug: c for c in ToolCategory.objects.all()}
@@ -83,7 +83,7 @@ class Command(BaseCommand):
         tools_data.extend([
 
             # =========================
-            # DEVELOPER WORKSPACE
+            # DEVELOPER TOOLS
             # =========================
             {'name': 'JSON Minifier', 'slug': 'json-minifier', 'category': cats['developer'], 'icon': 'bi-file-earmark-code', 'template_name': 'tools/developer/generic.html', 'short_desc': 'Minify JSON instantly.'},
             {'name': 'JSON to CSV', 'slug': 'json-csv', 'category': cats['developer'], 'icon': 'bi-arrow-left-right', 'template_name': 'tools/developer/generic.html', 'short_desc': 'Convert JSON into CSV.'},
@@ -101,7 +101,7 @@ class Command(BaseCommand):
             {'name': 'Fake Data Generator', 'slug': 'fake-data-generator', 'category': cats['developer'], 'icon': 'bi-database-fill-add', 'template_name': 'tools/developer/generic.html', 'short_desc': 'Generate fake datasets.'},
 
             # =========================
-            # MEDIA WORKSPACE
+            # MEDIA TOOLS
             # =========================
             {'name': 'WEBP to PNG', 'slug': 'webp-png', 'category': cats['media'], 'icon': 'bi-image', 'template_name': 'tools/media/generic.html', 'short_desc': 'Convert WEBP into PNG.'},
             {'name': 'PNG to JPG', 'slug': 'png-jpg', 'category': cats['media'], 'icon': 'bi-image-alt', 'template_name': 'tools/media/generic.html', 'short_desc': 'Convert PNG into JPG.'},
@@ -115,7 +115,7 @@ class Command(BaseCommand):
             {'name': 'Image to PDF', 'slug': 'image-pdf', 'category': cats['media'], 'icon': 'bi-file-pdf-fill', 'template_name': 'tools/media/generic.html', 'short_desc': 'Convert images into PDFs.'},
 
             # =========================
-            # STUDENT WORKSPACE
+            # STUDENT TOOLS
             # =========================
             {'name': 'CGPA Calculator', 'slug': 'cgpa-calculator', 'category': cats['student'], 'icon': 'bi-calculator-fill', 'template_name': 'tools/student/generic.html', 'short_desc': 'Calculate CGPA instantly.'},
             {'name': 'Assignment Formatter', 'slug': 'assignment-formatter', 'category': cats['student'], 'icon': 'bi-file-earmark-text', 'template_name': 'tools/student/generic.html', 'short_desc': 'Format assignments professionally.'},
@@ -125,7 +125,7 @@ class Command(BaseCommand):
             {'name': 'Exam Countdown', 'slug': 'exam-countdown', 'category': cats['student'], 'icon': 'bi-alarm', 'template_name': 'tools/student/generic.html', 'short_desc': 'Countdown to exams.'},
 
             # =========================
-            # CONTENT WORKSPACE
+            # CONTENT TOOLS
             # =========================
             {'name': 'Sentence Rewriter', 'slug': 'sentence-rewriter', 'category': cats['create'], 'icon': 'bi-pencil', 'template_name': 'tools/create/generic.html', 'short_desc': 'Rewrite sentences naturally.'},
             {'name': 'Passive Active Converter', 'slug': 'passive-active-converter', 'category': cats['create'], 'icon': 'bi-arrow-left-right', 'template_name': 'tools/create/generic.html', 'short_desc': 'Convert sentence voice.'},
@@ -135,7 +135,7 @@ class Command(BaseCommand):
             {'name': 'Tone Converter', 'slug': 'tone-converter', 'category': cats['create'], 'icon': 'bi-chat-square-text', 'template_name': 'tools/create/generic.html', 'short_desc': 'Convert writing tone.'},
 
             # =========================
-            # SEO WORKSPACE
+            # SEO TOOLS
             # =========================
             {'name': 'SERP Preview', 'slug': 'serp-preview', 'category': cats['seo'], 'icon': 'bi-google', 'template_name': 'tools/seo/generic.html', 'short_desc': 'Preview Google snippets.'},
             {'name': 'Slug Generator', 'slug': 'slug-generator', 'category': cats['seo'], 'icon': 'bi-link-45deg', 'template_name': 'tools/seo/generic.html', 'short_desc': 'Generate SEO-friendly slugs.'},
@@ -144,7 +144,7 @@ class Command(BaseCommand):
             {'name': 'Schema Markup Generator', 'slug': 'schema-generator', 'category': cats['seo'], 'icon': 'bi-diagram-3', 'template_name': 'tools/seo/generic.html', 'short_desc': 'Generate structured schema markup.'},
 
             # =========================
-            # CAREER WORKSPACE
+            # CAREER TOOLS
             # =========================
             {'name': 'LinkedIn Headline Generator', 'slug': 'linkedin-headline-generator', 'category': cats['career'], 'icon': 'bi-linkedin', 'template_name': 'tools/career/generic.html', 'short_desc': 'Generate LinkedIn headlines.'},
             {'name': 'Invoice Generator', 'slug': 'invoice-generator', 'category': cats['career'], 'icon': 'bi-receipt', 'template_name': 'tools/career/generic.html', 'short_desc': 'Generate invoices professionally.'},
@@ -152,7 +152,7 @@ class Command(BaseCommand):
             {'name': 'Resume Summary Generator', 'slug': 'resume-summary-generator', 'category': cats['career'], 'icon': 'bi-file-earmark-person', 'template_name': 'tools/career/generic.html', 'short_desc': 'Generate resume summaries.'},
 
             # =========================
-            # UTILITY WORKSPACE
+            # UTILITY TOOLS
             # =========================
             {'name': 'Percentage Calculator', 'slug': 'percentage-calculator', 'category': cats['utility'], 'icon': 'bi-percent', 'template_name': 'tools/utility/generic.html', 'short_desc': 'Calculate percentages quickly.'},
             {'name': 'EMI Calculator', 'slug': 'emi-calculator', 'category': cats['utility'], 'icon': 'bi-cash-stack', 'template_name': 'tools/utility/generic.html', 'short_desc': 'Calculate EMI payments.'},
@@ -162,7 +162,7 @@ class Command(BaseCommand):
             {'name': 'Scientific Calculator', 'slug': 'scientific-calculator', 'category': cats['utility'], 'icon': 'bi-calculator-fill', 'template_name': 'tools/utility/generic.html', 'short_desc': 'Advanced scientific calculator.'},
 
             # =========================
-            # VIRAL WORKSPACE
+            # VIRAL TOOLS
             # =========================
             {'name': 'Fake Instagram Post', 'slug': 'fake-instagram-post', 'category': cats['viral'], 'icon': 'bi-instagram', 'template_name': 'tools/viral/generic.html', 'short_desc': 'Generate fake Instagram posts.'},
             {'name': 'Fake YouTube Comment', 'slug': 'fake-youtube-comment', 'category': cats['viral'], 'icon': 'bi-youtube', 'template_name': 'tools/viral/generic.html', 'short_desc': 'Generate fake YouTube comments.'},

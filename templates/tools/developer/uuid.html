@@ -2,8 +2,8 @@
 
 {% block tool_css %}
 <style>
-    .uuid-result { font-family: 'Fira Code', monospace; font-size: 2rem; color: var(--accent); text-align: center; margin: 2rem 0; letter-spacing: 2px; }
-    .generate-btn { display: block; margin: 0 auto; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; padding: 1rem 3rem; font-size: 1.2rem; font-weight: bold; border-radius: 50px; border: none; cursor: pointer; transition: transform 0.2s; box-shadow: 0 0 20px rgba(108,99,255,0.4); }
+    .uuid-result { font-family: 'Fira Code', monospace; font-size: clamp(1.2rem, 5vw, 2rem); color: var(--accent); text-align: center; margin: 2rem 0; letter-spacing: 1px; word-break: break-all; line-height: 1.2; }
+    .generate-btn { display: block; margin: 0 auto; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; padding: 1rem 2rem; font-size: clamp(0.9rem, 4vw, 1.1rem); font-weight: bold; border-radius: 14px; border: none; cursor: pointer; transition: transform 0.2s; box-shadow: 0 0 20px rgba(108,99,255,0.4); width: 100%; max-width: 400px; }
     .generate-btn:hover { transform: scale(1.05); }
     .bulk-area { width: 100%; height: 200px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; color: var(--text); font-family: monospace; resize: none; margin-top: 2rem; outline: none; }
     .flex-between { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
@@ -11,17 +11,19 @@
 </style>
 {% endblock %}
 
-{% block tool_workspace %}
+{% block tool_content %}
 <div class="uuid-result" id="single-uuid">00000000-0000-0000-0000-000000000000</div>
 <button class="generate-btn" id="btn-gen-single">Generate New UUID (v4)</button>
 
 <div style="margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 2rem;">
     <h3 style="font-family: 'Syne'; margin-bottom: 1rem;">Bulk Generator</h3>
-    <div style="display: flex; gap: 1rem; align-items: center;">
-        <span>Generate</span>
-        <input type="number" id="bulk-count" class="input-num" value="5" min="1" max="5000">
-        <span>UUIDs</span>
-        <button class="btn-ghost-nexus" id="btn-gen-bulk">Generate Bulk</button>
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 200px;">
+            <span style="color: var(--muted); font-size: 0.9rem;">Generate</span>
+            <input type="number" id="bulk-count" class="nexus-input" style="width: 80px; text-align: center;" value="5" min="1" max="5000">
+            <span style="color: var(--muted); font-size: 0.9rem;">UUIDs</span>
+        </div>
+        <button class="btn-primary-nexus" id="btn-gen-bulk" style="flex: 1; min-width: 150px;">Generate Bulk</button>
     </div>
     
     <textarea class="bulk-area" id="bulk-output" readonly placeholder="Bulk output will appear here..."></textarea>
