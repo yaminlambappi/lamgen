@@ -1,0 +1,192 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.tool-textarea{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;resize:vertical;min-height:80px;box-sizing:border-box}
+.tool-textarea:focus{border-color:var(--primary)}
+.tool-textarea::placeholder{color:rgba(255,255,255,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.tone-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tone-tab{padding:7px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.tone-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.letter-output{width:100%;min-height:400px;padding:16px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.8;resize:vertical;outline:none;box-sizing:border-box}
+.letter-output:focus{border-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div><div class="tool-label">Your Name</div><input class="tool-input" id="yourName" placeholder="Jane Smith" /></div>
+    <div><div class="tool-label">Role Applying For</div><input class="tool-input" id="targetRole" placeholder="Senior Product Designer" /></div>
+    <div><div class="tool-label">Company Name</div><input class="tool-input" id="company" placeholder="Acme Corp" /></div>
+    <div><div class="tool-label">Hiring Manager Name</div><input class="tool-input" id="hiringManager" placeholder="John Doe (or 'Hiring Manager')" /></div>
+  </div>
+
+  <div>
+    <div class="tool-label">3 Key Qualifications (one per line)</div>
+    <textarea class="tool-textarea" id="qualifications" placeholder="5+ years of product design experience&#10;Led redesign that increased conversion by 40%&#10;Expert in Figma and design systems"></textarea>
+  </div>
+
+  <div>
+    <div class="tool-label">Why This Company? (1-2 sentences)</div>
+    <textarea class="tool-textarea" id="whyCompany" placeholder="I admire Acme Corp's commitment to user-centered design and its impact on the healthcare industry..."></textarea>
+  </div>
+
+  <div>
+    <div class="tool-label">Tone</div>
+    <div class="tone-tabs">
+      <button class="tone-tab active" data-tone="formal" onclick="setTone(this,'formal')">Formal</button>
+      <button class="tone-tab" data-tone="enthusiastic" onclick="setTone(this,'enthusiastic')">Enthusiastic</button>
+      <button class="tone-tab" data-tone="concise" onclick="setTone(this,'concise')">Concise</button>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generateLetter()"><i class="bi bi-envelope-fill"></i> Generate Cover Letter</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="results" style="display:none;flex-direction:column;gap:.75rem">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="tool-label" style="margin-bottom:0">Cover Letter (editable)</div>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn-sm" onclick="copyLetter()"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" onclick="downloadLetter()"><i class="bi bi-download"></i> Download .txt</button>
+      </div>
+    </div>
+    <textarea class="letter-output" id="letterOutput"></textarea>
+    <div style="font-size:.78rem;color:var(--muted)" id="letterMeta"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let currentTone = 'formal';
+
+function setTone(btn, tone) {
+  currentTone = tone;
+  document.querySelectorAll('.tone-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function generateLetter() {
+  const yourName = document.getElementById('yourName').value.trim();
+  const targetRole = document.getElementById('targetRole').value.trim();
+  const company = document.getElementById('company').value.trim();
+  const hiringManager = document.getElementById('hiringManager').value.trim() || 'Hiring Manager';
+  const qualsRaw = document.getElementById('qualifications').value.trim();
+  const whyCompany = document.getElementById('whyCompany').value.trim();
+
+  if (!yourName || !targetRole || !company) { showErr('st','Name, Role, and Company are required'); return; }
+  hideStatus('st');
+
+  const quals = qualsRaw ? qualsRaw.split('\n').filter(q=>q.trim()) : [];
+  const q1 = quals[0] || 'strong relevant experience';
+  const q2 = quals[1] || 'a proven track record of delivering results';
+  const q3 = quals[2] || 'excellent collaboration skills';
+  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  let letter = '';
+
+  if (currentTone === 'formal') {
+    letter = `${today}
+
+Dear ${hiringManager},
+
+I am writing to express my strong interest in the ${targetRole} position at ${company}. With ${q1}, I am confident in my ability to make a meaningful contribution to your team.
+
+Throughout my career, I have demonstrated ${q2}. Additionally, ${q3}, which I believe aligns well with the collaborative culture at ${company}.
+
+${whyCompany ? whyCompany + '\n\n' : ''}I am particularly drawn to ${company} because of its reputation for excellence and innovation. I am eager to bring my skills and experience to help advance your mission.
+
+I would welcome the opportunity to discuss how my background aligns with your needs. Thank you for considering my application. I look forward to the possibility of contributing to ${company}.
+
+Sincerely,
+${yourName}`;
+  } else if (currentTone === 'enthusiastic') {
+    letter = `${today}
+
+Hi ${hiringManager},
+
+I'm thrilled to apply for the ${targetRole} role at ${company} — this is exactly the kind of opportunity I've been looking for!
+
+What excites me most is the chance to bring ${q1} to a team that's clearly doing incredible work. I've spent my career building toward this: ${q2}. And I genuinely believe that ${q3} will help me hit the ground running.
+
+${whyCompany ? whyCompany + '\n\n' : ''}I've been following ${company}'s work closely, and I'm genuinely inspired by what you're building. I'd love nothing more than to be part of it.
+
+I'd be so grateful for the chance to chat and share more about how I can contribute. Thanks so much for your time — I hope to hear from you soon!
+
+Warmly,
+${yourName}`;
+  } else {
+    // Concise
+    letter = `${today}
+
+Dear ${hiringManager},
+
+I'm applying for the ${targetRole} position at ${company}.
+
+Key qualifications:
+• ${q1}
+• ${q2}
+• ${q3}
+
+${whyCompany ? whyCompany + '\n\n' : ''}I'd welcome a conversation about how I can contribute to ${company}. Thank you for your consideration.
+
+Best regards,
+${yourName}`;
+  }
+
+  document.getElementById('letterOutput').value = letter;
+  const wc = letter.split(/\s+/).length;
+  document.getElementById('letterMeta').textContent = `${wc} words · ${letter.length} characters`;
+  document.getElementById('results').style.display = 'flex';
+  showOk('st', 'Cover letter generated');
+}
+
+function copyLetter() {
+  const text = document.getElementById('letterOutput').value;
+  navigator.clipboard.writeText(text).then(() => showOk('st','Copied to clipboard'));
+}
+
+function downloadLetter() {
+  const text = document.getElementById('letterOutput').value;
+  const role = document.getElementById('targetRole').value.trim().replace(/\s+/g,'-').toLowerCase() || 'cover-letter';
+  const blob = new Blob([text], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `cover-letter-${role}.txt`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearAll() {
+  ['yourName','targetRole','company','hiringManager','qualifications','whyCompany'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('results').style.display = 'none';
+  hideStatus('st');
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generateLetter(); }
+});
+</script>
+{% endblock %}

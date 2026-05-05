@@ -1,0 +1,208 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-label{font-size:.75rem;color:var(--muted);font-weight:600}
+.text-input,.select-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.text-input:focus,.select-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.result-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;margin-bottom:.5rem;transition:all .2s}
+.result-item:hover{background:rgba(255,255,255,.06)}
+.result-text{flex:1;font-size:.9rem;line-height:1.5;color:var(--text)}
+.type-badge{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--primary);background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;padding:2px 8px;flex-shrink:0;margin-top:2px}
+.copy-btn{padding:4px 10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:.72rem;cursor:pointer;color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif;flex-shrink:0}
+.copy-btn:hover{background:rgba(108,99,255,.15);color:var(--primary);border-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div class="input-group">
+      <label class="input-label">Subject / Topic *</label>
+      <input type="text" class="text-input" id="subject" placeholder="e.g. machine learning, climate change, social media">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Keywords (comma-separated)</label>
+      <input type="text" class="text-input" id="keywords" placeholder="e.g. neural networks, bias, healthcare">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Paper Type</label>
+      <select class="select-input" id="paperType">
+        <option value="research">Research Paper</option>
+        <option value="thesis">Thesis / Dissertation</option>
+        <option value="essay">Essay</option>
+        <option value="review">Literature Review</option>
+        <option value="case">Case Study</option>
+        <option value="report">Report</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Discipline</label>
+      <select class="select-input" id="discipline">
+        <option value="general">General / Interdisciplinary</option>
+        <option value="science">Science / Technology</option>
+        <option value="social">Social Sciences</option>
+        <option value="humanities">Humanities</option>
+        <option value="business">Business / Economics</option>
+        <option value="health">Health / Medicine</option>
+        <option value="education">Education</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-journal-text"></i> Generate Titles</button>
+    <button class="btn-sm" onclick="generate()"><i class="bi bi-arrow-clockwise"></i> Regenerate</button>
+    <button class="btn-sm" onclick="copyAll()"><i class="bi bi-clipboard"></i> Copy All</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div class="tool-label">Generated Academic Titles</div>
+    <div id="resultsList"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function waitForEngine(cb) {
+  if (window.GenEngine) { cb(); return; }
+  setTimeout(() => waitForEngine(cb), 50);
+}
+waitForEngine(() => {
+const G = window.GenEngine;
+
+// Expose to global scope for onclick handlers
+window.generate = generate;
+window.copyOne = copyOne;
+window.copyAll = copyAll;
+
+function titleCase(s) {
+  return s.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function generate() {
+  const subject  = document.getElementById('subject').value.trim();
+  if (!subject) { showErr('st','Enter a subject first'); return; }
+  hideStatus('st');
+
+  const keywords  = document.getElementById('keywords').value.split(',').map(k => k.trim()).filter(Boolean);
+  const paperType = document.getElementById('paperType').value;
+  const discipline= document.getElementById('discipline').value;
+
+  const S = titleCase(subject);
+  const K1 = keywords[0] ? titleCase(keywords[0]) : S;
+  const K2 = keywords[1] ? titleCase(keywords[1]) : G.pick(['Contemporary Challenges','Emerging Trends','Key Dimensions']);
+  const K3 = keywords[2] ? titleCase(keywords[2]) : G.pick(['Policy Implications','Future Directions','Practical Applications']);
+
+  const methodWords = {
+    research:   ['A Systematic Review','An Empirical Analysis','A Quantitative Study','A Mixed-Methods Investigation','A Longitudinal Study'],
+    thesis:     ['A Comprehensive Analysis','An In-Depth Examination','A Critical Investigation','A Theoretical Framework'],
+    essay:      ['A Critical Perspective','An Analytical Overview','A Reflective Examination','A Conceptual Analysis'],
+    review:     ['A Literature Review','A Systematic Review','A Scoping Review','A Narrative Review','A Meta-Analysis'],
+    case:       ['A Case Study Analysis','An Exploratory Case Study','A Comparative Case Analysis'],
+    report:     ['A Comprehensive Report','An Analytical Report','A Technical Assessment'],
+  };
+
+  const scopeWords = {
+    science:    ['Computational','Empirical','Quantitative','Experimental','Data-Driven'],
+    social:     ['Sociological','Behavioral','Cultural','Institutional','Structural'],
+    humanities: ['Hermeneutic','Interpretive','Discursive','Rhetorical','Phenomenological'],
+    business:   ['Strategic','Organizational','Economic','Market-Based','Managerial'],
+    health:     ['Clinical','Epidemiological','Public Health','Biomedical','Patient-Centered'],
+    education:  ['Pedagogical','Curriculum-Based','Instructional','Learner-Centered','Formative'],
+    general:    ['Interdisciplinary','Holistic','Comparative','Integrative','Multidimensional'],
+  };
+
+  const method = G.pick(methodWords[paperType] || methodWords.research);
+  const scope  = G.pick(scopeWords[discipline] || scopeWords.general);
+
+  const generators = [
+    { type:'impact',      fn: () => `The Impact of ${K1} on ${K2}: ${method} of ${S}` },
+    { type:'comparative', fn: () => `${K1} and ${K2}: A Comparative ${G.pick(['Analysis','Study','Examination'])} in ${S}` },
+    { type:'exploratory', fn: () => `Exploring ${K1} in ${S}: ${G.pick(['Challenges','Opportunities','Implications','Perspectives'])} and ${G.pick(['Future Directions','Policy Recommendations','Practical Insights'])}` },
+    { type:'empirical',   fn: () => `${scope} ${G.pick(['Evidence','Insights','Perspectives'])} on ${K1}: ${method} in ${S}` },
+    { type:'theoretical', fn: () => `Toward a ${G.pick(['Unified','Comprehensive','Integrated','Revised'])} Framework for ${S}: The Role of ${K1}` },
+    { type:'critical',    fn: () => `A Critical ${G.pick(['Analysis','Examination','Assessment','Review'])} of ${K1} in ${S}: ${K2} and Beyond` },
+    { type:'relationship',fn: () => `The Relationship Between ${K1} and ${K2} in ${S}: ${method}` },
+    { type:'role',        fn: () => `The Role of ${K1} in ${G.pick(['Shaping','Transforming','Advancing','Redefining'])} ${S}: ${K3}` },
+    { type:'challenges',  fn: () => `${G.pick(['Addressing','Navigating','Overcoming','Understanding'])} ${K1} in ${S}: ${K2} and ${K3}` },
+    { type:'rethinking',  fn: () => `Rethinking ${S}: ${K1}, ${K2}, and the ${G.pick(['Future','Path Forward','New Paradigm'])}` },
+    { type:'intersection',fn: () => `At the Intersection of ${K1} and ${K2}: ${G.pick(['Implications','Insights','Lessons'])} for ${S}` },
+    { type:'systematic',  fn: () => `${K1} in ${S}: ${method} of ${G.pick(['Current Evidence','Existing Literature','Recent Developments','Key Findings'])}` },
+    { type:'emerging',    fn: () => `Emerging ${G.pick(['Trends','Challenges','Opportunities','Paradigms'])} in ${S}: A Focus on ${K1}` },
+    { type:'beyond',      fn: () => `Beyond ${K1}: ${G.pick(['New Directions','Alternative Approaches','Innovative Frameworks'])} in ${S}` },
+    { type:'revisiting',  fn: () => `Revisiting ${S}: ${K1}, ${K2}, and the ${G.pick(['Evolving','Changing','Shifting'])} Landscape` },
+  ];
+
+  const seen = new Set();
+  const results = [];
+  const shuffled = G.shuffle(generators);
+
+  for (const g of shuffled) {
+    if (results.length >= 15) break;
+    try {
+      const text = g.fn().trim();
+      const norm = text.toLowerCase().slice(0, 60);
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      results.push({ text, type: g.type });
+    } catch(e) {}
+  }
+
+  document.getElementById('resultsList').innerHTML = results.map((r, i) => `
+    <div class="result-item">
+      <span class="type-badge">${r.type}</span>
+      <span class="result-text">${escHtml(r.text)}</span>
+      <button class="copy-btn" onclick="copyOne(${i},this)"><i class="bi bi-clipboard"></i></button>
+    </div>
+  `).join('');
+
+  document.getElementById('resultsWrap').style.display = '';
+  showOk('st', `${results.length} titles generated`);
+}
+
+function copyOne(idx, btn) {
+  const items = document.querySelectorAll('.result-text');
+  const text = items[idx]?.textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+function copyAll() {
+  const items = [...document.querySelectorAll('.result-text')].map(el => el.textContent);
+  if (!items.length) return;
+  navigator.clipboard.writeText(items.join('\n')).then(() => showOk('st', 'All titles copied'));
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showErr(id, msg) { const el=document.getElementById(id); el.className='status err'; el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg; }
+function showOk(id, msg) { const el=document.getElementById(id); el.className='status ok'; el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg; }
+function hideStatus(id) { document.getElementById(id).className='status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generate(); }
+});
+}); // end waitForEngine
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.emoji-grid { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 1rem; }
+.emoji-btn { font-size: 1.5rem; padding: 0.3rem 0.4rem; border-radius: 8px; border: 1px solid transparent; background: rgba(255,255,255,0.04); cursor: pointer; transition: all 0.15s; line-height: 1; }
+.emoji-btn:hover { background: rgba(108,99,255,0.15); border-color: var(--primary); transform: scale(1.2); }
+.combo-display { font-size: 3rem; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; min-height: 100px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.3rem; word-break: break-all; letter-spacing: 0.1rem; }
+.cat-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.8rem; }
+.cat-tab { padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.cat-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.popular-combo { display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-size: 1.2rem; transition: all 0.2s; }
+.popular-combo:hover { border-color: var(--primary); background: rgba(108,99,255,0.1); }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;">
+  <div>
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <div class="emoji-grid" id="emoji-grid"></div>
+  </div>
+  <div>
+    <span class="tool-label">Your Combination</span>
+    <div class="combo-display" id="combo-display">
+      <span style="color:var(--muted);font-size:1rem;">Click emojis to add them</span>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:0.8rem;flex-wrap:wrap;">
+      <button class="btn-go" id="btn-copy">📋 Copy</button>
+      <button class="btn-sm" id="btn-random">🎲 Random</button>
+      <button class="btn-sm" id="btn-clear">🗑 Clear</button>
+      <button class="btn-sm" id="btn-backspace">⌫ Remove Last</button>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <span class="tool-label">Popular Combos</span>
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem;" id="popular-combos"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const categories = {
+    '😀 Faces': ['😀','😂','🤣','😍','🥰','😎','🤔','😴','🥺','😭','😤','🤯','🥳','😇','🤩','😏','😒','🙄','😬','🤗','😱','😨','😰','😥','😓','🤤','😪','😵','🤐','🥴','😷','🤒','🤕','🤑','🤠','😈','👿','💀','☠️','👻','👽','🤖','💩','🎃'],
+    '❤️ Hearts': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🫀','💌'],
+    '🙌 Hands': ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','🤲','🙏','✍️','💅','🤳'],
+    '🐶 Animals': ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦟','🦗','🕷️','🦂','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🦐','🦞','🦀','🐡','🐠','🐟','🐬','🐳','🐋','🦈','🐊','🐅','🐆','🦓','🦍','🦧','🦣','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🦬','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙','🐐','🦌','🐕','🐩','🦮','🐕‍🦺','🐈','🐈‍⬛','🐓','🦃','🦤','🦚','🦜','🦢','🦩','🕊️','🐇','🦝','🦨','🦡','🦫','🦦','🦥','🐁','🐀','🐿️','🦔'],
+    '🍕 Food': ['🍕','🍔','🌮','🌯','🥗','🍜','🍣','🍱','🍛','🍲','🥘','🍝','🍠','🥟','🥠','🥡','🍤','🍙','🍚','🍘','🍥','🥮','🍢','🧆','🥚','🍳','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍟','🧀','🥪','🥙','🧆','🥚','🍳','🥞','🧇','🍰','🎂','🧁','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🧃','🥤','🧋','☕','🍵','🧉','🍺','🍻','🥂','🍷','🥃','🍸','🍹','🍾'],
+    '🌍 Nature': ['🌸','🌺','🌻','🌹','🌷','🌼','💐','🌿','🍀','🍁','🍂','🍃','🌱','🌲','🌳','🌴','🌵','🎋','🎍','🍄','🌾','💧','🌊','🌈','⭐','🌟','✨','💫','⚡','🔥','🌙','☀️','🌤️','⛅','🌦️','🌧️','⛈️','🌩️','🌨️','❄️','🌬️','💨','🌪️','🌫️','🌊','🌋','🏔️','⛰️','🗻','🏕️','🏖️','🏜️','🏝️','🏞️'],
+    '🎮 Fun': ['🎮','🕹️','🎲','🎯','🎳','🎰','🎪','🎭','🎨','🖼️','🎬','🎤','🎧','🎼','🎹','🥁','🎷','🎺','🎸','🪕','🎻','🎵','🎶','🎙️','📻','📺','📷','📸','🎥','🎞️','📽️','🎦','📱','💻','⌨️','🖥️','🖨️','🖱️','💾','💿','📀','📼','📷','📸','🔭','🔬','🧬','🧪','🧫','🧲','💡','🔦','🕯️','🪔','🧯','🛢️','💰','💵','💴','💶','💷','💸','💳','🪙','💹','📈','📉','📊'],
+    '✈️ Travel': ['✈️','🚀','🛸','🚁','🛩️','🚂','🚃','🚄','🚅','🚆','🚇','🚈','🚉','🚊','🚝','🚞','🚋','🚌','🚍','🚎','🚐','🚑','🚒','🚓','🚔','🚕','🚖','🚗','🚘','🚙','🛻','🚚','🚛','🚜','🏎️','🏍️','🛵','🛺','🚲','🛴','🛹','🛼','🚏','🛣️','🛤️','⛽','🚨','🚥','🚦','🛑','🚧','⚓','🛟','⛵','🚤','🛥️','🛳️','⛴️','🚢','🛶','🏊','🏄','🚣','🧗','🚵','🚴','🏇','🏋️','🤸','🤼','🤺','🏌️','🏂','🏋️','🤾','🏊','🤽','🚵','🏇','🧘','🛀','🛌'],
+  };
+
+  const popularCombos = [
+    '❤️🔥','😂💀','🥺👉👈','✨💫⭐','🎉🎊🥳','🌈☀️','💪🔥','🤣😭','👀💀','🌸🌺🌻','🎮🕹️','🍕🍔🌮','🐶❤️','🌙⭐✨','💀☠️👻','🤔💭','😍🥰❤️','🚀🌙⭐','🎵🎶🎸','🌊🏄‍♂️',
+  ];
+
+  let combo = [];
+  let currentCat = Object.keys(categories)[0];
+
+  function renderCatTabs() {
+    document.getElementById('cat-tabs').innerHTML = Object.keys(categories).map(cat => `
+      <button class="cat-tab ${cat === currentCat ? 'active' : ''}" onclick="setCat('${cat.replace(/'/g,"\\'")}')">
+        ${cat.split(' ')[0]} ${cat.split(' ').slice(1).join(' ')}
+      </button>`).join('');
+  }
+
+  window.setCat = (cat) => {
+    currentCat = cat;
+    renderCatTabs();
+    renderEmojis();
+  };
+
+  function renderEmojis() {
+    document.getElementById('emoji-grid').innerHTML = (categories[currentCat] || []).map(e => `
+      <button class="emoji-btn" onclick="addEmoji('${e}')" title="${e}">${e}</button>`).join('');
+  }
+
+  window.addEmoji = (e) => {
+    combo.push(e);
+    updateDisplay();
+  };
+
+  function updateDisplay() {
+    const el = document.getElementById('combo-display');
+    if (!combo.length) {
+      el.innerHTML = '<span style="color:var(--muted);font-size:1rem;">Click emojis to add them</span>';
+    } else {
+      el.textContent = combo.join('');
+    }
+  }
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    if (!combo.length) return;
+    await navigator.clipboard.writeText(combo.join(''));
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy', 1500);
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', () => { combo = []; updateDisplay(); });
+  document.getElementById('btn-backspace').addEventListener('click', () => { combo.pop(); updateDisplay(); });
+
+  document.getElementById('btn-random').addEventListener('click', () => {
+    const allEmojis = Object.values(categories).flat();
+    combo = Array.from({ length: Math.floor(Math.random() * 5) + 2 }, () => allEmojis[Math.floor(Math.random() * allEmojis.length)]);
+    updateDisplay();
+  });
+
+  // Popular combos
+  document.getElementById('popular-combos').innerHTML = popularCombos.map(c => `
+    <div class="popular-combo" onclick="setCombo('${c}')">
+      ${[...c].join('')}
+    </div>`).join('');
+
+  window.setCombo = (c) => {
+    combo = [...c];
+    updateDisplay();
+  };
+
+  renderCatTabs();
+  renderEmojis();
+});
+</script>
+{% endblock %}

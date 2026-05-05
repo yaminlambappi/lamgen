@@ -45,12 +45,25 @@ def index(request):
 
 @cache_control(public=True, max_age=60)
 def tools_index_view(request):
-    """All tools ecosystem explorer."""
-    categories = ToolCategory.objects.filter(is_active=True).prefetch_related('tools')
+    """All tools ecosystem explorer — dense launcher grid."""
+    categories = ToolCategory.objects.filter(is_active=True).prefetch_related('tools').order_by('order', 'name')
+
+    # Recent tools from session
+    recent_slugs = request.session.get('recent_tools', [])
+    recent_tools = list(Tool.objects.filter(slug__in=recent_slugs, is_active=True).select_related('category'))
+    slug_order = {s: i for i, s in enumerate(recent_slugs)}
+    recent_tools.sort(key=lambda t: slug_order.get(t.slug, 999))
+
+    trending = Tool.objects.filter(is_active=True).order_by('-view_count').select_related('category')[:8]
+    new_tools = Tool.objects.filter(is_active=True, is_new=True).select_related('category')[:6]
+
     return render(request, 'tools/workspaces.html', {
         'categories': categories,
+        'recent_tools': recent_tools[:5],
+        'trending': trending,
+        'new_tools': new_tools,
         'page_title': 'All Tools — LamGen',
-        'meta_description': 'Browse all LamGen ecosystems and tool categories.',
+        'meta_description': 'Browse 256+ free online tools. Developer tools, writing tools, image tools, SEO tools and more.',
     })
 
 
@@ -247,23 +260,31 @@ def toggle_bookmark(request):
     if not tool_slug:
         return JsonResponse({'error': 'tool_slug required'}, status=400)
 
-    if not request.user.is_authenticated:
-        # Guest: session-based bookmarks, max 10
-        session_bookmarks = request.session.get('session_bookmarks', [])
-        if tool_slug in session_bookmarks:
-            session_bookmarks.remove(tool_slug)
-            bookmarked = False
-        elif len(session_bookmarks) >= 10:
-            return JsonResponse({'error': 'Session bookmark limit reached (10). Sign in to save more.'}, status=400)
-        else:
-            session_bookmarks.append(tool_slug)
-            bookmarked = True
-        request.session['session_bookmarks'] = session_bookmarks
-        request.session.modified = True
-        return JsonResponse({'bookmarked': bookmarked})
-
     # Authenticated: DB bookmarks
-    return JsonResponse({'error': 'Login required'}, status=401)
+    if request.user.is_authenticated:
+        tool = get_object_or_404(Tool, slug=tool_slug, is_active=True)
+        bookmark, created = ToolBookmark.objects.get_or_create(user=request.user, tool=tool)
+        if not created:
+            bookmark.delete()
+            cache.delete(f'bookmarks_{request.user.pk}')
+            return JsonResponse({'bookmarked': False})
+
+        cache.delete(f'bookmarks_{request.user.pk}')
+        return JsonResponse({'bookmarked': True})
+
+    # Guest: session-based bookmarks, max 10
+    session_bookmarks = request.session.get('session_bookmarks', [])
+    if tool_slug in session_bookmarks:
+        session_bookmarks.remove(tool_slug)
+        bookmarked = False
+    elif len(session_bookmarks) >= 10:
+        return JsonResponse({'error': 'Session bookmark limit reached (10). Sign in to save more.'}, status=400)
+    else:
+        session_bookmarks.append(tool_slug)
+        bookmarked = True
+    request.session['session_bookmarks'] = session_bookmarks
+    request.session.modified = True
+    return JsonResponse({'bookmarked': bookmarked})
 
 
 @require_POST

@@ -1,0 +1,156 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-3{grid-template-columns:1fr}}
+.exam-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;position:relative}
+.exam-card.urgent{border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.05)}
+.exam-card.soon{border-color:rgba(255,193,7,.3);background:rgba(255,193,7,.04)}
+.exam-card.ok{border-color:rgba(0,245,212,.2);background:rgba(0,245,212,.03)}
+.exam-card.past{opacity:.5;border-color:rgba(255,255,255,.05)}
+.exam-name{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.exam-subject{font-size:.78rem;color:var(--muted);margin-bottom:8px}
+.exam-date{font-size:.8rem;color:var(--muted)}
+.exam-countdown{font-size:1.4rem;font-weight:800;font-family:'Syne',sans-serif;margin-top:6px}
+.exam-countdown.urgent{color:#FF6B6B}
+.exam-countdown.soon{color:#FFC107}
+.exam-countdown.ok{color:var(--accent)}
+.exam-countdown.past{color:var(--muted)}
+.study-hours{font-size:.78rem;color:var(--muted);margin-top:4px}
+.exam-del{position:absolute;top:12px;right:12px}
+.exams-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.exams-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Add Exam</div>
+    <div class="grid-3">
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Exam Name</div>
+        <input type="text" class="text-input" id="exam-name" placeholder="e.g. Final Exam">
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Subject</div>
+        <input type="text" class="text-input" id="exam-subject" placeholder="e.g. Mathematics">
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Date & Time</div>
+        <input type="datetime-local" class="num-input" id="exam-date">
+      </div>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+      <div style="font-size:.75rem;color:var(--muted)">Study hours available per day:</div>
+      <input type="number" class="num-input" id="study-hours" value="4" min="0.5" max="24" step="0.5" style="max-width:80px">
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="addExam()"><i class="bi bi-plus-circle"></i> Add Exam</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div>
+    <div class="tool-label">Upcoming Exams</div>
+    <div class="exams-grid" id="exams-grid"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+function loadExams() { return JSON.parse(localStorage.getItem('exam_countdowns') || '[]'); }
+function saveExams(exams) { localStorage.setItem('exam_countdowns', JSON.stringify(exams)); }
+
+function addExam() {
+  const name = document.getElementById('exam-name').value.trim();
+  const subject = document.getElementById('exam-subject').value.trim();
+  const date = document.getElementById('exam-date').value;
+  const studyHours = parseFloat(document.getElementById('study-hours').value) || 4;
+  if (!name || !date) { showErr('status', 'Enter exam name and date'); return; }
+  const exams = loadExams();
+  exams.push({name, subject, date: new Date(date).getTime(), studyHours});
+  exams.sort((a,b) => a.date - b.date);
+  saveExams(exams);
+  document.getElementById('exam-name').value = '';
+  document.getElementById('exam-subject').value = '';
+  showOk('status', 'Exam added');
+  renderExams();
+}
+
+function deleteExam(i) {
+  const exams = loadExams();
+  exams.splice(i, 1);
+  saveExams(exams);
+  renderExams();
+}
+
+function renderExams() {
+  const exams = loadExams();
+  const grid = document.getElementById('exams-grid');
+  if (!exams.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:.85rem;grid-column:1/-1">No exams added yet.</div>'; return; }
+  const now = Date.now();
+  grid.innerHTML = exams.map((e, i) => {
+    const diff = e.date - now;
+    const isPast = diff <= 0;
+    const days = Math.floor(Math.abs(diff) / 86400000);
+    const hours = Math.floor((Math.abs(diff) % 86400000) / 3600000);
+    const mins = Math.floor((Math.abs(diff) % 3600000) / 60000);
+    let urgency, countdownText;
+    if (isPast) { urgency = 'past'; countdownText = 'Exam passed'; }
+    else if (days < 3) { urgency = 'urgent'; countdownText = `${days}d ${hours}h ${mins}m`; }
+    else if (days < 7) { urgency = 'soon'; countdownText = `${days} days`; }
+    else { urgency = 'ok'; countdownText = `${days} days`; }
+    const studyTotal = isPast ? 0 : Math.round(days * e.studyHours);
+    return `<div class="exam-card ${urgency}">
+      <button class="btn-sm exam-del" style="padding:4px 8px;color:#FF6B6B" onclick="deleteExam(${i})"><i class="bi bi-trash"></i></button>
+      <div class="exam-name">${e.name}</div>
+      ${e.subject ? `<div class="exam-subject"><i class="bi bi-book"></i> ${e.subject}</div>` : ''}
+      <div class="exam-date"><i class="bi bi-calendar"></i> ${new Date(e.date).toLocaleString()}</div>
+      <div class="exam-countdown ${urgency}">${isPast ? '✓ ' : '⏰ '}${countdownText}</div>
+      ${!isPast ? `<div class="study-hours"><i class="bi bi-clock"></i> ~${studyTotal}h study time available</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// Set default date to tomorrow
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+tomorrow.setHours(9, 0, 0, 0);
+document.getElementById('exam-date').value = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset()*60000).toISOString().slice(0,16);
+
+renderExams();
+setInterval(renderExams, 60000);
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') addExam();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02); margin-bottom: 1.5rem; }
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+.results-panel { display: none; }
+.color-swatch { width: 60px; height: 60px; border-radius: 10px; cursor: pointer; transition: transform 0.2s; border: 2px solid rgba(255,255,255,0.1); }
+.color-swatch:hover { transform: scale(1.1); }
+.color-item { display: flex; align-items: center; gap: 0.8rem; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem 1rem; margin-bottom: 0.6rem; }
+.color-item:hover { border-color: rgba(108,99,255,0.3); }
+.color-info { flex: 1; }
+.color-hex { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--text); }
+.color-rgb { font-size: 0.8rem; color: var(--muted); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.proportion-bar { height: 8px; border-radius: 4px; margin-top: 0.3rem; }
+.palette-preview { display: flex; height: 50px; border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="upload-zone" id="drop-zone">
+  <div style="font-size:3rem;margin-bottom:0.8rem;">🎨</div>
+  <h3 style="margin-bottom:0.5rem;">Upload Image to Extract Colors</h3>
+  <p style="color:var(--muted);font-size:0.9rem;">Extracts 8 dominant colors using k-means clustering · 100% local</p>
+  <input type="file" id="file-input" accept="image/*" style="display:none;">
+</div>
+
+<div class="results-panel" id="results-panel">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;">
+    <div>
+      <img id="img-preview" src="" alt="Preview" style="width:100%;border-radius:12px;margin-bottom:1rem;max-height:300px;object-fit:contain;">
+      <div class="palette-preview" id="palette-preview"></div>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+        <button class="btn-go" id="btn-css">📋 Export as CSS Variables</button>
+        <button class="btn-sm" id="btn-copy-all">Copy All Hex</button>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <span style="font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;">Dominant Colors</span>
+        <span style="font-size:0.75rem;color:var(--muted);">Click hex to copy</span>
+      </div>
+      <div id="color-list"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  function handleFile(file) {
+    if (!file.type.startsWith('image/')) { alert('Please upload an image file.'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        document.getElementById('img-preview').src = e.target.result;
+        extractColors(img);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function extractColors(img) {
+    const canvas = document.createElement('canvas');
+    const maxSize = 150;
+    const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    // Sample pixels
+    const pixels = [];
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 128) continue; // skip transparent
+      pixels.push([data[i], data[i + 1], data[i + 2]]);
+    }
+
+    // K-means clustering (k=8)
+    const k = 8;
+    let centroids = [];
+    for (let i = 0; i < k; i++) {
+      centroids.push(pixels[Math.floor(Math.random() * pixels.length)].slice());
+    }
+
+    for (let iter = 0; iter < 10; iter++) {
+      const clusters = Array.from({ length: k }, () => []);
+      pixels.forEach(p => {
+        let minDist = Infinity, minIdx = 0;
+        centroids.forEach((c, i) => {
+          const d = (p[0]-c[0])**2 + (p[1]-c[1])**2 + (p[2]-c[2])**2;
+          if (d < minDist) { minDist = d; minIdx = i; }
+        });
+        clusters[minIdx].push(p);
+      });
+      centroids = clusters.map((cl, i) => {
+        if (!cl.length) return centroids[i];
+        return [
+          Math.round(cl.reduce((s, p) => s + p[0], 0) / cl.length),
+          Math.round(cl.reduce((s, p) => s + p[1], 0) / cl.length),
+          Math.round(cl.reduce((s, p) => s + p[2], 0) / cl.length),
+        ];
+      });
+    }
+
+    // Count cluster sizes for proportions
+    const counts = Array(k).fill(0);
+    pixels.forEach(p => {
+      let minDist = Infinity, minIdx = 0;
+      centroids.forEach((c, i) => {
+        const d = (p[0]-c[0])**2 + (p[1]-c[1])**2 + (p[2]-c[2])**2;
+        if (d < minDist) { minDist = d; minIdx = i; }
+      });
+      counts[minIdx]++;
+    });
+
+    const total = counts.reduce((a, b) => a + b, 0);
+    const colors = centroids.map((c, i) => ({
+      r: c[0], g: c[1], b: c[2],
+      hex: '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''),
+      pct: Math.round(counts[i] / total * 100),
+    })).sort((a, b) => b.pct - a.pct);
+
+    renderColors(colors);
+  }
+
+  function renderColors(colors) {
+    document.getElementById('results-panel').style.display = 'block';
+
+    // Palette bar
+    document.getElementById('palette-preview').innerHTML = colors.map(c => `
+      <div style="flex:${c.pct};background:${c.hex};"></div>`).join('');
+
+    // Color list
+    document.getElementById('color-list').innerHTML = colors.map((c, i) => `
+      <div class="color-item">
+        <div class="color-swatch" style="background:${c.hex};" onclick="copyHex('${c.hex}', this)" title="Click to copy"></div>
+        <div class="color-info">
+          <div class="color-hex" onclick="copyHex('${c.hex}', this)" style="cursor:pointer;">${c.hex.toUpperCase()}</div>
+          <div class="color-rgb">rgb(${c.r}, ${c.g}, ${c.b})</div>
+          <div class="proportion-bar" style="background:${c.hex};width:${c.pct}%;"></div>
+          <div style="font-size:0.72rem;color:var(--muted);">${c.pct}% of image</div>
+        </div>
+        <button class="btn-sm" onclick="copyHex('${c.hex}', this)"><i class="bi bi-clipboard"></i></button>
+      </div>`).join('');
+
+    // CSS export
+    document.getElementById('btn-css').addEventListener('click', async () => {
+      const css = ':root {\n' + colors.map((c, i) => `  --color-${i + 1}: ${c.hex};`).join('\n') + '\n}';
+      await navigator.clipboard.writeText(css);
+      const btn = document.getElementById('btn-css');
+      btn.textContent = '✓ Copied CSS!';
+      setTimeout(() => btn.textContent = '📋 Export as CSS Variables', 1500);
+    });
+
+    document.getElementById('btn-copy-all').addEventListener('click', async () => {
+      await navigator.clipboard.writeText(colors.map(c => c.hex.toUpperCase()).join(', '));
+      const btn = document.getElementById('btn-copy-all');
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = 'Copy All Hex', 1500);
+    });
+  }
+
+  window.copyHex = async (hex, el) => {
+    await navigator.clipboard.writeText(hex.toUpperCase());
+    const orig = el.innerHTML;
+    if (el.tagName === 'BUTTON') { el.innerHTML = '<i class="bi bi-check"></i>'; setTimeout(() => el.innerHTML = '<i class="bi bi-clipboard"></i>', 1500); }
+    else if (el.classList.contains('color-hex')) { el.textContent = 'Copied!'; setTimeout(() => el.textContent = hex.toUpperCase(), 1000); }
+  };
+});
+</script>
+{% endblock %}

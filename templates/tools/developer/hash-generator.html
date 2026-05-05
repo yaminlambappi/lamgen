@@ -1,0 +1,265 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:120px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-go:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.25rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.mode-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.hash-row{display:flex;flex-direction:column;gap:.75rem}
+.hash-item{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px}
+.hash-item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hash-algo{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--primary)}
+.hash-value{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--text);word-break:break-all;line-height:1.5}
+.hash-bits{font-size:.7rem;color:var(--muted)}
+.file-drop{border:2px dashed rgba(255,255,255,.12);border-radius:12px;padding:24px;text-align:center;color:var(--muted);cursor:pointer;transition:all .2s;font-size:.9rem}
+.file-drop:hover,.file-drop.drag{border-color:var(--primary);background:rgba(108,99,255,.05);color:var(--text)}
+.file-drop input{display:none}
+.progress-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:8px;display:none}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));width:0%;transition:width .3s}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="switchTab(this,'text')"><i class="bi bi-type"></i> Text</button>
+    <button class="mode-tab" onclick="switchTab(this,'file')"><i class="bi bi-file-earmark"></i> File</button>
+  </div>
+
+  <div id="tabText">
+    <div class="tool-label">Input Text</div>
+    <textarea class="tool-code" id="textIn" placeholder="Enter text to hash..."></textarea>
+    <div class="chips">
+      <span class="chip" onclick="loadEx('hello')">Hello World</span>
+      <span class="chip" onclick="loadEx('pass')">Password example</span>
+      <span class="chip" onclick="loadEx('json')">JSON data</span>
+    </div>
+  </div>
+
+  <div id="tabFile" style="display:none">
+    <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="handleDrop(event)">
+      <i class="bi bi-cloud-upload" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
+      Drop any file here or click to browse
+      <input type="file" id="fileInput" onchange="handleFile(this.files[0])">
+    </div>
+    <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" id="btnHash" onclick="generateHashes()"><i class="bi bi-hash"></i> Generate Hashes</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="hashResults" style="display:none">
+    <div class="tool-label">Hash Results</div>
+    <div class="hash-row" id="hashRow"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+// Pure-JS MD5 implementation
+function md5(input) {
+  function safeAdd(x,y){const lsw=(x&0xFFFF)+(y&0xFFFF);const msw=(x>>16)+(y>>16)+(lsw>>16);return(msw<<16)|(lsw&0xFFFF)}
+  function bitRotateLeft(num,cnt){return(num<<cnt)|(num>>>(32-cnt))}
+  function md5cmn(q,a,b,x,s,t){return safeAdd(bitRotateLeft(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b)}
+  function md5ff(a,b,c,d,x,s,t){return md5cmn((b&c)|((~b)&d),a,b,x,s,t)}
+  function md5gg(a,b,c,d,x,s,t){return md5cmn((b&d)|(c&(~d)),a,b,x,s,t)}
+  function md5hh(a,b,c,d,x,s,t){return md5cmn(b^c^d,a,b,x,s,t)}
+  function md5ii(a,b,c,d,x,s,t){return md5cmn(c^(b|(~d)),a,b,x,s,t)}
+  function binlMD5(x,len){
+    x[len>>5]|=0x80<<(len%32);x[(((len+64)>>>9)<<4)+14]=len;
+    let i,olda,oldb,oldc,oldd,a=1732584193,b=-271733879,c=-1732584194,d=271733878;
+    for(i=0;i<x.length;i+=16){
+      olda=a;oldb=b;oldc=c;oldd=d;
+      a=md5ff(a,b,c,d,x[i],7,-680876936);d=md5ff(d,a,b,c,x[i+1],12,-389564586);c=md5ff(c,d,a,b,x[i+2],17,606105819);b=md5ff(b,c,d,a,x[i+3],22,-1044525330);
+      a=md5ff(a,b,c,d,x[i+4],7,-176418897);d=md5ff(d,a,b,c,x[i+5],12,1200080426);c=md5ff(c,d,a,b,x[i+6],17,-1473231341);b=md5ff(b,c,d,a,x[i+7],22,-45705983);
+      a=md5ff(a,b,c,d,x[i+8],7,1770035416);d=md5ff(d,a,b,c,x[i+9],12,-1958414417);c=md5ff(c,d,a,b,x[i+10],17,-42063);b=md5ff(b,c,d,a,x[i+11],22,-1990404162);
+      a=md5ff(a,b,c,d,x[i+12],7,1804603682);d=md5ff(d,a,b,c,x[i+13],12,-40341101);c=md5ff(c,d,a,b,x[i+14],17,-1502002290);b=md5ff(b,c,d,a,x[i+15],22,1236535329);
+      a=md5gg(a,b,c,d,x[i+1],5,-165796510);d=md5gg(d,a,b,c,x[i+6],9,-1069501632);c=md5gg(c,d,a,b,x[i+11],14,643717713);b=md5gg(b,c,d,a,x[i],20,-373897302);
+      a=md5gg(a,b,c,d,x[i+5],5,-701558691);d=md5gg(d,a,b,c,x[i+10],9,38016083);c=md5gg(c,d,a,b,x[i+15],14,-660478335);b=md5gg(b,c,d,a,x[i+4],20,-405537848);
+      a=md5gg(a,b,c,d,x[i+9],5,568446438);d=md5gg(d,a,b,c,x[i+14],9,-1019803690);c=md5gg(c,d,a,b,x[i+3],14,-187363961);b=md5gg(b,c,d,a,x[i+8],20,1163531501);
+      a=md5gg(a,b,c,d,x[i+13],5,-1444681467);d=md5gg(d,a,b,c,x[i+2],9,-51403784);c=md5gg(c,d,a,b,x[i+7],14,1735328473);b=md5gg(b,c,d,a,x[i+12],20,-1926607734);
+      a=md5hh(a,b,c,d,x[i+5],4,-378558);d=md5hh(d,a,b,c,x[i+8],11,-2022574463);c=md5hh(c,d,a,b,x[i+11],16,1839030562);b=md5hh(b,c,d,a,x[i+14],23,-35309556);
+      a=md5hh(a,b,c,d,x[i+1],4,-1530992060);d=md5hh(d,a,b,c,x[i+4],11,1272893353);c=md5hh(c,d,a,b,x[i+7],16,-155497632);b=md5hh(b,c,d,a,x[i+10],23,-1094730640);
+      a=md5hh(a,b,c,d,x[i+13],4,681279174);d=md5hh(d,a,b,c,x[i],11,-358537222);c=md5hh(c,d,a,b,x[i+3],16,-722521979);b=md5hh(b,c,d,a,x[i+6],23,76029189);
+      a=md5hh(a,b,c,d,x[i+9],4,-640364487);d=md5hh(d,a,b,c,x[i+12],11,-421815835);c=md5hh(c,d,a,b,x[i+15],16,530742520);b=md5hh(b,c,d,a,x[i+2],23,-995338651);
+      a=md5ii(a,b,c,d,x[i],6,-198630844);d=md5ii(d,a,b,c,x[i+7],10,1126891415);c=md5ii(c,d,a,b,x[i+14],15,-1416354905);b=md5ii(b,c,d,a,x[i+5],21,-57434055);
+      a=md5ii(a,b,c,d,x[i+12],6,1700485571);d=md5ii(d,a,b,c,x[i+3],10,-1894986606);c=md5ii(c,d,a,b,x[i+10],15,-1051523);b=md5ii(b,c,d,a,x[i+1],21,-2054922799);
+      a=md5ii(a,b,c,d,x[i+8],6,1873313359);d=md5ii(d,a,b,c,x[i+15],10,-30611744);c=md5ii(c,d,a,b,x[i+6],15,-1560198380);b=md5ii(b,c,d,a,x[i+13],21,1309151649);
+      a=md5ii(a,b,c,d,x[i+4],6,-145523070);d=md5ii(d,a,b,c,x[i+11],10,-1120210379);c=md5ii(c,d,a,b,x[i+2],15,718787259);b=md5ii(b,c,d,a,x[i+9],21,-343485551);
+      a=safeAdd(a,olda);b=safeAdd(b,oldb);c=safeAdd(c,oldc);d=safeAdd(d,oldd);
+    }
+    return[a,b,c,d];
+  }
+  function binl2hex(binarray){const hexTab='0123456789abcdef';let str='';for(let i=0;i<binarray.length*4;i++){str+=hexTab.charAt((binarray[i>>2]>>((i%4)*8+4))&0xF)+hexTab.charAt((binarray[i>>2]>>((i%4)*8))&0xF);}return str;}
+  function str2binl(str){const bin=[];const mask=(1<<8)-1;for(let i=0;i<str.length*8;i+=8)bin[i>>5]|=(str.charCodeAt(i/8)&mask)<<(i%32);return bin;}
+  function rstr_md5(s){return binl2hex(binlMD5(str2binl(s),s.length*8));}
+  function str2rstr_utf8(input){return unescape(encodeURIComponent(input));}
+  return rstr_md5(str2rstr_utf8(input));
+}
+
+const EXAMPLES = {
+  hello: 'Hello, World!',
+  pass: 'P@ssw0rd!123',
+  json: '{"user":"alice","role":"admin","timestamp":1704067200}'
+};
+
+function loadEx(k) {
+  document.getElementById('textIn').value = EXAMPLES[k];
+}
+
+function switchTab(btn, tab) {
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tabText').style.display = tab === 'text' ? '' : 'none';
+  document.getElementById('tabFile').style.display = tab === 'file' ? '' : 'none';
+}
+
+async function sha(algo, data) {
+  const buf = await crypto.subtle.digest(algo, data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function generateHashes() {
+  const btn = document.getElementById('btnHash');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Computing...';
+  hideStatus('st');
+
+  try {
+    let bytes;
+    const activeTab = document.getElementById('tabFile').style.display !== 'none' ? 'file' : 'text';
+
+    if (activeTab === 'file') {
+      if (!window._fileBytes) { showErr('st','No file loaded'); btn.disabled=false; btn.innerHTML='<i class="bi bi-hash"></i> Generate Hashes'; return; }
+      bytes = window._fileBytes;
+    } else {
+      const text = document.getElementById('textIn').value;
+      if (!text) { showErr('st','No input'); btn.disabled=false; btn.innerHTML='<i class="bi bi-hash"></i> Generate Hashes'; return; }
+      bytes = new TextEncoder().encode(text);
+    }
+
+    const [sha256, sha384, sha512] = await Promise.all([
+      sha('SHA-256', bytes),
+      sha('SHA-384', bytes),
+      sha('SHA-512', bytes)
+    ]);
+    const md5hash = activeTab === 'file'
+      ? md5(Array.from(bytes).map(b => String.fromCharCode(b)).join(''))
+      : md5(activeTab === 'file' ? '' : document.getElementById('textIn').value);
+
+    const results = [
+      {algo:'MD5', bits:128, hash:md5hash},
+      {algo:'SHA-256', bits:256, hash:sha256},
+      {algo:'SHA-384', bits:384, hash:sha384},
+      {algo:'SHA-512', bits:512, hash:sha512},
+    ];
+
+    document.getElementById('hashRow').innerHTML = results.map(r => `
+      <div class="hash-item">
+        <div class="hash-item-head">
+          <span class="hash-algo">${r.algo}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="hash-bits">${r.bits} bits</span>
+            <button class="btn-sm" style="padding:4px 10px;font-size:.72rem" onclick="copyHash('${r.hash}',this)">
+              <i class="bi bi-clipboard"></i> Copy
+            </button>
+          </div>
+        </div>
+        <div class="hash-value">${r.hash}</div>
+      </div>
+    `).join('');
+    document.getElementById('hashResults').style.display = '';
+    showOk('st', `${bytes.length.toLocaleString()} bytes hashed`);
+  } catch(e) {
+    showErr('st', e.message);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-hash"></i> Generate Hashes';
+}
+
+function copyHash(hash, btn) {
+  navigator.clipboard.writeText(hash).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const bar = document.getElementById('progressBar');
+  const fill = document.getElementById('progressFill');
+  bar.style.display = '';
+  fill.style.width = '0%';
+  const reader = new FileReader();
+  reader.onprogress = e => { if (e.lengthComputable) fill.style.width = (e.loaded/e.total*100)+'%'; };
+  reader.onload = e => {
+    window._fileBytes = new Uint8Array(e.target.result);
+    fill.style.width = '100%';
+    document.getElementById('fileDrop').innerHTML = `<i class="bi bi-check-circle" style="color:var(--accent)"></i> ${file.name} — ${(file.size/1024).toFixed(1)} KB`;
+    setTimeout(() => { bar.style.display = 'none'; }, 500);
+    generateHashes();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('fileDrop').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function clearAll() {
+  document.getElementById('textIn').value = '';
+  document.getElementById('hashResults').style.display = 'none';
+  window._fileBytes = null;
+  hideStatus('st');
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generateHashes(); }
+});
+</script>
+{% endblock %}

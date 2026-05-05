@@ -240,51 +240,217 @@
         /* ── Global Top Navigation ── */
         .top-nav-wrapper {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
+            top: 0;
+            left: 0;
+            right: 0;
             z-index: 1000;
+            pointer-events: none;
+            /* Align to content container */
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Inner bar — matches content max-width and padding */
+        .top-nav-inner {
+            pointer-events: none;
+            width: 100%;
+            max-width: 1440px;
+            padding: 14px 1.5rem;
             display: flex;
             align-items: center;
+            gap: 12px;
+        }
+
+        /* LEFT: logo/brand link */
+        .nav-brand {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text);
+            flex-shrink: 0;
+        }
+        .nav-brand-mark {
+            width: 32px; height: 32px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; color: #fff;
+            box-shadow: 0 0 14px rgba(108,99,255,0.35);
+            flex-shrink: 0;
+        }
+        .nav-brand-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @media (max-width: 640px) { .nav-brand-name { display: none; } }
+
+        /* CENTER: search pill (flex-grows to fill space) */
+        .nav-center {
+            flex: 1;
+            display: flex;
             justify-content: center;
-            pointer-events: none;
+            min-width: 0;
         }
 
         .global-search-pill {
             pointer-events: auto;
             display: flex;
             align-items: center;
-            background: rgba(15, 15, 22, 0.4);
+            background: rgba(12, 12, 20, 0.55);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.09);
             border-radius: 50px;
-            padding: 8px 16px;
-            width: 400px;
-            max-width: calc(100vw - 140px); /* Leave space for profile icon */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 7px 16px;
+            width: 380px;
+            max-width: 100%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: text;
         }
-        .global-search-pill:hover, .global-search-pill:focus-within {
-            background: rgba(15, 15, 22, 0.8);
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 10px 40px rgba(108,99,255,0.2);
-            width: 450px;
+        .global-search-pill:hover,
+        .global-search-pill:focus-within {
+            background: rgba(12, 12, 20, 0.85);
+            border-color: rgba(255,255,255,0.18);
+            box-shadow: 0 6px 28px rgba(108,99,255,0.18);
+            width: 440px;
         }
         .global-search-pill input {
             background: transparent;
             border: none;
             color: var(--text);
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             width: 100%;
             outline: none;
-            padding: 4px 10px;
+            padding: 3px 8px;
             font-family: 'DM Sans', sans-serif;
         }
-        .global-search-pill input::placeholder { color: rgba(255,255,255,0.4); }
+        .global-search-pill input::placeholder { color: rgba(255,255,255,0.35); }
         .global-search-pill .kbd {
-            font-size: 0.7rem; color: var(--muted); background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace;
+            font-size: 0.65rem;
+            color: var(--muted);
+            background: rgba(255,255,255,0.08);
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: monospace;
+            flex-shrink: 0;
+        }
+
+        /* RIGHT: profile + quick actions */
+        .nav-right {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        /* Quick action icon buttons */
+        .nav-action-btn {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted);
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.18s;
+        }
+        .nav-action-btn:hover {
+            background: rgba(255,255,255,0.09);
+            border-color: rgba(255,255,255,0.15);
+            color: var(--text);
+        }
+
+        /* Profile button */
+        .profile-btn {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            background: rgba(108,99,255,0.12);
+            border: 1px solid rgba(108,99,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.18s;
+            font-size: 1rem;
+        }
+        .profile-btn:hover {
+            background: rgba(108,99,255,0.22);
+            border-color: rgba(108,99,255,0.45);
+            box-shadow: 0 0 12px rgba(108,99,255,0.25);
+        }
+
+        /* Dropdown */
+        .nav-dropdown { position: relative; }
+        .nav-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 200px;
+            background: rgba(14, 14, 22, 0.95);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            animation: fadeUp 0.18s ease forwards;
+            z-index: 2001;
+        }
+        .nav-dropdown.open .nav-dropdown-menu { display: block; }
+        .nav-dropdown-menu a,
+        .nav-dropdown-menu button {
+            display: flex; align-items: center; gap: 9px;
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 9px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            background: none; border: none; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.15s;
+            text-align: left;
+        }
+        .nav-dropdown-menu a:hover,
+        .nav-dropdown-menu button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .nav-dropdown-menu .danger-item { color: var(--danger) !important; }
+        .nav-dropdown-menu .danger-item:hover { background: rgba(255,107,107,0.1); }
+        .nav-dropdown-menu .divider { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
+        .nav-dropdown-menu .menu-label {
+            padding: 7px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 0.3px;
+        }
+
+        /* Thin frosted bar behind the nav on scroll */
+        .top-nav-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(10,10,15,0.6) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Mobile: tighter */
+        @media (max-width: 640px) {
+            .top-nav-inner { padding: 10px 0.75rem; gap: 8px; }
+            .global-search-pill { width: 100%; }
+            .global-search-pill:hover,
+            .global-search-pill:focus-within { width: 100%; }
         }
 
         /* ── Floating OS Dock ── */
@@ -320,7 +486,7 @@
             min-height: calc(100vh - 100px);
             max-width: 1440px;
             margin: 0 auto;
-            padding: 100px 2rem 60px;
+            padding: 72px 2rem 60px;
             perspective: 2000px;
         }
 
@@ -400,7 +566,7 @@
             .tools-actions { display: none; }
         }
         @media (max-width: 992px) {
-            .tools-shell { grid-template-columns: 1fr; padding: 80px 1rem 100px; overflow-x: hidden; }
+            .tools-shell { grid-template-columns: 1fr; padding: 62px 1rem 100px; overflow-x: hidden; }
             .tools-sidebar { display: none; }
             .tools-main { transform: none; min-width: 0; max-width: 100vw; }
         }
@@ -472,72 +638,8 @@
             .hide-on-mobile { display: none !important; }
         }
 
-        /* ── Floating Profile Widget & Dropdown ── */
-        .profile-widget {
-            pointer-events: auto;
-            position: absolute;
-            left: 0;
-        }
-        .profile-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            background: rgba(15,15,22,0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .profile-btn:hover { background: rgba(255,255,255,0.1); }
-        
-        .nav-dropdown { position: relative; }
-        .nav-dropdown-menu {
-            display: none;
-            position: absolute;
-            top: calc(100% + 10px);
-            left: 0;
-            min-width: 200px;
-            background: rgba(20, 20, 30, 0.8);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 8px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05);
-            animation: fadeUp 0.2s ease forwards;
-        }
-        .nav-dropdown.open .nav-dropdown-menu { display: block; }
-        .nav-dropdown-menu a,
-        .nav-dropdown-menu button {
-            display: flex; align-items: center; gap: 10px;
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            background: none; border: none; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.2s;
-            text-align: left;
-        }
-        .nav-dropdown-menu a:hover,
-        .nav-dropdown-menu button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-        .nav-dropdown-menu .danger-item { color: var(--danger) !important; }
-        .nav-dropdown-menu .danger-item:hover { background: rgba(255,107,107,0.1); }
-        .nav-dropdown-menu .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 6px 0; }
-        .nav-dropdown-menu .menu-label {
-            padding: 8px 14px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text);
-        }
-
         /* ── Main ── */
-        main { padding-top: 80px; padding-bottom: 100px; min-height: 100vh; position: relative; z-index: 1; }
+        main { padding-top: 62px; padding-bottom: 100px; min-height: 100vh; position: relative; z-index: 1; }
 
         /* ── Toast ── */
         .toast-container {
@@ -788,44 +890,74 @@
 
     <!-- Global Top Nav -->
     <div class="top-nav-wrapper">
-        <!-- Global Floating Search -->
-        <div class="global-search-pill" style="position: relative; overflow: visible;">
-            <i class="bi bi-search" style="color: var(--muted); font-size: 1.1rem; margin-right: 8px;"></i>
-            <input type="text" id="inlineSearchInput" placeholder="Search LamGen..." style="background: transparent; border: none; color: var(--text); flex: 1; outline: none; font-size: 0.95rem; font-family: 'DM Sans', sans-serif;" autocomplete="off">
-            <div class="kb-shortcut" style="display: flex; gap: 4px;"><span class="kbd">⌘</span><span class="kbd">K</span></div>
-            
-            <!-- Inline Auto Suggestion Results -->
-            <div id="inlineSearchResults" style="display: none; position: absolute; top: calc(100% + 10px); left: 0; width: 100%; min-width: 300px; background: rgba(15, 15, 22, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 0.5rem; max-height: 400px; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 2000;">
+      <div class="top-nav-inner">
+
+        <!-- LEFT: Brand -->
+        <a href="{% url 'home' %}" class="nav-brand" aria-label="LamGen Home">
+          <div class="nav-brand-mark"><i class="bi bi-cpu"></i></div>
+          <span class="nav-brand-name">LamGen</span>
+        </a>
+
+        <!-- CENTER: Search (suppressed on pages with dedicated search) -->
+        <div class="nav-center">
+          {% block nav_search %}
+          <div class="global-search-pill" style="position:relative;overflow:visible;">
+            <i class="bi bi-search" style="color:var(--muted);font-size:0.95rem;flex-shrink:0;"></i>
+            <input type="text" id="inlineSearchInput"
+                   placeholder="Search LamGen…"
+                   style="background:transparent;border:none;color:var(--text);flex:1;outline:none;font-size:0.88rem;font-family:'DM Sans',sans-serif;"
+                   autocomplete="off">
+            <div style="display:flex;gap:3px;flex-shrink:0;">
+              <span class="kbd">⌘</span><span class="kbd">K</span>
             </div>
+            <!-- Inline results -->
+            <div id="inlineSearchResults"
+                 style="display:none;position:absolute;top:calc(100% + 8px);left:0;width:100%;min-width:280px;background:rgba(12,12,20,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:0.4rem;max-height:380px;overflow-y:auto;box-shadow:0 16px 40px rgba(0,0,0,0.5);z-index:2000;">
+            </div>
+          </div>
+          {% endblock nav_search %}
         </div>
 
-        <!-- Profile Widget -->
-        <div class="profile-widget">
-            <div class="nav-dropdown">
-                <button class="profile-btn nav-dropdown-toggle" onclick="this.closest('.nav-dropdown').classList.toggle('open')">
-                    {% if user.is_authenticated %}
-                    <i class="bi bi-person-circle"></i>
-                    {% else %}
-                    <i class="bi bi-person"></i>
-                    {% endif %}
+        <!-- RIGHT: Quick actions + profile -->
+        <div class="nav-right">
+          <!-- All Tools shortcut -->
+          <a href="{% url 'tools:index' %}" class="nav-action-btn" title="All Tools" aria-label="All Tools">
+            <i class="bi bi-grid-3x3-gap"></i>
+          </a>
+
+          <!-- Profile dropdown -->
+          <div class="nav-dropdown">
+            <button class="profile-btn nav-dropdown-toggle"
+                    onclick="this.closest('.nav-dropdown').classList.toggle('open')"
+                    aria-label="Account menu"
+                    aria-haspopup="true">
+              {% if user.is_authenticated %}
+              <i class="bi bi-person-fill"></i>
+              {% else %}
+              <i class="bi bi-person"></i>
+              {% endif %}
+            </button>
+            <div class="nav-dropdown-menu" role="menu">
+              {% if user.is_authenticated %}
+              <div class="menu-label">{{ user.username }}</div>
+              <div class="divider"></div>
+              <a href="{% url 'home' %}" role="menuitem"><i class="bi bi-person-fill"></i> Account</a>
+              <div class="divider"></div>
+              <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
+                {% csrf_token %}
+                <button type="submit" class="danger-item" role="menuitem">
+                  <i class="bi bi-box-arrow-right"></i> Sign Out
                 </button>
-                <div class="nav-dropdown-menu" style="left: 0; min-width: 200px;">
-                    {% if user.is_authenticated %}
-                    <div class="menu-label">{{ user.username }}</div>
-                    <div class="divider"></div>
-                    <a href="{% url 'home' %}"><i class="bi bi-person-fill"></i> User Account</a>
-                    <div class="divider"></div>
-                    <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
-                        {% csrf_token %}
-                        <button type="submit" class="danger-item"><i class="bi bi-box-arrow-right"></i> Disconnect</button>
-                    </form>
-                    {% else %}
-                    <a href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
-                    <a href="{% url 'accounts:register' %}"><i class="bi bi-person-plus"></i> Join LamGen</a>
-                    {% endif %}
-                </div>
+              </form>
+              {% else %}
+              <a href="{% url 'accounts:login' %}" role="menuitem"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
+              <a href="{% url 'accounts:register' %}" role="menuitem"><i class="bi bi-person-plus"></i> Join LamGen</a>
+              {% endif %}
             </div>
+          </div>
         </div>
+
+      </div>
     </div>
 
     <!-- Main content Wrapper -->
@@ -1020,6 +1152,8 @@
         });
     </script>
     {% block extra_js %}{% endblock %}
+    {% load static %}
+    <script src="{% static 'js/core/gen-engine.js' %}"></script>
     {% block tool_js %}{% endblock %}
 
     <!-- ── Command Palette ── -->

@@ -1,134 +1,172 @@
 {% extends "tools/tool_base.html" %}
+{% load static %}
 
 {% block tool_css %}
 <style>
-    .stopwatch-display { font-family: 'Fira Code', monospace; font-size: 6rem; font-weight: 700; color: var(--primary); text-align: center; margin: 3rem 0; text-shadow: 0 0 30px rgba(108,99,255,0.3); }
-    .ms-display { font-size: 3rem; color: var(--muted); }
-    
-    .controls { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 3rem; }
-    .btn-circle { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-    .btn-circle:hover { transform: translateY(-4px); }
-    
-    #btn-play { background: linear-gradient(135deg, var(--accent), #00d2b6); color: #000; }
-    #btn-pause { background: linear-gradient(135deg, #FFC107, #FF9800); color: #000; display: none; }
-    #btn-lap { background: var(--surface); color: var(--text); border: 2px solid var(--border); }
-    #btn-reset { background: rgba(255,107,107,0.1); color: var(--danger); border: 2px solid rgba(255,107,107,0.3); }
-
-    .laps-container { background: rgba(0,0,0,0.3); border-radius: 16px; border: 1px solid var(--border); padding: 1.5rem; max-height: 300px; overflow-y: auto; }
-    .lap-item { display: flex; justify-content: space-between; padding: 0.8rem; border-bottom: 1px solid var(--border); font-family: monospace; font-size: 1.2rem; }
-    .lap-item:last-child { border-bottom: none; }
-    .lap-number { color: var(--muted); }
-    
-    @media (max-width: 768px) { .stopwatch-display { font-size: 4rem; } .ms-display { font-size: 2rem; } }
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.sw-display{text-align:center;padding:32px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:16px}
+.sw-time{font-size:4rem;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--accent);letter-spacing:2px}
+.sw-ms{font-size:2rem;color:var(--muted)}
+.kb-hints{display:flex;gap:12px;flex-wrap:wrap;font-size:.75rem;color:var(--muted)}
+.kb-hint-item{display:flex;align-items:center;gap:4px}
+.kb-key{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:2px 6px;font-family:'JetBrains Mono',monospace;font-size:.72rem}
+.lap-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.lap-table th{text-align:left;padding:8px 12px;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.lap-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.lap-table tr:last-child td{border-bottom:none}
+.lap-table .lap-num{color:var(--muted)}
+.lap-table .lap-split{font-family:'JetBrains Mono',monospace;color:var(--text)}
+.lap-table .lap-total{font-family:'JetBrains Mono',monospace;color:var(--accent)}
+.lap-table .best{color:#00F5D4}
+.lap-table .worst{color:#FF6B6B}
 </style>
 {% endblock %}
 
 {% block tool_content %}
-<div class="stopwatch-display" id="display">
-    <span id="min">00</span>:<span id="sec">00</span><span class="ms-display">.<span id="ms">00</span></span>
-</div>
+<div class="dev-tool-wrap">
+  <div class="sw-display">
+    <div class="sw-time" id="sw-display">00:00<span class="sw-ms">.000</span></div>
+  </div>
 
-<div class="controls">
-    <button class="btn-circle" id="btn-reset" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></button>
-    <button class="btn-circle" id="btn-play" title="Start"><i class="bi bi-play-fill" style="font-size: 2.5rem;"></i></button>
-    <button class="btn-circle" id="btn-pause" title="Pause"><i class="bi bi-pause-fill" style="font-size: 2.5rem;"></i></button>
-    <button class="btn-circle" id="btn-lap" title="Lap"><i class="bi bi-flag-fill"></i></button>
-</div>
+  <div class="act-row" style="justify-content:center">
+    <button class="btn-go" id="btn-start" onclick="toggleSW()"><i class="bi bi-play-fill"></i> Start</button>
+    <button class="btn-sm" onclick="lapSW()" id="btn-lap" disabled><i class="bi bi-flag"></i> Lap (L)</button>
+    <button class="btn-sm" onclick="resetSW()"><i class="bi bi-arrow-counterclockwise"></i> Reset (R)</button>
+    <button class="btn-sm" onclick="exportLaps()" id="btn-export" style="display:none"><i class="bi bi-download"></i> Export CSV</button>
+  </div>
 
-<div class="laps-container" id="laps" style="display: none;">
-    <!-- Laps inserted here -->
+  <div class="kb-hints">
+    <div class="kb-hint-item"><span class="kb-key">Space</span> Start/Stop</div>
+    <div class="kb-hint-item"><span class="kb-key">L</span> Lap</div>
+    <div class="kb-hint-item"><span class="kb-key">R</span> Reset</div>
+  </div>
+
+  <div id="laps-section" style="display:none">
+    <div class="tool-label">Lap Times</div>
+    <div style="overflow-x:auto">
+      <table class="lap-table">
+        <thead><tr><th>#</th><th>Split</th><th>Total</th></tr></thead>
+        <tbody id="lap-tbody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block tool_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        let startTime = 0;
-        let elapsedTime = 0;
-        let timerInterval = null;
-        let running = false;
-        let laps = [];
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
-        const eMin = document.getElementById('min');
-        const eSec = document.getElementById('sec');
-        const eMs = document.getElementById('ms');
-        
-        const btnPlay = document.getElementById('btn-play');
-        const btnPause = document.getElementById('btn-pause');
-        const btnReset = document.getElementById('btn-reset');
-        const btnLap = document.getElementById('btn-lap');
-        const lapsCont = document.getElementById('laps');
+let running = false;
+let startTime = 0;
+let elapsed = 0;
+let rafId = null;
+let laps = [];
+let lastLapTime = 0;
 
-        function formatTime(time) {
-            let ms = Math.floor((time % 1000) / 10);
-            let s = Math.floor((time / 1000) % 60);
-            let m = Math.floor((time / (1000 * 60)) % 60);
+function fmtTime(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  const msec = ms % 1000;
+  return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}<span class="sw-ms">.${String(msec).padStart(3,'0')}</span>`;
+}
 
-            return {
-                min: m.toString().padStart(2, "0"),
-                sec: s.toString().padStart(2, "0"),
-                ms: ms.toString().padStart(2, "0")
-            };
-        }
+function fmtTimeCSV(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  const msec = ms % 1000;
+  return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}.${String(msec).padStart(3,'0')}`;
+}
 
-        function printTime() {
-            let t = formatTime(elapsedTime);
-            eMin.textContent = t.min;
-            eSec.textContent = t.sec;
-            eMs.textContent = t.ms;
-        }
+function tick() {
+  elapsed = performance.now() - startTime;
+  document.getElementById('sw-display').innerHTML = fmtTime(elapsed);
+  rafId = requestAnimationFrame(tick);
+}
 
-        function start() {
-            startTime = Date.now() - elapsedTime;
-            timerInterval = setInterval(() => {
-                elapsedTime = Date.now() - startTime;
-                printTime();
-            }, 10);
-            running = true;
-            btnPlay.style.display = "none";
-            btnPause.style.display = "flex";
-        }
+function toggleSW() {
+  if (running) {
+    running = false;
+    cancelAnimationFrame(rafId);
+    elapsed = performance.now() - startTime;
+    document.getElementById('btn-start').innerHTML = '<i class="bi bi-play-fill"></i> Resume';
+    document.getElementById('btn-start').style.background = 'linear-gradient(135deg,#00F5D4,#00B4D8)';
+  } else {
+    running = true;
+    startTime = performance.now() - elapsed;
+    rafId = requestAnimationFrame(tick);
+    document.getElementById('btn-start').innerHTML = '<i class="bi bi-pause-fill"></i> Stop';
+    document.getElementById('btn-start').style.background = '';
+    document.getElementById('btn-lap').disabled = false;
+  }
+}
 
-        function pause() {
-            clearInterval(timerInterval);
-            running = false;
-            btnPause.style.display = "none";
-            btnPlay.style.display = "flex";
-        }
+function lapSW() {
+  if (!running) return;
+  const split = elapsed - lastLapTime;
+  lastLapTime = elapsed;
+  laps.push({split, total: elapsed});
+  renderLaps();
+  document.getElementById('laps-section').style.display = 'block';
+  document.getElementById('btn-export').style.display = 'inline-flex';
+}
 
-        function reset() {
-            clearInterval(timerInterval);
-            elapsedTime = 0;
-            printTime();
-            running = false;
-            btnPause.style.display = "none";
-            btnPlay.style.display = "flex";
-            laps = [];
-            lapsCont.innerHTML = "";
-            lapsCont.style.display = "none";
-        }
+function resetSW() {
+  running = false;
+  cancelAnimationFrame(rafId);
+  elapsed = 0;
+  lastLapTime = 0;
+  laps = [];
+  document.getElementById('sw-display').innerHTML = fmtTime(0);
+  document.getElementById('btn-start').innerHTML = '<i class="bi bi-play-fill"></i> Start';
+  document.getElementById('btn-start').style.background = '';
+  document.getElementById('btn-lap').disabled = true;
+  document.getElementById('laps-section').style.display = 'none';
+  document.getElementById('btn-export').style.display = 'none';
+}
 
-        function recordLap() {
-            if(!running && elapsedTime === 0) return;
-            let t = formatTime(elapsedTime);
-            laps.unshift(`${t.min}:${t.sec}.${t.ms}`);
-            renderLaps();
-        }
+function renderLaps() {
+  const tbody = document.getElementById('lap-tbody');
+  if (!laps.length) { tbody.innerHTML = ''; return; }
+  const splits = laps.map(l => l.split);
+  const minSplit = Math.min(...splits);
+  const maxSplit = Math.max(...splits);
+  tbody.innerHTML = [...laps].reverse().map((l, ri) => {
+    const i = laps.length - 1 - ri;
+    const isBest = l.split === minSplit && laps.length > 1;
+    const isWorst = l.split === maxSplit && laps.length > 1;
+    return `<tr>
+      <td class="lap-num">${i+1}</td>
+      <td class="lap-split ${isBest?'best':isWorst?'worst':''}">${fmtTimeCSV(l.split)}${isBest?' 🏆':isWorst?' 🐢':''}</td>
+      <td class="lap-total">${fmtTimeCSV(l.total)}</td>
+    </tr>`;
+  }).join('');
+}
 
-        function renderLaps() {
-            lapsCont.style.display = "block";
-            lapsCont.innerHTML = laps.map((l, i) => `
-                <div class="lap-item">
-                    <span class="lap-number">Lap ${laps.length - i}</span>
-                    <span>${l}</span>
-                </div>
-            `).join('');
-        }
+function exportLaps() {
+  if (!laps.length) return;
+  const csv = 'Lap,Split,Total\n' + laps.map((l,i) => `${i+1},${fmtTimeCSV(l.split)},${fmtTimeCSV(l.total)}`).join('\n');
+  downloadText(csv, 'laps.csv', 'text/csv');
+}
 
-        btnPlay.addEventListener('click', start);
-        btnPause.addEventListener('click', pause);
-        btnReset.addEventListener('click', reset);
-        btnLap.addEventListener('click', recordLap);
-    });
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.code === 'Space') { e.preventDefault(); toggleSW(); }
+  else if (e.key.toLowerCase() === 'l') lapSW();
+  else if (e.key.toLowerCase() === 'r') resetSW();
+});
 </script>
 {% endblock %}

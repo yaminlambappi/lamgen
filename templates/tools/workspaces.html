@@ -1,137 +1,576 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}All Tools — LamGen{% endblock %}
+
+{# This page has its own full-width search bar — suppress the nav search pill #}
+{% block nav_search %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .explorer-shell {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 4rem 2rem;
-    }
-    .explorer-header {
-        margin-bottom: 3rem;
-        text-align: center;
-    }
-    .explorer-header h1 {
-        font-family: 'Syne', sans-serif;
-        font-size: 3rem;
-        font-weight: 800;
-        margin-bottom: 0.5rem;
-        color: var(--text);
-    }
-    .explorer-header p {
-        color: var(--muted);
-        font-size: 1.1rem;
-    }
-    .explorer-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 2rem;
-    }
-    .explorer-card {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 16px;
-        padding: 2rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        text-decoration: none;
-        color: var(--text);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    .explorer-card:hover {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255,255,255,0.15);
-        transform: translateY(-4px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-    .explorer-icon-area {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-    .explorer-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: #fff;
-    }
-    .explorer-info h3 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-    }
-    .explorer-info p {
-        font-size: 0.85rem;
-        color: var(--muted);
-        margin: 0;
-    }
-    .explorer-tools {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-top: auto;
-    }
-    .explorer-tool-link {
-        font-size: 0.85rem;
-        color: var(--muted);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .explorer-tool-link i { color: rgba(255,255,255,0.2); font-size: 0.7rem; }
-    
-    @media (max-width: 768px) {
-        .explorer-header h1 { font-size: 2.5rem; }
-        .explorer-shell { padding: 2rem 1.5rem; }
-    }
+/* ── Shell ── */
+.launcher-shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 80px 1.5rem 5rem;
+}
+
+/* ── Search bar ── */
+.launcher-search-wrap {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+.launcher-search {
+  width: 100%;
+  padding: 13px 20px 13px 46px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.launcher-search:focus {
+  border-color: var(--primary);
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.12);
+}
+.launcher-search::placeholder { color: rgba(255,255,255,0.3); }
+.launcher-search-icon {
+  position: absolute;
+  left: 16px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 1rem;
+  pointer-events: none;
+}
+.launcher-search-kbd {
+  position: absolute;
+  right: 14px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.68rem;
+  color: var(--muted);
+  background: rgba(255,255,255,0.07);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: monospace;
+}
+
+/* ── Category filter pills ── */
+.cat-filter-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 13px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.cat-pill:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+}
+.cat-pill.active {
+  background: rgba(108,99,255,0.18);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 12px rgba(108,99,255,0.2);
+}
+.cat-pill .pill-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+}
+
+/* ── Quick access strip ── */
+.quick-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 1.25rem;
+  scrollbar-width: none;
+}
+.quick-strip::-webkit-scrollbar { display: none; }
+.quick-strip-section {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 10px 14px;
+  min-width: 160px;
+  max-width: 220px;
+}
+.quick-strip-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.quick-strip-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.quick-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.78rem;
+  transition: background 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.quick-item:hover { background: rgba(255,255,255,0.06); }
+.quick-item i { font-size: 0.8rem; flex-shrink: 0; }
+
+/* ── Results meta ── */
+.results-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sort-select {
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  outline: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.sort-select option { background: #0F0F1A; }
+
+/* ── Dense tool grid ── */
+.tool-launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+@media (max-width: 1200px) { .tool-launcher-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px)  { .tool-launcher-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; } }
+@media (max-width: 480px)  { .tool-launcher-grid { grid-template-columns: 1fr; } }
+
+/* ── Tool card ── */
+.tl-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 11px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+  min-height: 58px;
+}
+.tl-card:hover {
+  background: rgba(255,255,255,0.055);
+  border-color: rgba(255,255,255,0.13);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+.tl-card-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+.tl-card:hover .tl-card-icon {
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+}
+.tl-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.tl-card-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.tl-card-desc {
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+.tl-badge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.tl-badge-new  { background: rgba(0,245,212,0.15); color: var(--accent); }
+.tl-badge-ai   { background: rgba(108,99,255,0.2); color: var(--primary); }
+.tl-badge-hot  { background: rgba(255,107,107,0.15); color: #FF6B6B; }
+
+/* ── Empty state ── */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted);
+}
+.empty-state i { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; opacity: 0.3; }
+
+/* ── Category section headers (when not filtering) ── */
+.cat-section-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 2px;
+  margin-top: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 2px;
+}
+.cat-section-header-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.cat-section-header-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+}
+.cat-section-header-count {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.2);
+  margin-left: auto;
+}
+
+/* ── Fade animation ── */
+@keyframes tlFadeIn {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.tl-card { animation: tlFadeIn 0.18s ease both; }
+
+/* ── Mobile tweaks ── */
+@media (max-width: 640px) {
+  .launcher-shell { padding: 70px 0.75rem 5rem; }
+  .cat-filter-bar { gap: 5px; }
+  .cat-pill { padding: 4px 10px; font-size: 0.72rem; }
+  .quick-strip { display: none; }
+  .tl-card { padding: 8px 10px; min-height: 50px; }
+  .tl-card-icon { width: 30px; height: 30px; font-size: 0.9rem; }
+  .tl-card-name { font-size: 0.78rem; }
+  .tl-card-desc { display: none; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="explorer-shell">
-    <header class="explorer-header">
-        <h1>Ecosystem Explorer</h1>
-        <p>Browse all specialized operational environments within LamGen.</p>
-    </header>
+<div class="launcher-shell">
 
-    <div class="explorer-grid">
-        {% for cat in categories %}
-        <a href="{{ cat.get_absolute_url }}" class="explorer-card">
-            <div class="explorer-icon-area">
-                <div class="explorer-icon" style="background: {{ cat.color_from }};">
-                    <i class="{{ cat.icon }}"></i>
-                </div>
-                <div class="explorer-info">
-                    <h3>{{ cat.name }}</h3>
-                    <p>{{ cat.tools.count }} internal tools</p>
-                </div>
-            </div>
-            <div style="font-size: 0.95rem; color: rgba(255,255,255,0.8); line-height: 1.5;">
-                {{ cat.description|truncatechars:100 }}
-            </div>
-            
-            <div class="explorer-tools">
-                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px;">Core Nodes</div>
-                {% for tool in cat.tools.all|slice:":3" %}
-                <div class="explorer-tool-link">
-                    <i class="bi bi-record-circle"></i> {{ tool.name }}
-                </div>
-                {% endfor %}
-                {% if cat.tools.count > 3 %}
-                <div class="explorer-tool-link" style="color: {{ cat.color_from }}; font-weight: 600; margin-top: 4px;">
-                    View {{ cat.tools.count|add:"-3" }} more <i class="bi bi-arrow-right"></i>
-                </div>
-                {% endif %}
-            </div>
+  <!-- Search -->
+  <div class="launcher-search-wrap">
+    <i class="bi bi-search launcher-search-icon"></i>
+    <input type="text"
+           id="launcherSearch"
+           class="launcher-search"
+           placeholder="Search 256 tools by name, category or keyword…"
+           autocomplete="off"
+           spellcheck="false"
+           aria-label="Search tools">
+    <span class="launcher-search-kbd">/ or Ctrl+K</span>
+  </div>
+
+  <!-- Category filter pills -->
+  <div class="cat-filter-bar" id="catFilterBar" role="tablist" aria-label="Filter by category">
+    <button class="cat-pill active" data-cat="all" role="tab" aria-selected="true">
+      <span class="pill-dot"></span> All
+    </button>
+    {% for cat in categories %}
+    <button class="cat-pill" data-cat="{{ cat.slug }}" role="tab" aria-selected="false"
+            style="--pill-color: {{ cat.color_from }}">
+      <i class="{{ cat.icon }}" style="font-size:0.7rem; color:{{ cat.color_from }}"></i>
+      {{ cat.name }}
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- Quick access strip -->
+  {% if recent_tools or trending %}
+  <div class="quick-strip" id="quickStrip">
+    {% if recent_tools %}
+    <div class="quick-strip-section">
+      <div class="quick-strip-label"><i class="bi bi-clock-history"></i> Recent</div>
+      <div class="quick-strip-items">
+        {% for tool in recent_tools|slice:":4" %}
+        <a href="{{ tool.get_absolute_url }}" class="quick-item">
+          <i class="{{ tool.icon }}" style="color:{{ tool.category.color_from }}"></i>
+          {{ tool.name }}
         </a>
         {% endfor %}
+      </div>
     </div>
+    {% endif %}
+    {% if trending %}
+    <div class="quick-strip-section">
+      <div class="quick-strip-label"><i class="bi bi-fire" style="color:#FF6B6B"></i> Trending</div>
+      <div class="quick-strip-items">
+        {% for tool in trending|slice:":4" %}
+        <a href="{{ tool.get_absolute_url }}" class="quick-item">
+          <i class="{{ tool.icon }}" style="color:{{ tool.category.color_from }}"></i>
+          {{ tool.name }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    {% if new_tools %}
+    <div class="quick-strip-section">
+      <div class="quick-strip-label"><i class="bi bi-stars" style="color:var(--accent)"></i> New</div>
+      <div class="quick-strip-items">
+        {% for tool in new_tools|slice:":4" %}
+        <a href="{{ tool.get_absolute_url }}" class="quick-item">
+          <i class="{{ tool.icon }}" style="color:{{ tool.category.color_from }}"></i>
+          {{ tool.name }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Results meta -->
+  <div class="results-meta">
+    <span id="resultsMeta">Showing all tools</span>
+    <select class="sort-select" id="sortSelect" aria-label="Sort tools">
+      <option value="default">Sort: Default</option>
+      <option value="popular">Most Popular</option>
+      <option value="alpha">A → Z</option>
+      <option value="new">Newest First</option>
+    </select>
+  </div>
+
+  <!-- Tool grid -->
+  <div class="tool-launcher-grid" id="toolGrid" role="list">
+    {# Populated by JS from embedded data #}
+  </div>
+
 </div>
+
+{# Embed all tool data as JSON for instant client-side filtering #}
+<script id="toolData" type="application/json">
+[{% for cat in categories %}{% for tool in cat.tools.all %}{"slug":"{{ tool.slug }}","name":"{{ tool.name|escapejs }}","desc":"{{ tool.short_desc|truncatechars:60|escapejs }}","icon":"{{ tool.icon }}","url":"{{ tool.get_absolute_url }}","cat":"{{ cat.slug }}","catName":"{{ cat.name|escapejs }}","catColor":"{{ cat.color_from }}","isNew":{% if tool.is_new %}true{% else %}false{% endif %},"isFeatured":{% if tool.is_featured %}true{% else %}false{% endif %},"views":{{ tool.view_count }}}{% if not forloop.last %},{% endif %}{% endfor %}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+(function() {
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const ALL_TOOLS = JSON.parse(document.getElementById('toolData').textContent);
+  const RECENT_SLUGS = {{ request.session.recent_tools|default:"[]"|safe }};
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  let activeCat = 'all';
+  let searchQuery = '';
+  let sortMode = 'default';
+
+  // ── DOM refs ──────────────────────────────────────────────────────────────
+  const grid       = document.getElementById('toolGrid');
+  const searchEl   = document.getElementById('launcherSearch');
+  const metaEl     = document.getElementById('resultsMeta');
+  const sortEl     = document.getElementById('sortSelect');
+
+  // ── Filter + sort ─────────────────────────────────────────────────────────
+  function getFiltered() {
+    let tools = ALL_TOOLS.filter(t => {
+      const matchCat = activeCat === 'all' || t.cat === activeCat;
+      const q = searchQuery.toLowerCase();
+      const matchQ = !q ||
+        t.name.toLowerCase().includes(q) ||
+        t.desc.toLowerCase().includes(q) ||
+        t.catName.toLowerCase().includes(q) ||
+        t.cat.toLowerCase().includes(q);
+      return matchCat && matchQ;
+    });
+
+    // Sort
+    if (sortMode === 'popular') {
+      tools = tools.slice().sort((a, b) => b.views - a.views);
+    } else if (sortMode === 'alpha') {
+      tools = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortMode === 'new') {
+      tools = tools.slice().sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+    } else {
+      // Default: recent first, then featured, then by views
+      const recentSet = new Set(RECENT_SLUGS);
+      tools = tools.slice().sort((a, b) => {
+        const aR = recentSet.has(a.slug) ? 1 : 0;
+        const bR = recentSet.has(b.slug) ? 1 : 0;
+        if (aR !== bR) return bR - aR;
+        const aF = a.isFeatured ? 1 : 0;
+        const bF = b.isFeatured ? 1 : 0;
+        if (aF !== bF) return bF - aF;
+        return b.views - a.views;
+      });
+    }
+    return tools;
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function badge(tool) {
+    if (tool.isNew) return '<span class="tl-badge tl-badge-new">New</span>';
+    if (tool.isFeatured) return '<span class="tl-badge tl-badge-ai">AI</span>';
+    if (tool.views > 100) return '<span class="tl-badge tl-badge-hot">🔥</span>';
+    return '';
+  }
+
+  function render() {
+    const tools = getFiltered();
+    metaEl.textContent = tools.length
+      ? `${tools.length} tool${tools.length !== 1 ? 's' : ''}${activeCat !== 'all' ? '' : ' across all categories'}`
+      : 'No tools found';
+
+    if (!tools.length) {
+      grid.innerHTML = `<div class="empty-state"><i class="bi bi-search"></i>No tools match "${escHtml(searchQuery)}".<br><small>Try a different keyword or clear the filter.</small></div>`;
+      return;
+    }
+
+    // Group by category when showing all and no search
+    const showHeaders = activeCat === 'all' && !searchQuery;
+    let html = '';
+    let lastCat = null;
+    let delay = 0;
+
+    for (const t of tools) {
+      if (showHeaders && t.cat !== lastCat) {
+        // Find category info
+        const catColor = t.catColor;
+        html += `<div class="cat-section-header" data-cat="${escHtml(t.cat)}">
+          <span class="cat-section-header-dot" style="background:${escHtml(catColor)}"></span>
+          <span class="cat-section-header-name">${escHtml(t.catName)}</span>
+          <span class="cat-section-header-count">${tools.filter(x => x.cat === t.cat).length} tools</span>
+        </div>`;
+        lastCat = t.cat;
+      }
+
+      const iconBg = `background:${t.catColor}18; border:1px solid ${t.catColor}33; color:${t.catColor}`;
+      html += `<a href="${escHtml(t.url)}"
+                  class="tl-card"
+                  role="listitem"
+                  aria-label="${escHtml(t.name)}: ${escHtml(t.desc)}"
+                  style="animation-delay:${delay}ms">
+        <div class="tl-card-icon" style="${iconBg}">
+          <i class="${escHtml(t.icon)}"></i>
+        </div>
+        <div class="tl-card-body">
+          <div class="tl-card-name">${escHtml(t.name)}</div>
+          <div class="tl-card-desc">${escHtml(t.desc)}</div>
+        </div>
+        ${badge(t)}
+      </a>`;
+      delay = Math.min(delay + 8, 120); // stagger capped at 120ms
+    }
+
+    grid.innerHTML = html;
+  }
+
+  // ── Event listeners ───────────────────────────────────────────────────────
+  // Search — debounced 120ms
+  let searchTimer;
+  searchEl.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      searchQuery = searchEl.value.trim();
+      render();
+    }, 120);
+  });
+
+  // Category pills
+  document.getElementById('catFilterBar').addEventListener('click', e => {
+    const pill = e.target.closest('.cat-pill');
+    if (!pill) return;
+    document.querySelectorAll('.cat-pill').forEach(p => {
+      p.classList.remove('active');
+      p.setAttribute('aria-selected', 'false');
+    });
+    pill.classList.add('active');
+    pill.setAttribute('aria-selected', 'true');
+    activeCat = pill.dataset.cat;
+    render();
+  });
+
+  // Sort
+  sortEl.addEventListener('change', () => {
+    sortMode = sortEl.value;
+    render();
+  });
+
+  // Keyboard shortcut: focus search on /
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== searchEl &&
+        document.activeElement.tagName !== 'INPUT' &&
+        document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      searchEl.focus();
+      searchEl.select();
+    }
+  });
+
+  // ── Initial render ────────────────────────────────────────────────────────
+  render();
+})();
+</script>
 {% endblock %}

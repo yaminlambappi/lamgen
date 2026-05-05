@@ -1,0 +1,267 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:220px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.4rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.tool-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:768px){.tool-row{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Input YAML</div>
+    <textarea class="tool-code" id="yamlIn" placeholder="name: John Doe&#10;age: 30&#10;address:&#10;  street: 123 Main St&#10;  city: Springfield&#10;hobbies:&#10;  - reading&#10;  - coding"></textarea>
+    <div class="chips">
+      <span class="chip" onclick="loadEx('simple')">Simple Config</span>
+      <span class="chip" onclick="loadEx('nested')">Nested</span>
+      <span class="chip" onclick="loadEx('array')">Array of Objects</span>
+      <span class="chip" onclick="loadEx('docker')">Docker Compose</span>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="formatYAML()"><i class="bi bi-braces"></i> Format YAML</button>
+    <button class="btn-sm" onclick="toJSON()"><i class="bi bi-filetype-json"></i> Convert to JSON</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Output</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" id="btnCopy" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <textarea class="tool-code out" id="yamlOut" readonly placeholder="Formatted output will appear here..."></textarea>
+    <div class="meta-row" id="stats"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const EXAMPLES = {
+  simple: `name: John Doe\nage: 30\nemail: john@example.com\nactive: true\nscore: 9.5\nnotes: null`,
+  nested: `server:\n  host: localhost\n  port: 8080\n  debug: false\ndatabase:\n  host: db.example.com\n  port: 5432\n  name: myapp\n  credentials:\n    user: admin\n    password: secret\nfeatures:\n  darkMode: true\n  analytics: false`,
+  array: `users:\n  - id: 1\n    name: Alice\n    role: admin\n    active: true\n  - id: 2\n    name: Bob\n    role: editor\n    active: false\n  - id: 3\n    name: Charlie\n    role: viewer\n    active: true`,
+  docker: `version: '3.8'\nservices:\n  web:\n    image: nginx:latest\n    ports:\n      - '80:80'\n    volumes:\n      - ./html:/usr/share/nginx/html\n    depends_on:\n      - api\n  api:\n    build: ./api\n    environment:\n      - NODE_ENV=production\n      - PORT=3000\n    ports:\n      - '3000:3000'`
+};
+
+function loadEx(key) {
+  document.getElementById('yamlIn').value = EXAMPLES[key];
+  formatYAML();
+}
+
+// Minimal YAML parser
+function parseYAML(text) {
+  const lines = text.split('\n');
+  const root = {};
+  const stack = [{ obj: root, indent: -1 }];
+
+  function getParent(indent) {
+    while (stack.length > 1 && stack[stack.length-1].indent >= indent) stack.pop();
+    return stack[stack.length-1].obj;
+  }
+
+  function parseValue(v) {
+    v = v.trim();
+    if (v === 'true') return true;
+    if (v === 'false') return false;
+    if (v === 'null' || v === '~' || v === '') return null;
+    if (/^-?\d+$/.test(v)) return parseInt(v, 10);
+    if (/^-?\d+\.\d+$/.test(v)) return parseFloat(v);
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) return v.slice(1,-1);
+    return v;
+  }
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trimStart();
+    if (!trimmed || trimmed.startsWith('#')) { i++; continue; }
+    const indent = line.length - trimmed.length;
+
+    if (trimmed.startsWith('- ')) {
+      // Array item
+      const parent = getParent(indent);
+      const key = stack[stack.length-1].key;
+      const arr = Array.isArray(parent[key]) ? parent[key] : (parent[key] = []);
+      const val = trimmed.slice(2).trim();
+      if (val.includes(':')) {
+        const obj = {};
+        arr.push(obj);
+        stack.push({ obj, indent, key: null });
+        // parse inline key:val
+        const colonIdx = val.indexOf(':');
+        const k = val.slice(0, colonIdx).trim();
+        const v = val.slice(colonIdx+1).trim();
+        obj[k] = parseValue(v);
+      } else {
+        arr.push(parseValue(val));
+      }
+      i++; continue;
+    }
+
+    const colonIdx = trimmed.indexOf(':');
+    if (colonIdx === -1) { i++; continue; }
+    const key = trimmed.slice(0, colonIdx).trim();
+    const rest = trimmed.slice(colonIdx+1).trim();
+
+    const parent = getParent(indent);
+    if (rest === '' || rest.startsWith('#')) {
+      // nested object or array follows
+      parent[key] = {};
+      stack.push({ obj: parent[key], indent, key });
+    } else if (rest.startsWith('[')) {
+      // inline array
+      try { parent[key] = JSON.parse(rest.replace(/'/g,'"')); } catch(e) { parent[key] = rest; }
+    } else {
+      parent[key] = parseValue(rest);
+      stack[stack.length-1].key = key;
+    }
+    i++;
+  }
+  return root;
+}
+
+function objToYAML(obj, indent=0) {
+  const pad = '  '.repeat(indent);
+  if (obj === null) return 'null';
+  if (typeof obj === 'boolean') return obj.toString();
+  if (typeof obj === 'number') return obj.toString();
+  if (typeof obj === 'string') {
+    if (/[:#\[\]{},&*?|<>=!%@`]/.test(obj) || obj.includes('\n') || obj === '' || /^(true|false|null|yes|no)$/i.test(obj)) {
+      return `"${obj.replace(/"/g,'\\"')}"`;
+    }
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return '[]';
+    return obj.map(item => {
+      if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+        const entries = Object.entries(item);
+        if (entries.length === 0) return `${pad}- {}`;
+        const first = entries[0];
+        const rest = entries.slice(1);
+        let out = `${pad}- ${first[0]}: ${objToYAML(first[1], indent+1)}`;
+        rest.forEach(([k,v]) => { out += `\n${pad}  ${k}: ${objToYAML(v, indent+1)}`; });
+        return out;
+      }
+      return `${pad}- ${objToYAML(item, indent+1)}`;
+    }).join('\n');
+  }
+  if (typeof obj === 'object') {
+    const entries = Object.entries(obj);
+    if (entries.length === 0) return '{}';
+    return entries.map(([k,v]) => {
+      if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
+        return `${pad}${k}:\n${objToYAML(v, indent+1)}`;
+      }
+      if (Array.isArray(v)) {
+        return `${pad}${k}:\n${objToYAML(v, indent+1)}`;
+      }
+      return `${pad}${k}: ${objToYAML(v, indent+1)}`;
+    }).join('\n');
+  }
+  return String(obj);
+}
+
+function formatYAML() {
+  const raw = document.getElementById('yamlIn').value.trim();
+  if (!raw) { showErr('st','No input provided'); return; }
+  hideStatus('st');
+  try {
+    const parsed = parseYAML(raw);
+    const formatted = objToYAML(parsed);
+    document.getElementById('yamlOut').value = formatted;
+    const lines = formatted.split('\n').length;
+    const keys = countKeys(parsed);
+    document.getElementById('stats').innerHTML = `
+      <span><i class="bi bi-key"></i> ${keys} keys</span>
+      <span><i class="bi bi-list-ol"></i> ${lines} lines</span>
+      <span><i class="bi bi-file-earmark"></i> ${formatted.length} chars</span>
+    `;
+    showOk('st','Valid YAML');
+  } catch(e) {
+    showErr('st', 'Parse error: ' + e.message);
+  }
+}
+
+function toJSON() {
+  const raw = document.getElementById('yamlIn').value.trim();
+  if (!raw) { showErr('st','No input provided'); return; }
+  try {
+    const parsed = parseYAML(raw);
+    document.getElementById('yamlOut').value = JSON.stringify(parsed, null, 2);
+    showOk('st','Converted to JSON');
+  } catch(e) {
+    showErr('st', 'Parse error: ' + e.message);
+  }
+}
+
+function countKeys(obj) {
+  if (typeof obj !== 'object' || obj === null) return 0;
+  let c = 0;
+  if (Array.isArray(obj)) { obj.forEach(v => { c += countKeys(v); }); }
+  else { c += Object.keys(obj).length; Object.values(obj).forEach(v => { c += countKeys(v); }); }
+  return c;
+}
+
+function copyOut() {
+  const v = document.getElementById('yamlOut').value;
+  if (!v) return;
+  navigator.clipboard.writeText(v).then(() => {
+    const btn = document.getElementById('btnCopy');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function downloadOut() {
+  const v = document.getElementById('yamlOut').value;
+  if (!v) return;
+  const blob = new Blob([v], {type:'text/yaml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'formatted.yaml'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearAll() {
+  document.getElementById('yamlIn').value = '';
+  document.getElementById('yamlOut').value = '';
+  document.getElementById('stats').innerHTML = '';
+  hideStatus('st');
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatYAML(); }
+});
+</script>
+{% endblock %}

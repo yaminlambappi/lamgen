@@ -1,0 +1,202 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+.input-grp { margin-bottom: 1.2rem; }
+.upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02); margin-bottom: 1rem; }
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.favicon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+.favicon-item { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
+.favicon-item:hover { border-color: rgba(108,99,255,0.4); }
+.favicon-item canvas { display: block; margin: 0 auto 0.5rem; image-rendering: pixelated; }
+.favicon-size { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.4rem; }
+.mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+.mode-tab { flex: 1; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem; transition: all 0.2s; text-align: center; }
+.mode-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:2rem;">
+  <div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-upload" onclick="setMode('upload')">📁 Upload Image</button>
+      <button class="mode-tab" id="tab-text" onclick="setMode('text')">✏️ Text/Emoji</button>
+    </div>
+
+    <div id="upload-panel">
+      <div class="upload-zone" id="drop-zone">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">🖼️</div>
+        <p style="color:var(--muted);font-size:0.9rem;">Click or drag image here</p>
+        <input type="file" id="file-input" accept="image/*" style="display:none;">
+      </div>
+    </div>
+
+    <div id="text-panel" style="display:none;">
+      <div class="input-grp">
+        <span class="tool-label">Text or Emoji</span>
+        <input type="text" id="in-text" class="num-input" placeholder="e.g. 🚀 or AB" maxlength="3" value="🚀">
+      </div>
+      <div class="input-grp">
+        <span class="tool-label">Background Color</span>
+        <input type="color" id="in-bg" value="#6C63FF" style="width:60px;height:40px;border:none;border-radius:8px;cursor:pointer;background:transparent;">
+      </div>
+      <div class="input-grp">
+        <span class="tool-label">Text Color</span>
+        <input type="color" id="in-fg" value="#ffffff" style="width:60px;height:40px;border:none;border-radius:8px;cursor:pointer;background:transparent;">
+      </div>
+    </div>
+
+    <button class="btn-go" id="btn-generate">⚡ Generate Favicons</button>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:0.6rem;">Ctrl+Enter to generate</p>
+  </div>
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+      <span class="tool-label" style="margin:0;">All Favicon Sizes</span>
+      <button class="btn-sm" id="btn-dl-all">⬇ Download All (ZIP)</button>
+    </div>
+    <div class="favicon-grid" id="favicon-grid">
+      <div style="color:var(--muted);text-align:center;padding:2rem;grid-column:1/-1;">Generate favicons to see all sizes</div>
+    </div>
+    <div style="margin-top:1.5rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:1rem;">
+      <span class="tool-label">HTML Link Tags</span>
+      <div id="html-tags" style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--accent);white-space:pre-wrap;"></div>
+      <button class="btn-sm" id="btn-copy-html" style="margin-top:0.5rem;"><i class="bi bi-clipboard"></i> Copy HTML</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let mode = 'upload';
+  let sourceImg = null;
+  const sizes = [16, 32, 48, 64, 128, 180, 192];
+  const sizeLabels = { 16: '16×16 (Browser Tab)', 32: '32×32 (Taskbar)', 48: '48×48 (Desktop)', 64: '64×64 (Shortcut)', 128: '128×128 (App)', 180: '180×180 (Apple Touch)', 192: '192×192 (Android)' };
+  let generatedCanvases = {};
+
+  window.setMode = (m) => {
+    mode = m;
+    document.getElementById('tab-upload').classList.toggle('active', m === 'upload');
+    document.getElementById('tab-text').classList.toggle('active', m === 'text');
+    document.getElementById('upload-panel').style.display = m === 'upload' ? 'block' : 'none';
+    document.getElementById('text-panel').style.display = m === 'text' ? 'block' : 'none';
+  };
+
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) loadImage(e.target.files[0]); });
+
+  function loadImage(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => { sourceImg = img; dropZone.innerHTML = `<img src="${e.target.result}" style="max-height:80px;border-radius:8px;"> <p style="color:var(--accent);margin-top:0.5rem;font-size:0.85rem;">Image loaded ✓</p>`; };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function generateFromImage(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    canvas.getContext('2d').drawImage(sourceImg, 0, 0, size, size);
+    return canvas;
+  }
+
+  function generateFromText(size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const bg = document.getElementById('in-bg').value;
+    const fg = document.getElementById('in-fg').value;
+    const text = document.getElementById('in-text').value || '?';
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = fg;
+    ctx.font = `bold ${Math.round(size * 0.55)}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, size / 2, size / 2);
+    return canvas;
+  }
+
+  function generate() {
+    if (mode === 'upload' && !sourceImg) { alert('Please upload an image first.'); return; }
+    generatedCanvases = {};
+    const grid = document.getElementById('favicon-grid');
+    grid.innerHTML = sizes.map(s => {
+      const canvas = mode === 'upload' ? generateFromImage(s) : generateFromText(s);
+      generatedCanvases[s] = canvas;
+      const displaySize = Math.min(s, 64);
+      const displayCanvas = document.createElement('canvas');
+      displayCanvas.width = displaySize; displayCanvas.height = displaySize;
+      displayCanvas.style.imageRendering = 'pixelated';
+      displayCanvas.getContext('2d').drawImage(canvas, 0, 0, displaySize, displaySize);
+      const dataUrl = canvas.toDataURL('image/png');
+      return `<div class="favicon-item">
+        <div class="favicon-size">${sizeLabels[s] || s + '×' + s}</div>
+        <img src="${dataUrl}" width="${displaySize}" height="${displaySize}" style="image-rendering:pixelated;display:block;margin:0 auto 0.5rem;">
+        <a href="${dataUrl}" download="favicon-${s}x${s}.png" class="btn-sm" style="display:block;text-align:center;">⬇ ${s}px</a>
+      </div>`;
+    }).join('');
+
+    // HTML tags
+    const tags = [
+      `<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">`,
+      `<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">`,
+      `<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">`,
+      `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">`,
+      `<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">`,
+    ].join('\n');
+    document.getElementById('html-tags').textContent = tags;
+  }
+
+  document.getElementById('btn-generate').addEventListener('click', generate);
+
+  document.getElementById('btn-dl-all').addEventListener('click', async () => {
+    if (!Object.keys(generatedCanvases).length) { alert('Generate favicons first.'); return; }
+    const zip = new JSZip();
+    const folder = zip.folder('favicons');
+    for (const [size, canvas] of Object.entries(generatedCanvases)) {
+      const dataUrl = canvas.toDataURL('image/png');
+      const base64 = dataUrl.split(',')[1];
+      folder.file(`favicon-${size}x${size}.png`, base64, { base64: true });
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'favicons.zip';
+    a.click();
+  });
+
+  document.getElementById('btn-copy-html').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(document.getElementById('html-tags').textContent);
+    const btn = document.getElementById('btn-copy-html');
+    btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy HTML', 1500);
+  });
+
+  // Live text preview
+  ['in-text','in-bg','in-fg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => { if (mode === 'text' && Object.keys(generatedCanvases).length) generate(); });
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+});
+</script>
+{% endblock %}

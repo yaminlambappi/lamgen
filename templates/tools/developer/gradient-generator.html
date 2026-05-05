@@ -1,0 +1,250 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.mode-tabs{display:flex;gap:4px}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.gradient-preview{width:100%;height:200px;border-radius:16px;border:1px solid rgba(255,255,255,.1);transition:all .3s;position:relative;overflow:hidden}
+.gradient-preview-label{position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);padding:4px 10px;border-radius:6px;font-size:.72rem;color:rgba(255,255,255,.7);font-family:'JetBrains Mono',monospace}
+.stops-list{display:flex;flex-direction:column;gap:.5rem}
+.stop-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px}
+.stop-color{width:36px;height:36px;border-radius:8px;border:2px solid rgba(255,255,255,.15);cursor:pointer;padding:0;background:none;overflow:hidden}
+.stop-color input[type=color]{width:100%;height:100%;border:none;cursor:pointer;padding:0;background:none}
+.stop-pos{width:70px;padding:6px 10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;outline:none;text-align:center}
+.stop-pos:focus{border-color:var(--primary)}
+.stop-label{flex:1;font-size:.82rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.stop-del{padding:4px 8px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);border-radius:6px;color:#FF6B6B;cursor:pointer;font-size:.75rem;transition:all .15s}
+.stop-del:hover{background:rgba(255,107,107,.2)}
+.ctrl-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem}
+.ctrl-item{display:flex;flex-direction:column;gap:.3rem}
+.num-input,.select-input{width:100%;padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box}
+.num-input:focus,.select-input:focus{border-color:var(--primary)}
+.css-output{width:100%;padding:14px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;cursor:default;box-sizing:border-box;white-space:pre-wrap;word-break:break-all}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.preset{width:48px;height:48px;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0}
+.preset:hover,.preset.active{border-color:#fff;transform:scale(1.1)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div>
+    <div class="tool-label">Live Preview</div>
+    <div class="gradient-preview" id="preview">
+      <span class="gradient-preview-label" id="previewLabel"></span>
+    </div>
+  </div>
+
+  <div class="ctrl-row">
+    <div class="ctrl-item">
+      <div class="tool-label">Type</div>
+      <select class="select-input" id="gradType" onchange="updateGradient()">
+        <option value="linear">Linear</option>
+        <option value="radial">Radial</option>
+        <option value="conic">Conic</option>
+      </select>
+    </div>
+    <div class="ctrl-item" id="angleCtrl">
+      <div class="tool-label">Angle (°)</div>
+      <input type="number" class="num-input" id="angle" value="135" min="0" max="360" oninput="updateGradient()">
+    </div>
+    <div class="ctrl-item" id="radialCtrl" style="display:none">
+      <div class="tool-label">Shape</div>
+      <select class="select-input" id="radialShape" onchange="updateGradient()">
+        <option value="circle">Circle</option>
+        <option value="ellipse">Ellipse</option>
+      </select>
+    </div>
+    <div class="ctrl-item" id="radialPosCtrl" style="display:none">
+      <div class="tool-label">Position</div>
+      <select class="select-input" id="radialPos" onchange="updateGradient()">
+        <option value="center">Center</option>
+        <option value="top">Top</option>
+        <option value="bottom">Bottom</option>
+        <option value="left">Left</option>
+        <option value="right">Right</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <div class="tool-label" style="margin-bottom:0">Color Stops</div>
+      <button class="btn-sm" onclick="addStop()"><i class="bi bi-plus-circle"></i> Add Stop</button>
+    </div>
+    <div class="stops-list" id="stopsList"></div>
+  </div>
+
+  <div>
+    <div class="tool-label">Presets</div>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">CSS Output</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" id="btnCopy" onclick="copyCss()"><i class="bi bi-clipboard"></i> Copy CSS</button>
+        <button class="btn-sm" onclick="downloadPng()"><i class="bi bi-download"></i> Download PNG</button>
+      </div>
+    </div>
+    <div class="css-output" id="cssOut"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const PRESETS = [
+  {name:'Nexus',stops:['#6C63FF','#00F5D4'],angle:135},
+  {name:'Sunset',stops:['#FF6B6B','#FFE66D'],angle:135},
+  {name:'Ocean',stops:['#0077b6','#00b4d8','#90e0ef'],angle:180},
+  {name:'Forest',stops:['#2d6a4f','#52b788','#d8f3dc'],angle:135},
+  {name:'Fire',stops:['#e63946','#f4a261','#e9c46a'],angle:90},
+  {name:'Midnight',stops:['#0a0a0f','#1a1a2e','#16213e'],angle:180},
+  {name:'Aurora',stops:['#00F5D4','#6C63FF','#FF6B6B'],angle:135},
+  {name:'Rose',stops:['#f72585','#b5179e','#7209b7'],angle:135},
+  {name:'Citrus',stops:['#f9c74f','#f8961e','#f3722c'],angle:135},
+  {name:'Steel',stops:['#adb5bd','#6c757d','#343a40'],angle:180},
+];
+
+let stops = [];
+
+function initStops(colors, angle) {
+  stops = colors.map((c, i) => ({
+    color: c,
+    pos: Math.round(i / (colors.length - 1) * 100)
+  }));
+  document.getElementById('angle').value = angle || 135;
+  renderStops();
+  updateGradient();
+}
+
+function addStop() {
+  const lastPos = stops.length ? stops[stops.length-1].pos : 0;
+  const newPos = Math.min(100, lastPos + Math.round((100 - lastPos) / 2));
+  stops.push({color: '#ffffff', pos: newPos});
+  stops.sort((a,b) => a.pos - b.pos);
+  renderStops();
+  updateGradient();
+}
+
+function removeStop(idx) {
+  if (stops.length <= 2) return;
+  stops.splice(idx, 1);
+  renderStops();
+  updateGradient();
+}
+
+function renderStops() {
+  document.getElementById('stopsList').innerHTML = stops.map((s, i) => `
+    <div class="stop-item">
+      <div class="stop-color">
+        <input type="color" value="${s.color}" oninput="stops[${i}].color=this.value;updateGradient()">
+      </div>
+      <span class="stop-label">${s.color}</span>
+      <input type="number" class="stop-pos" value="${s.pos}" min="0" max="100"
+             oninput="stops[${i}].pos=parseInt(this.value)||0;stops.sort((a,b)=>a.pos-b.pos);updateGradient()">
+      <span style="font-size:.72rem;color:var(--muted)">%</span>
+      ${stops.length > 2 ? `<button class="stop-del" onclick="removeStop(${i})"><i class="bi bi-trash"></i></button>` : ''}
+    </div>
+  `).join('');
+}
+
+function buildGradient() {
+  const type = document.getElementById('gradType').value;
+  const stopsStr = stops.map(s => `${s.color} ${s.pos}%`).join(', ');
+  if (type === 'linear') {
+    const angle = document.getElementById('angle').value;
+    return `linear-gradient(${angle}deg, ${stopsStr})`;
+  } else if (type === 'radial') {
+    const shape = document.getElementById('radialShape').value;
+    const pos = document.getElementById('radialPos').value;
+    return `radial-gradient(${shape} at ${pos}, ${stopsStr})`;
+  } else {
+    const angle = document.getElementById('angle').value;
+    return `conic-gradient(from ${angle}deg, ${stopsStr})`;
+  }
+}
+
+function updateGradient() {
+  const type = document.getElementById('gradType').value;
+  document.getElementById('angleCtrl').style.display = type !== 'radial' ? '' : 'none';
+  document.getElementById('radialCtrl').style.display = type === 'radial' ? '' : 'none';
+  document.getElementById('radialPosCtrl').style.display = type === 'radial' ? '' : 'none';
+
+  const grad = buildGradient();
+  document.getElementById('preview').style.background = grad;
+  document.getElementById('previewLabel').textContent = stops.length + ' stops';
+
+  const css = `background: ${grad};\nbackground: -webkit-${grad};`;
+  document.getElementById('cssOut').textContent = css;
+}
+
+function copyCss() {
+  const css = document.getElementById('cssOut').textContent;
+  const btn = document.getElementById('btnCopy');
+  navigator.clipboard.writeText(css).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function downloadPng() {
+  const preview = document.getElementById('preview');
+  const canvas = document.createElement('canvas');
+  canvas.width = 1200; canvas.height = 600;
+  const ctx = canvas.getContext('2d');
+  const type = document.getElementById('gradType').value;
+  const sorted = [...stops].sort((a,b) => a.pos - b.pos);
+
+  let grad;
+  if (type === 'linear') {
+    const angle = (parseInt(document.getElementById('angle').value) || 135) * Math.PI / 180;
+    const x1 = canvas.width/2 - Math.cos(angle) * canvas.width/2;
+    const y1 = canvas.height/2 - Math.sin(angle) * canvas.height/2;
+    const x2 = canvas.width/2 + Math.cos(angle) * canvas.width/2;
+    const y2 = canvas.height/2 + Math.sin(angle) * canvas.height/2;
+    grad = ctx.createLinearGradient(x1, y1, x2, y2);
+  } else {
+    grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width/2);
+  }
+  sorted.forEach(s => grad.addColorStop(s.pos/100, s.color));
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'gradient.png'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+}
+
+// Render presets
+document.getElementById('presets').innerHTML = PRESETS.map((p, i) => {
+  const grad = `linear-gradient(135deg, ${p.stops.join(', ')})`;
+  return `<div class="preset" style="background:${grad}" title="${p.name}" onclick="loadPreset(${i})"></div>`;
+}).join('');
+
+function loadPreset(i) {
+  document.querySelectorAll('.preset').forEach((el,j) => el.classList.toggle('active', j===i));
+  initStops(PRESETS[i].stops, PRESETS[i].angle);
+}
+
+// Init with first preset
+loadPreset(0);
+</script>
+{% endblock %}

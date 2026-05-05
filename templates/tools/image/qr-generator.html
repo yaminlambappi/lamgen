@@ -1,0 +1,200 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input, .select-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus, .select-input:focus { border-color: var(--primary); }
+textarea.num-input { resize: vertical; min-height: 80px; }
+.input-grp { margin-bottom: 1.2rem; }
+.qr-preview { background: #fff; padding: 2rem; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 320px; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; width: 100%; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.type-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.type-tab { padding: 0.3rem 0.8rem; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.type-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+@media (max-width: 768px) { .dev-tool-wrap { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="input-grp">
+      <span class="tool-label">Content Type</span>
+      <div class="type-tabs" id="type-tabs">
+        <button class="type-tab active" data-type="url">🔗 URL</button>
+        <button class="type-tab" data-type="text">📝 Text</button>
+        <button class="type-tab" data-type="wifi">📶 WiFi</button>
+        <button class="type-tab" data-type="vcard">👤 vCard</button>
+        <button class="type-tab" data-type="email">📧 Email</button>
+        <button class="type-tab" data-type="phone">📞 Phone</button>
+      </div>
+    </div>
+    <div id="dynamic-form"></div>
+    <div class="input-grp">
+      <span class="tool-label">Size: <span id="size-val">250px</span></span>
+      <input type="range" id="qr-size" min="100" max="500" value="250" style="width:100%;accent-color:var(--primary);">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.2rem;">
+      <div>
+        <span class="tool-label">Foreground</span>
+        <input type="color" id="qr-fg" value="#000000" style="width:100%;height:40px;border:none;border-radius:8px;cursor:pointer;background:transparent;">
+      </div>
+      <div>
+        <span class="tool-label">Background</span>
+        <input type="color" id="qr-bg" value="#ffffff" style="width:100%;height:40px;border:none;border-radius:8px;cursor:pointer;background:transparent;">
+      </div>
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Error Correction</span>
+      <select id="qr-ec" class="select-input">
+        <option value="L">L – Low (7%)</option>
+        <option value="M" selected>M – Medium (15%)</option>
+        <option value="Q">Q – Quartile (25%)</option>
+        <option value="H">H – High (30%)</option>
+      </select>
+    </div>
+  </div>
+  <div>
+    <span class="tool-label">QR Code Preview</span>
+    <div class="qr-preview" id="qr-preview">
+      <div id="qrcode"></div>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+      <button class="btn-go" id="btn-dl-png" style="flex:1;"><i class="bi bi-download"></i> Download PNG</button>
+      <button class="btn-sm" id="btn-dl-svg">SVG</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let qrcode = null;
+  let currentType = 'url';
+
+  const forms = {
+    url: `<div class="input-grp"><span class="tool-label">URL</span><input type="url" id="f-url" class="num-input" placeholder="https://example.com" value="https://lamgen.tools"></div>`,
+    text: `<div class="input-grp"><span class="tool-label">Text</span><textarea id="f-text" class="num-input" placeholder="Enter any text…"></textarea></div>`,
+    wifi: `<div class="input-grp"><span class="tool-label">Network Name (SSID)</span><input type="text" id="f-ssid" class="num-input" placeholder="MyWiFi"></div>
+           <div class="input-grp"><span class="tool-label">Password</span><input type="text" id="f-pass" class="num-input" placeholder="password123"></div>
+           <div class="input-grp"><span class="tool-label">Security</span><select id="f-sec" class="select-input"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="">None</option></select></div>`,
+    vcard: `<div class="input-grp"><span class="tool-label">Full Name</span><input type="text" id="f-vname" class="num-input" placeholder="John Doe"></div>
+            <div class="input-grp"><span class="tool-label">Phone</span><input type="text" id="f-vphone" class="num-input" placeholder="+1-555-555-5555"></div>
+            <div class="input-grp"><span class="tool-label">Email</span><input type="email" id="f-vemail" class="num-input" placeholder="john@example.com"></div>
+            <div class="input-grp"><span class="tool-label">Website</span><input type="url" id="f-vweb" class="num-input" placeholder="https://example.com"></div>`,
+    email: `<div class="input-grp"><span class="tool-label">Email Address</span><input type="email" id="f-email" class="num-input" placeholder="hello@example.com"></div>
+            <div class="input-grp"><span class="tool-label">Subject (optional)</span><input type="text" id="f-subject" class="num-input" placeholder="Hello!"></div>
+            <div class="input-grp"><span class="tool-label">Body (optional)</span><textarea id="f-body" class="num-input" placeholder="Message…"></textarea></div>`,
+    phone: `<div class="input-grp"><span class="tool-label">Phone Number</span><input type="tel" id="f-phone" class="num-input" placeholder="+1-555-555-5555"></div>`,
+  };
+
+  function getContent() {
+    switch (currentType) {
+      case 'url': return document.getElementById('f-url')?.value || '';
+      case 'text': return document.getElementById('f-text')?.value || '';
+      case 'wifi': {
+        const ssid = document.getElementById('f-ssid')?.value || '';
+        const pass = document.getElementById('f-pass')?.value || '';
+        const sec = document.getElementById('f-sec')?.value || '';
+        return `WIFI:T:${sec};S:${ssid};P:${pass};;`;
+      }
+      case 'vcard': {
+        const n = document.getElementById('f-vname')?.value || '';
+        const p = document.getElementById('f-vphone')?.value || '';
+        const e = document.getElementById('f-vemail')?.value || '';
+        const w = document.getElementById('f-vweb')?.value || '';
+        return `BEGIN:VCARD\nVERSION:3.0\nFN:${n}\nTEL:${p}\nEMAIL:${e}\nURL:${w}\nEND:VCARD`;
+      }
+      case 'email': {
+        const e = document.getElementById('f-email')?.value || '';
+        const s = document.getElementById('f-subject')?.value || '';
+        const b = document.getElementById('f-body')?.value || '';
+        return `mailto:${e}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b)}`;
+      }
+      case 'phone': return `tel:${document.getElementById('f-phone')?.value || ''}`;
+      default: return '';
+    }
+  }
+
+  function generate() {
+    const content = getContent();
+    if (!content.trim()) return;
+    const size = parseInt(document.getElementById('qr-size').value);
+    const fg = document.getElementById('qr-fg').value;
+    const bg = document.getElementById('qr-bg').value;
+    const ec = document.getElementById('qr-ec').value;
+    const container = document.getElementById('qrcode');
+    container.innerHTML = '';
+    qrcode = new QRCode(container, {
+      text: content,
+      width: size,
+      height: size,
+      colorDark: fg,
+      colorLight: bg,
+      correctLevel: QRCode.CorrectLevel[ec] || QRCode.CorrectLevel.M,
+    });
+  }
+
+  function renderForm(type) {
+    document.getElementById('dynamic-form').innerHTML = forms[type] || '';
+    document.querySelectorAll('#dynamic-form input, #dynamic-form textarea, #dynamic-form select').forEach(el => {
+      el.addEventListener('input', generate);
+    });
+  }
+
+  document.getElementById('type-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('[data-type]');
+    if (!tab) return;
+    currentType = tab.dataset.type;
+    document.querySelectorAll('.type-tab').forEach(t => t.classList.toggle('active', t.dataset.type === currentType));
+    renderForm(currentType);
+    generate();
+  });
+
+  document.getElementById('qr-size').addEventListener('input', () => {
+    document.getElementById('size-val').textContent = document.getElementById('qr-size').value + 'px';
+    generate();
+  });
+  document.getElementById('qr-fg').addEventListener('input', generate);
+  document.getElementById('qr-bg').addEventListener('input', generate);
+  document.getElementById('qr-ec').addEventListener('change', generate);
+
+  document.getElementById('btn-dl-png').addEventListener('click', () => {
+    const img = document.getElementById('qrcode').querySelector('img');
+    const canvas = document.getElementById('qrcode').querySelector('canvas');
+    let src = img?.src || (canvas ? canvas.toDataURL('image/png') : null);
+    if (!src) return;
+    const a = document.createElement('a');
+    a.href = src;
+    a.download = 'qrcode.png';
+    a.click();
+  });
+
+  document.getElementById('btn-dl-svg').addEventListener('click', () => {
+    const content = getContent();
+    if (!content) return;
+    const size = parseInt(document.getElementById('qr-size').value);
+    const fg = document.getElementById('qr-fg').value;
+    const bg = document.getElementById('qr-bg').value;
+    // Simple SVG placeholder with QR data
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="${bg}"/><text x="50%" y="50%" text-anchor="middle" fill="${fg}" font-size="12">QR: ${content.substring(0,30)}</text></svg>`;
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'qrcode.svg';
+    a.click();
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+  renderForm('url');
+  generate();
+});
+</script>
+{% endblock %}

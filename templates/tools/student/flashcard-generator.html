@@ -1,0 +1,258 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+/* Flashcard */
+.flashcard-scene{width:100%;max-width:500px;height:220px;perspective:1000px;margin:0 auto;cursor:pointer}
+.flashcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .5s}
+.flashcard.flipped{transform:rotateY(180deg)}
+.flashcard-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;text-align:center}
+.flashcard-front{background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(108,99,255,.05));border:1px solid rgba(108,99,255,.3)}
+.flashcard-back{background:linear-gradient(135deg,rgba(0,245,212,.1),rgba(0,245,212,.03));border:1px solid rgba(0,245,212,.3);transform:rotateY(180deg)}
+.card-text{font-size:1.1rem;font-weight:600;color:var(--text);line-height:1.5}
+.card-label{position:absolute;top:12px;left:16px;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+.card-counter{position:absolute;top:12px;right:16px;font-size:.72rem;color:var(--muted)}
+.progress-bar-wrap{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:2px;transition:width .3s}
+.card-list-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px}
+.card-list-item .q{flex:1;font-size:.85rem;color:var(--text)}
+.card-list-item .a{flex:1;font-size:.85rem;color:var(--muted)}
+.kb-hints{display:flex;gap:12px;flex-wrap:wrap;font-size:.75rem;color:var(--muted);justify-content:center}
+.kb-key{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:2px 6px;font-family:'JetBrains Mono',monospace;font-size:.72rem}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <!-- Add Card Form -->
+  <div>
+    <div class="tool-label">Add Flashcard</div>
+    <div class="grid-2">
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Question / Front</div>
+        <input type="text" class="text-input" id="new-q" placeholder="Enter question...">
+      </div>
+      <div>
+        <div style="font-size:.75rem;color:var(--muted);margin-bottom:4px">Answer / Back</div>
+        <input type="text" class="text-input" id="new-a" placeholder="Enter answer...">
+      </div>
+    </div>
+    <div class="act-row" style="margin-top:8px">
+      <button class="btn-go" onclick="addCard()"><i class="bi bi-plus-circle"></i> Add Card</button>
+      <button class="btn-sm" onclick="importCSV()"><i class="bi bi-upload"></i> Import CSV</button>
+      <button class="btn-sm" onclick="exportCSV()"><i class="bi bi-download"></i> Export CSV</button>
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <!-- Study Mode -->
+  <div id="study-section" style="display:none">
+    <div class="tool-label">Study Mode — <span id="deck-info"></span></div>
+    <div class="flashcard-scene" onclick="flipCard()">
+      <div class="flashcard" id="flashcard">
+        <div class="flashcard-face flashcard-front">
+          <span class="card-label">Question</span>
+          <span class="card-counter" id="card-counter">1/1</span>
+          <div class="card-text" id="card-front-text"></div>
+        </div>
+        <div class="flashcard-face flashcard-back">
+          <span class="card-label">Answer</span>
+          <div class="card-text" id="card-back-text"></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:8px">
+      <div class="progress-bar-wrap"><div class="progress-bar" id="study-progress" style="width:0%"></div></div>
+    </div>
+    <div class="act-row" style="justify-content:center;margin-top:8px">
+      <button class="btn-sm" onclick="prevCard()"><i class="bi bi-chevron-left"></i> Prev</button>
+      <button class="btn-sm" onclick="markKnown(true)" style="color:var(--accent)"><i class="bi bi-check-circle"></i> Know it</button>
+      <button class="btn-sm" onclick="markKnown(false)" style="color:#FF6B6B"><i class="bi bi-x-circle"></i> Review</button>
+      <button class="btn-sm" onclick="nextCard()">Next <i class="bi bi-chevron-right"></i></button>
+      <button class="btn-sm" onclick="shuffleDeck()"><i class="bi bi-shuffle"></i> Shuffle</button>
+    </div>
+    <div class="kb-hints" style="margin-top:8px">
+      <span><span class="kb-key">Space</span> Flip</span>
+      <span><span class="kb-key">→</span> Next</span>
+      <span><span class="kb-key">←</span> Prev</span>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:8px;font-size:.82rem">
+      <span style="color:var(--accent)"><i class="bi bi-check-circle"></i> Known: <strong id="known-count">0</strong></span>
+      <span style="color:#FF6B6B"><i class="bi bi-x-circle"></i> Review: <strong id="review-count">0</strong></span>
+    </div>
+  </div>
+
+  <!-- Card List -->
+  <div>
+    <div class="tool-label">Cards (<span id="card-count">0</span>)</div>
+    <div id="card-list" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+let cards = JSON.parse(localStorage.getItem('flashcards') || '[]');
+let currentIdx = 0;
+let isFlipped = false;
+let known = new Set();
+let review = new Set();
+
+function saveCards() { localStorage.setItem('flashcards', JSON.stringify(cards)); }
+
+function addCard() {
+  const q = document.getElementById('new-q').value.trim();
+  const a = document.getElementById('new-a').value.trim();
+  if (!q || !a) { showErr('status', 'Enter both question and answer'); return; }
+  cards.push({q, a});
+  saveCards();
+  document.getElementById('new-q').value = '';
+  document.getElementById('new-a').value = '';
+  showOk('status', 'Card added');
+  renderAll();
+}
+
+function deleteCard(i) {
+  cards.splice(i, 1);
+  saveCards();
+  renderAll();
+}
+
+function renderAll() {
+  document.getElementById('card-count').textContent = cards.length;
+  const list = document.getElementById('card-list');
+  if (!cards.length) { list.innerHTML = '<div style="color:var(--muted);font-size:.85rem">No cards yet. Add some above!</div>'; document.getElementById('study-section').style.display='none'; return; }
+  list.innerHTML = cards.map((c,i) => `
+    <div class="card-list-item">
+      <span class="q"><strong>Q:</strong> ${c.q}</span>
+      <span class="a"><strong>A:</strong> ${c.a}</span>
+      <button class="btn-sm" style="padding:4px 8px;color:#FF6B6B;flex-shrink:0" onclick="deleteCard(${i})"><i class="bi bi-trash"></i></button>
+    </div>
+  `).join('');
+  document.getElementById('study-section').style.display = 'block';
+  document.getElementById('deck-info').textContent = cards.length + ' cards';
+  updateStudyCard();
+}
+
+function updateStudyCard() {
+  if (!cards.length) return;
+  const card = cards[currentIdx];
+  document.getElementById('card-front-text').textContent = card.q;
+  document.getElementById('card-back-text').textContent = card.a;
+  document.getElementById('card-counter').textContent = (currentIdx+1) + '/' + cards.length;
+  document.getElementById('study-progress').style.width = ((currentIdx+1)/cards.length*100) + '%';
+  document.getElementById('known-count').textContent = known.size;
+  document.getElementById('review-count').textContent = review.size;
+  // Reset flip
+  isFlipped = false;
+  document.getElementById('flashcard').classList.remove('flipped');
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  document.getElementById('flashcard').classList.toggle('flipped', isFlipped);
+}
+
+function nextCard() {
+  currentIdx = (currentIdx + 1) % cards.length;
+  updateStudyCard();
+}
+
+function prevCard() {
+  currentIdx = (currentIdx - 1 + cards.length) % cards.length;
+  updateStudyCard();
+}
+
+function markKnown(isKnown) {
+  if (isKnown) { known.add(currentIdx); review.delete(currentIdx); }
+  else { review.add(currentIdx); known.delete(currentIdx); }
+  nextCard();
+}
+
+function shuffleDeck() {
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  currentIdx = 0;
+  known.clear(); review.clear();
+  updateStudyCard();
+  showOk('status', 'Deck shuffled');
+}
+
+function exportCSV() {
+  if (!cards.length) return;
+  const csv = 'Question,Answer\n' + cards.map(c => `"${c.q.replace(/"/g,'""')}","${c.a.replace(/"/g,'""')}"`).join('\n');
+  downloadText(csv, 'flashcards.csv', 'text/csv');
+}
+
+function importCSV() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const lines = ev.target.result.split('\n').slice(1);
+      let added = 0;
+      for (const line of lines) {
+        const parts = line.split(',');
+        if (parts.length >= 2) {
+          const q = parts[0].replace(/^"|"$/g,'').trim();
+          const a = parts.slice(1).join(',').replace(/^"|"$/g,'').trim();
+          if (q && a) { cards.push({q,a}); added++; }
+        }
+      }
+      saveCards();
+      renderAll();
+      showOk('status', added + ' cards imported');
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space') { e.preventDefault(); flipCard(); }
+  else if (e.key === 'ArrowRight') nextCard();
+  else if (e.key === 'ArrowLeft') prevCard();
+});
+
+renderAll();
+</script>
+{% endblock %}

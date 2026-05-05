@@ -1,0 +1,229 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+.input-grp { margin-bottom: 1.2rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.meme-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; }
+.meme-card:hover { border-color: rgba(108,99,255,0.4); }
+.meme-name { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--primary); margin-bottom: 0.8rem; font-size: 0.95rem; }
+.meme-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.8rem; font-style: italic; }
+.caption-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.8rem; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.caption-item:last-child { border-bottom: none; }
+.caption-text { font-size: 0.9rem; color: var(--text); flex: 1; line-height: 1.4; }
+.results-panel { max-height: 600px; overflow-y: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.chip { padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.chip.active { border-color: var(--primary); color: var(--primary); background: rgba(108,99,255,0.1); }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:2rem;">
+  <div>
+    <div class="input-grp">
+      <span class="tool-label">Topic / Situation</span>
+      <input type="text" id="in-topic" class="num-input" placeholder="e.g. Monday morning meetings">
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Filter by Template</span>
+      <div class="chips" id="template-chips"></div>
+    </div>
+    <button class="btn-go" id="btn-generate">🎭 Generate Captions</button>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:0.6rem;">Ctrl+Enter to generate</p>
+  </div>
+  <div>
+    <span class="tool-label">Generated Captions</span>
+    <div class="results-panel" id="results">
+      <div style="color:var(--muted);text-align:center;padding:3rem 0;">Enter a topic and click Generate</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const templates = [
+    {
+      name: 'Drake',
+      desc: 'Drake approving/disapproving',
+      captions: (t) => [
+        `❌ Dealing with ${t} properly\n✅ Complaining about ${t} on Twitter`,
+        `❌ Solving ${t} once and for all\n✅ Googling "${t}" for the 100th time`,
+        `❌ Accepting ${t}\n✅ Making a meme about ${t}`,
+        `❌ Being productive despite ${t}\n✅ Procrastinating because of ${t}`,
+        `❌ Understanding ${t}\n✅ Pretending to understand ${t}`,
+        `❌ Fixing ${t} the right way\n✅ Fixing ${t} with duct tape`,
+        `❌ Preparing for ${t}\n✅ Panicking when ${t} happens`,
+        `❌ Talking about ${t} seriously\n✅ Turning ${t} into a meme`,
+        `❌ Learning from ${t}\n✅ Repeating the same ${t} mistake`,
+        `❌ Handling ${t} like an adult\n✅ Crying about ${t} internally`,
+      ]
+    },
+    {
+      name: 'Distracted Boyfriend',
+      desc: 'Guy looking at something else',
+      captions: (t) => [
+        `Me 👀 ${t} | My responsibilities`,
+        `Everyone 👀 ${t} | Their actual work`,
+        `My brain 👀 ${t} at 3am | Sleep`,
+        `Me 👀 anything but ${t} | ${t}`,
+        `Developers 👀 new framework | Finishing ${t}`,
+        `Me 👀 memes about ${t} | Actually fixing ${t}`,
+        `My wallet 👀 ${t} | My savings`,
+        `Me 👀 ${t} | My to-do list`,
+        `Everyone 👀 ${t} | Common sense`,
+        `Me 👀 ${t} | My deadlines`,
+      ]
+    },
+    {
+      name: 'This is Fine',
+      desc: 'Dog in burning room',
+      captions: (t) => [
+        `Me dealing with ${t}: "This is fine 🔥"`,
+        `${t} getting worse every day. This is fine.`,
+        `Everything about ${t} is on fire. This is fine.`,
+        `Me watching ${t} spiral out of control: ☕ This is fine.`,
+        `${t} at 2am. This is fine.`,
+        `My ${t} situation: *everything burning* This is fine.`,
+        `When ${t} is clearly not fine but you pretend it is`,
+        `${t} exploding. Me: This is fine. 🐶`,
+        `The state of ${t} right now. This is fine.`,
+        `${t} chaos. Me sipping coffee: This is fine.`,
+      ]
+    },
+    {
+      name: 'Two Buttons',
+      desc: 'Sweating over two choices',
+      captions: (t) => [
+        `[Fix ${t}] [Ignore ${t} and hope it goes away]`,
+        `[Deal with ${t} now] [Deal with ${t} later (never)]`,
+        `[Learn about ${t}] [Watch YouTube instead]`,
+        `[${t} the right way] [${t} the easy way]`,
+        `[Admit ${t} is a problem] [Blame someone else for ${t}]`,
+        `[Start ${t} early] [Panic about ${t} at the last minute]`,
+        `[Research ${t}] [Wing it and hope for the best]`,
+        `[Accept ${t}] [Fight ${t} forever]`,
+        `[Talk about ${t}] [Make a meme about ${t}]`,
+        `[Understand ${t}] [Pretend to understand ${t}]`,
+      ]
+    },
+    {
+      name: 'Expanding Brain',
+      desc: 'Increasingly galaxy-brained ideas',
+      captions: (t) => [
+        `🧠 Avoiding ${t}\n🧠🧠 Dealing with ${t}\n🧠🧠🧠 Turning ${t} into a meme\n🌌 Making ${t} someone else's problem`,
+        `🧠 Worrying about ${t}\n🧠🧠 Solving ${t}\n🧠🧠🧠 Pretending ${t} doesn't exist\n🌌 Scheduling ${t} for future you`,
+        `🧠 Normal ${t}\n🧠🧠 Slightly weird ${t}\n🧠🧠🧠 Galaxy-brained ${t}\n🌌 Incomprehensible ${t}`,
+        `🧠 Doing ${t} correctly\n🧠🧠 Doing ${t} quickly\n🧠🧠🧠 Doing ${t} at 3am\n🌌 Not doing ${t} at all`,
+        `🧠 Understanding ${t}\n🧠🧠 Overthinking ${t}\n🧠🧠🧠 Conspiracy theory about ${t}\n🌌 ${t} was a simulation all along`,
+        `🧠 Fixing ${t}\n🧠🧠 Workarounding ${t}\n🧠🧠🧠 Ignoring ${t}\n🌌 Blaming ${t} on Mercury retrograde`,
+        `🧠 Caring about ${t}\n🧠🧠 Pretending to care about ${t}\n🧠🧠🧠 Making ${t} aesthetic\n🌌 ${t} is just a social construct`,
+        `🧠 Doing ${t} on time\n🧠🧠 Doing ${t} late\n🧠🧠🧠 Doing ${t} at the last second\n🌌 Time is fake, ${t} doesn't matter`,
+        `🧠 Asking for help with ${t}\n🧠🧠 Googling ${t}\n🧠🧠🧠 Stack Overflow for ${t}\n🌌 Asking ChatGPT about ${t}`,
+        `🧠 Simple ${t}\n🧠🧠 Complicated ${t}\n🧠🧠🧠 Over-engineered ${t}\n🌌 ${t} as a microservice`,
+      ]
+    },
+    {
+      name: 'Surprised Pikachu',
+      desc: 'Shocked face after obvious outcome',
+      captions: (t) => [
+        `Does ${t} wrong. Gets bad results. 😮`,
+        `Ignores ${t} for weeks. ${t} becomes a crisis. 😮`,
+        `Doesn't prepare for ${t}. ${t} goes badly. 😮`,
+        `Procrastinates on ${t}. Runs out of time. 😮`,
+        `Skips the tutorial for ${t}. Fails at ${t}. 😮`,
+        `Doesn't read the docs for ${t}. ${t} breaks. 😮`,
+        `Ignores warnings about ${t}. ${t} explodes. 😮`,
+        `Rushes through ${t}. Makes mistakes. 😮`,
+        `Doesn't test ${t}. ${t} fails in production. 😮`,
+        `Avoids ${t} forever. ${t} becomes unavoidable. 😮`,
+      ]
+    },
+    {
+      name: 'Change My Mind',
+      desc: 'Crowder at table',
+      captions: (t) => [
+        `${t} is actually fine. Change my mind.`,
+        `${t} is overrated. Change my mind.`,
+        `${t} is the best thing ever. Change my mind.`,
+        `We're all overthinking ${t}. Change my mind.`,
+        `${t} would be better as a meme. Change my mind.`,
+        `${t} is just vibes. Change my mind.`,
+        `Nobody actually understands ${t}. Change my mind.`,
+        `${t} peaked in 2019. Change my mind.`,
+        `${t} is a solved problem. Change my mind.`,
+        `${t} is just ${t} with extra steps. Change my mind.`,
+      ]
+    },
+    {
+      name: 'Gru Plan',
+      desc: 'Gru pointing at plan that backfires',
+      captions: (t) => [
+        `Step 1: Start ${t}\nStep 2: Make progress on ${t}\nStep 3: ${t} somehow gets worse\nStep 4: ${t} somehow gets worse`,
+        `Step 1: Plan ${t} perfectly\nStep 2: Execute ${t}\nStep 3: ${t} goes completely off-plan\nStep 4: ${t} goes completely off-plan`,
+        `Step 1: Avoid ${t}\nStep 2: ${t} goes away\nStep 3: ${t} comes back stronger\nStep 4: ${t} comes back stronger`,
+        `Step 1: Fix ${t}\nStep 2: ${t} is fixed\nStep 3: ${t} breaks something else\nStep 4: ${t} breaks something else`,
+        `Step 1: Learn ${t}\nStep 2: Master ${t}\nStep 3: Realize ${t} is deprecated\nStep 4: Realize ${t} is deprecated`,
+        `Step 1: Ignore ${t}\nStep 2: ${t} disappears\nStep 3: ${t} was actually important\nStep 4: ${t} was actually important`,
+        `Step 1: Simplify ${t}\nStep 2: ${t} is now simple\nStep 3: ${t} is now too simple\nStep 4: ${t} is now too simple`,
+        `Step 1: Automate ${t}\nStep 2: ${t} runs itself\nStep 3: ${t} automation breaks\nStep 4: ${t} automation breaks`,
+        `Step 1: Delegate ${t}\nStep 2: ${t} is handled\nStep 3: ${t} comes back to me\nStep 4: ${t} comes back to me`,
+        `Step 1: Research ${t}\nStep 2: Understand ${t}\nStep 3: Realize I know nothing about ${t}\nStep 4: Realize I know nothing about ${t}`,
+      ]
+    },
+  ];
+
+  let selectedTemplates = new Set(templates.map(t => t.name));
+
+  // Render chips
+  const chipsEl = document.getElementById('template-chips');
+  templates.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'chip active';
+    chip.textContent = t.name;
+    chip.addEventListener('click', () => {
+      if (selectedTemplates.has(t.name)) { selectedTemplates.delete(t.name); chip.classList.remove('active'); }
+      else { selectedTemplates.add(t.name); chip.classList.add('active'); }
+    });
+    chipsEl.appendChild(chip);
+  });
+
+  function generate() {
+    const topic = document.getElementById('in-topic').value.trim();
+    if (!topic) { document.getElementById('results').innerHTML = '<div style="color:var(--danger);text-align:center;padding:2rem;">Please enter a topic.</div>'; return; }
+
+    const filtered = templates.filter(t => selectedTemplates.has(t.name));
+    if (!filtered.length) { document.getElementById('results').innerHTML = '<div style="color:var(--danger);text-align:center;padding:2rem;">Select at least one template.</div>'; return; }
+
+    document.getElementById('results').innerHTML = filtered.map(t => {
+      const caps = t.captions(topic);
+      return `<div class="meme-card">
+        <div class="meme-name">${t.name}</div>
+        <div class="meme-desc">${t.desc}</div>
+        ${caps.map(c => `<div class="caption-item">
+          <span class="caption-text">${c.replace(/\n/g,'<br>')}</span>
+          <button class="btn-sm" onclick="copyText(this,\`${c.replace(/`/g,'\\`').replace(/\n/g,'\\n')}\`)"><i class="bi bi-clipboard"></i></button>
+        </div>`).join('')}
+      </div>`;
+    }).join('');
+  }
+
+  window.copyText = async (btn, text) => {
+    await navigator.clipboard.writeText(text.replace(/\\n/g, '\n'));
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i>', 1500);
+  };
+
+  document.getElementById('btn-generate').addEventListener('click', generate);
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+});
+</script>
+{% endblock %}

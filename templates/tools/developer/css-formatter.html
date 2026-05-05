@@ -1,0 +1,239 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:220px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.tool-code.out{background:rgba(0,0,0,.4)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.4rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.opt-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
+.opt-label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);cursor:pointer}
+.opt-label input{accent-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Input CSS</div>
+    <textarea class="tool-code" id="cssIn" placeholder=".container{display:flex;flex-direction:column;gap:1rem;background:#fff;padding:20px;border-radius:8px}"></textarea>
+    <div class="chips">
+      <span class="chip" onclick="loadEx('simple')">Simple Rules</span>
+      <span class="chip" onclick="loadEx('media')">Media Queries</span>
+      <span class="chip" onclick="loadEx('vars')">CSS Variables</span>
+    </div>
+  </div>
+
+  <div class="opt-row">
+    <label class="opt-label"><input type="checkbox" id="sortProps"> Sort properties alphabetically</label>
+    <label class="opt-label"><input type="checkbox" id="blankLines" checked> Blank lines between rules</label>
+    <label class="opt-label"><input type="checkbox" id="singleLine"> Single-line format</label>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="formatCSS()"><i class="bi bi-braces-asterisk"></i> Format CSS</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Formatted Output</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" id="btnCopy" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <textarea class="tool-code out" id="cssOut" readonly placeholder="Formatted CSS will appear here..."></textarea>
+    <div class="meta-row" id="stats"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const EXAMPLES = {
+  simple: `.container{display:flex;flex-direction:column;gap:1rem;background:#fff;padding:20px;border-radius:8px}.btn{display:inline-flex;align-items:center;padding:10px 20px;background:#6C63FF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px}.btn:hover{background:#5a52e0;transform:translateY(-1px)}`,
+  media: `body{margin:0;font-family:sans-serif;background:#f5f5f5}.container{max-width:1200px;margin:0 auto;padding:0 20px}@media(max-width:768px){.container{padding:0 10px}.nav{display:none}.mobile-nav{display:block}}@media(max-width:480px){body{font-size:14px}}`,
+  vars: `:root{--primary:#6C63FF;--accent:#00F5D4;--bg:#0a0a0f;--text:#ffffff;--muted:rgba(255,255,255,0.5);--border:rgba(255,255,255,0.1)}.card{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1.5rem;border-radius:12px}.card-title{color:var(--primary);font-size:1.2rem}`
+};
+
+function loadEx(key) {
+  document.getElementById('cssIn').value = EXAMPLES[key];
+  formatCSS();
+}
+
+function formatCSS() {
+  const raw = document.getElementById('cssIn').value.trim();
+  if (!raw) { showErr('st','No input provided'); return; }
+  hideStatus('st');
+
+  try {
+    const sortProps = document.getElementById('sortProps').checked;
+    const blankLines = document.getElementById('blankLines').checked;
+    const singleLine = document.getElementById('singleLine').checked;
+
+    // Tokenize CSS
+    const tokens = tokenizeCSS(raw);
+    const formatted = formatTokens(tokens, sortProps, blankLines, singleLine);
+
+    document.getElementById('cssOut').value = formatted;
+
+    // Stats
+    const ruleCount = (formatted.match(/\{/g) || []).length;
+    const propCount = (formatted.match(/:\s*[^;{]+;/g) || []).length;
+    const lines = formatted.split('\n').length;
+    document.getElementById('stats').innerHTML = `
+      <span><i class="bi bi-braces"></i> ${ruleCount} rules</span>
+      <span><i class="bi bi-list-ul"></i> ${propCount} properties</span>
+      <span><i class="bi bi-file-earmark"></i> ${lines} lines</span>
+    `;
+    showOk('st','CSS formatted');
+  } catch(e) {
+    showErr('st', 'Error: ' + e.message);
+  }
+}
+
+function tokenizeCSS(css) {
+  // Remove comments
+  css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const tokens = [];
+  let i = 0;
+  while (i < css.length) {
+    // Skip whitespace
+    if (/\s/.test(css[i])) { i++; continue; }
+    // At-rule
+    if (css[i] === '@') {
+      let j = i;
+      while (j < css.length && css[j] !== '{' && css[j] !== ';') j++;
+      if (css[j] === ';') {
+        tokens.push({ type: 'at-simple', value: css.slice(i, j+1).trim() });
+        i = j + 1;
+      } else {
+        const selector = css.slice(i, j).trim();
+        // Find matching brace
+        let depth = 0, k = j;
+        while (k < css.length) {
+          if (css[k] === '{') depth++;
+          else if (css[k] === '}') { depth--; if (depth === 0) break; }
+          k++;
+        }
+        const inner = css.slice(j+1, k).trim();
+        tokens.push({ type: 'at-block', selector, inner });
+        i = k + 1;
+      }
+      continue;
+    }
+    // Rule
+    let j = i;
+    while (j < css.length && css[j] !== '{') j++;
+    if (j >= css.length) break;
+    const selector = css.slice(i, j).trim();
+    let depth = 0, k = j;
+    while (k < css.length) {
+      if (css[k] === '{') depth++;
+      else if (css[k] === '}') { depth--; if (depth === 0) break; }
+      k++;
+    }
+    const body = css.slice(j+1, k).trim();
+    tokens.push({ type: 'rule', selector, body });
+    i = k + 1;
+  }
+  return tokens;
+}
+
+function parseProps(body) {
+  const props = [];
+  const parts = body.split(';');
+  parts.forEach(p => {
+    p = p.trim();
+    if (!p) return;
+    const colon = p.indexOf(':');
+    if (colon === -1) return;
+    props.push({ prop: p.slice(0, colon).trim(), val: p.slice(colon+1).trim() });
+  });
+  return props;
+}
+
+function formatTokens(tokens, sortProps, blankLines, singleLine) {
+  const sep = blankLines ? '\n\n' : '\n';
+  const parts = tokens.map(token => {
+    if (token.type === 'at-simple') return token.value;
+    if (token.type === 'rule') {
+      let props = parseProps(token.body);
+      if (sortProps) props.sort((a,b) => a.prop.localeCompare(b.prop));
+      if (singleLine) {
+        return `${token.selector} { ${props.map(p=>`${p.prop}: ${p.val};`).join(' ')} }`;
+      }
+      const propsStr = props.map(p => `  ${p.prop}: ${p.val};`).join('\n');
+      return `${token.selector} {\n${propsStr}\n}`;
+    }
+    if (token.type === 'at-block') {
+      // Parse inner rules
+      const innerTokens = tokenizeCSS(token.inner);
+      const innerFormatted = innerTokens.map(t => {
+        if (t.type !== 'rule') return '  ' + t.value;
+        let props = parseProps(t.body);
+        if (sortProps) props.sort((a,b) => a.prop.localeCompare(b.prop));
+        if (singleLine) return `  ${t.selector} { ${props.map(p=>`${p.prop}: ${p.val};`).join(' ')} }`;
+        const propsStr = props.map(p => `    ${p.prop}: ${p.val};`).join('\n');
+        return `  ${t.selector} {\n${propsStr}\n  }`;
+      }).join('\n');
+      return `${token.selector} {\n${innerFormatted}\n}`;
+    }
+    return '';
+  });
+  return parts.join(sep);
+}
+
+function copyOut() {
+  const v = document.getElementById('cssOut').value;
+  if (!v) return;
+  navigator.clipboard.writeText(v).then(() => {
+    const btn = document.getElementById('btnCopy');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function downloadOut() {
+  const v = document.getElementById('cssOut').value;
+  if (!v) return;
+  const blob = new Blob([v], {type:'text/css'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'formatted.css'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearAll() {
+  document.getElementById('cssIn').value = '';
+  document.getElementById('cssOut').value = '';
+  document.getElementById('stats').innerHTML = '';
+  hideStatus('st');
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatCSS(); }
+});
+</script>
+{% endblock %}

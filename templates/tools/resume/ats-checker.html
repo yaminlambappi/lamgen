@@ -1,0 +1,239 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.score-ring{width:120px;height:120px;position:relative;flex-shrink:0}
+.score-ring svg{transform:rotate(-90deg)}
+.score-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800}
+.score-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.result-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.2rem}
+.result-card-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:4px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.78rem;color:var(--primary)}
+.chip.found{background:rgba(0,245,212,.08);border-color:rgba(0,245,212,.2);color:var(--accent)}
+.chip.missing{background:rgba(255,107,107,.08);border-color:rgba(255,107,107,.2);color:#FF6B6B}
+.rec-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.5rem}
+.rec-list li{font-size:.88rem;padding:.4rem .6rem;border-radius:8px;display:flex;gap:.5rem;align-items:flex-start}
+.rec-list li.good{background:rgba(0,245,212,.05);color:var(--accent)}
+.rec-list li.warn{background:rgba(255,179,71,.05);color:#FFB347}
+.rec-list li.bad{background:rgba(255,107,107,.05);color:#FF6B6B}
+.section-check{display:flex;align-items:center;gap:.5rem;font-size:.88rem;padding:.3rem 0}
+.section-check .icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0}
+.icon.yes{background:rgba(0,245,212,.15);color:var(--accent)}
+.icon.no{background:rgba(255,107,107,.15);color:#FF6B6B}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Resume Text</div>
+      <textarea class="tool-code" id="resumeText" placeholder="Paste your resume text here..."></textarea>
+    </div>
+    <div>
+      <div class="tool-label">Job Description</div>
+      <textarea class="tool-code" id="jdText" placeholder="Paste the job description here..."></textarea>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="checkATS()"><i class="bi bi-search"></i> Check ATS Score</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="results" style="display:none;flex-direction:column;gap:1rem">
+    <!-- Score -->
+    <div class="result-card" style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+      <div class="score-ring">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/>
+          <circle cx="60" cy="60" r="50" fill="none" id="scoreArc" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"/>
+        </svg>
+        <div class="score-num"><span id="scoreNum">0</span><span class="score-label">ATS Score</span></div>
+      </div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:.3rem" id="scoreLabel">Analyzing...</div>
+        <div style="font-size:.88rem;color:var(--muted);line-height:1.5" id="scoreSummary"></div>
+      </div>
+    </div>
+
+    <!-- Keyword Match -->
+    <div class="result-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="result-card-title" style="margin-bottom:0"><i class="bi bi-check2-circle" style="color:var(--accent)"></i> Keywords Found in Resume</div>
+        <button class="btn-sm" onclick="copyKeywords('found')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="chips" id="foundKeywords"></div>
+    </div>
+
+    <div class="result-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="result-card-title" style="margin-bottom:0"><i class="bi bi-x-circle" style="color:#FF6B6B"></i> Missing Keywords</div>
+        <button class="btn-sm" onclick="copyKeywords('missing')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="chips" id="missingKeywords"></div>
+    </div>
+
+    <!-- Section Detection -->
+    <div class="result-card">
+      <div class="result-card-title"><i class="bi bi-layout-text-sidebar" style="color:var(--primary)"></i> Resume Section Detection</div>
+      <div id="sectionChecks"></div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="result-card">
+      <div class="result-card-title"><i class="bi bi-lightbulb-fill" style="color:#FFB347"></i> Actionable Recommendations</div>
+      <ul class="rec-list" id="recommendations"></ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const TECH_KEYWORDS = ['python','javascript','typescript','java','c++','c#','go','rust','ruby','php','react','angular','vue','node','django','flask','spring','sql','mysql','postgresql','mongodb','redis','aws','azure','gcp','docker','kubernetes','terraform','git','linux','rest','graphql','api','microservices','machine learning','tensorflow','pytorch','pandas','numpy','tableau','power bi','figma','sketch','html','css','sass','agile','scrum','jira','ci/cd','jenkins','github actions'];
+const SOFT_KEYWORDS = ['leadership','communication','teamwork','problem-solving','analytical','detail-oriented','collaborative','adaptable','creative','organized','time management','critical thinking','interpersonal','presentation','mentoring','strategic','innovative','self-motivated'];
+
+const SECTIONS = [
+  { name: 'Work Experience', patterns: ['experience','employment','work history','professional background','career'] },
+  { name: 'Education', patterns: ['education','degree','university','college','bachelor','master','phd','diploma'] },
+  { name: 'Skills', patterns: ['skills','technical skills','competencies','expertise','proficiencies'] },
+  { name: 'Summary / Objective', patterns: ['summary','objective','profile','about me','professional summary'] },
+  { name: 'Projects', patterns: ['projects','portfolio','work samples','case studies'] },
+  { name: 'Certifications', patterns: ['certifications','certificates','credentials','licenses'] },
+  { name: 'Contact Info', patterns: ['email','phone','linkedin','github','@','contact'] }
+];
+
+function checkATS() {
+  const resume = document.getElementById('resumeText').value.trim();
+  const jd = document.getElementById('jdText').value.trim();
+  if (!resume || !jd) { showErr('st','Both resume and job description are required'); return; }
+  hideStatus('st');
+
+  const resumeLower = resume.toLowerCase();
+  const jdLower = jd.toLowerCase();
+
+  // Extract keywords from JD
+  const allKw = [...new Set([...TECH_KEYWORDS, ...SOFT_KEYWORDS])];
+  const jdKeywords = allKw.filter(kw => {
+    const re = new RegExp('\\b' + kw.replace(/[+.]/g,'\\$&') + '\\b', 'i');
+    return re.test(jd);
+  });
+
+  const found = [], missing = [];
+  jdKeywords.forEach(kw => {
+    const re = new RegExp('\\b' + kw.replace(/[+.]/g,'\\$&') + '\\b', 'i');
+    if (re.test(resume)) found.push(kw);
+    else missing.push(kw);
+  });
+
+  const kwScore = jdKeywords.length > 0 ? Math.round((found.length / jdKeywords.length) * 100) : 50;
+
+  // Section detection
+  const sectionResults = SECTIONS.map(s => ({
+    name: s.name,
+    found: s.patterns.some(p => resumeLower.includes(p))
+  }));
+  const sectionScore = Math.round((sectionResults.filter(s=>s.found).length / SECTIONS.length) * 100);
+
+  // Formatting issues
+  const hasTable = /<table|column|multi.?col/i.test(resume);
+  const hasSpecialChars = /[│├└─┌┐]/g.test(resume);
+  const wordCount = resume.split(/\s+/).length;
+  const hasQuantifiedAchievements = /\d+%|\d+x|\$\d+|\d+ (people|team|users|customers|projects)/i.test(resume);
+
+  // Final score
+  const score = Math.round(kwScore * 0.6 + sectionScore * 0.3 + (hasQuantifiedAchievements ? 10 : 0));
+  const finalScore = Math.min(100, score);
+
+  // Render score
+  const arc = document.getElementById('scoreArc');
+  const circumference = 314;
+  const offset = circumference - (finalScore / 100) * circumference;
+  const color = finalScore >= 70 ? '#00F5D4' : finalScore >= 50 ? '#FFB347' : '#FF6B6B';
+  arc.style.stroke = color;
+  arc.style.strokeDashoffset = offset;
+  document.getElementById('scoreNum').textContent = finalScore;
+  document.getElementById('scoreNum').style.color = color;
+
+  const label = finalScore >= 80 ? 'Excellent Match' : finalScore >= 60 ? 'Good Match' : finalScore >= 40 ? 'Needs Improvement' : 'Poor Match';
+  document.getElementById('scoreLabel').textContent = label;
+  document.getElementById('scoreSummary').textContent = `${found.length}/${jdKeywords.length} keywords matched · ${sectionResults.filter(s=>s.found).length}/${SECTIONS.length} sections detected · ${wordCount} words`;
+
+  // Keywords
+  const foundEl = document.getElementById('foundKeywords');
+  foundEl.innerHTML = found.length ? found.map(k=>`<span class="chip found">${k}</span>`).join('') : '<span style="color:var(--muted);font-size:.85rem">No matching keywords found</span>';
+
+  const missingEl = document.getElementById('missingKeywords');
+  missingEl.innerHTML = missing.length ? missing.slice(0,20).map(k=>`<span class="chip missing">${k}</span>`).join('') : '<span style="color:var(--accent);font-size:.85rem">All keywords found!</span>';
+
+  // Sections
+  const secEl = document.getElementById('sectionChecks');
+  secEl.innerHTML = sectionResults.map(s => `
+    <div class="section-check">
+      <div class="icon ${s.found?'yes':'no'}"><i class="bi bi-${s.found?'check':'x'}"></i></div>
+      <span style="color:${s.found?'var(--text)':'var(--muted)'}">${s.name}</span>
+      ${!s.found ? '<span style="font-size:.75rem;color:#FF6B6B;margin-left:auto">Not detected</span>' : ''}
+    </div>`).join('');
+
+  // Recommendations
+  const recs = [];
+  if (kwScore < 50) recs.push({ type:'bad', text:'Low keyword match. Add more keywords from the job description naturally throughout your resume.' });
+  else if (kwScore < 70) recs.push({ type:'warn', text:`Moderate keyword match (${kwScore}%). Consider adding: ${missing.slice(0,5).join(', ')}.` });
+  else recs.push({ type:'good', text:`Strong keyword match (${kwScore}%). Your resume aligns well with the job description.` });
+
+  if (!sectionResults.find(s=>s.name==='Summary / Objective')?.found) recs.push({ type:'warn', text:'Add a professional summary at the top — ATS systems often scan this first.' });
+  if (!sectionResults.find(s=>s.name==='Skills')?.found) recs.push({ type:'bad', text:'No skills section detected. Add a dedicated skills section for better ATS parsing.' });
+  if (!hasQuantifiedAchievements) recs.push({ type:'warn', text:'Add quantified achievements (e.g., "increased revenue by 30%", "managed team of 8") to stand out.' });
+  if (wordCount < 300) recs.push({ type:'warn', text:'Resume seems short. Aim for 400-700 words for a single-page resume.' });
+  if (wordCount > 1000) recs.push({ type:'warn', text:'Resume may be too long. Consider condensing to 1-2 pages for most roles.' });
+  if (hasTable || hasSpecialChars) recs.push({ type:'bad', text:'Detected table/column formatting or special characters. ATS systems often fail to parse these correctly. Use simple formatting.' });
+  recs.push({ type:'good', text:'Use a .docx or .pdf file format. Avoid images, headers/footers, and text boxes.' });
+  if (missing.length > 0) recs.push({ type:'warn', text:`Add these missing keywords where relevant: ${missing.slice(0,8).join(', ')}.` });
+
+  const recEl = document.getElementById('recommendations');
+  recEl.innerHTML = recs.map(r => `<li class="${r.type}"><i class="bi bi-${r.type==='good'?'check-circle-fill':r.type==='warn'?'exclamation-triangle-fill':'x-circle-fill'}"></i>${escHtml(r.text)}</li>`).join('');
+
+  document.getElementById('results').style.display = 'flex';
+  showOk('st', `ATS Score: ${finalScore}/100`);
+}
+
+function copyKeywords(type) {
+  const el = type === 'found' ? '#foundKeywords' : '#missingKeywords';
+  const chips = document.querySelectorAll(el + ' .chip');
+  navigator.clipboard.writeText(Array.from(chips).map(c=>c.textContent).join(', '));
+}
+
+function clearAll() {
+  document.getElementById('resumeText').value = '';
+  document.getElementById('jdText').value = '';
+  document.getElementById('results').style.display = 'none';
+  hideStatus('st');
+}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); checkATS(); }
+});
+</script>
+{% endblock %}

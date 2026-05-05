@@ -1,222 +1,486 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ page_title }}{% endblock %}
 
+{# This page has its own search bar — suppress the nav search pill #}
+{% block nav_search %}{% endblock %}
+
 {% block extra_css %}
 <style>
-    .category-shell {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem 2rem 6rem 2rem;
-        --cat-color: {{ category.color_from|default:"var(--primary)" }};
-    }
+/* ── Shell ── */
+.cat-shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 80px 1.5rem 5rem;
+  --cat-color: {{ category.color_from|default:"var(--primary)" }};
+  --cat-color-to: {{ category.color_to|default:"var(--accent)" }};
+}
 
-    /* ── Header Area ── */
-    .category-header {
-        background: rgba(20, 20, 30, 0.4);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 20px;
-        padding: 2.5rem;
-        margin-bottom: 3rem;
-        position: relative;
-        overflow: hidden;
-    }
-    .category-header::before {
-        content: '';
-        position: absolute; top: -100px; right: -100px; width: 400px; height: 400px;
-        background: radial-gradient(circle, var(--cat-color), transparent 70%);
-        opacity: 0.08; border-radius: 50%; pointer-events: none;
-    }
-    
-    .header-top {
-        display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 2rem;
-    }
-    
-    .category-title h1 {
-        font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; position: relative; z-index: 2;
-    }
-    .category-title p {
-        font-size: 1rem; color: var(--muted); max-width: 600px; margin: 0; line-height: 1.5; position: relative; z-index: 2;
-    }
+/* ── Header ── */
+.cat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.cat-header::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, var(--cat-color), transparent 70%);
+  opacity: 0.07;
+  pointer-events: none;
+}
+.cat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+.cat-header-icon {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--cat-color)22, var(--cat-color-to)11);
+  border: 1px solid var(--cat-color)44;
+  color: var(--cat-color);
+}
+.cat-header-text h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 2px;
+  line-height: 1.2;
+}
+.cat-header-text p {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+.cat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.cat-tool-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--cat-color);
+  background: var(--cat-color)18;
+  border: 1px solid var(--cat-color)33;
+  border-radius: 50px;
+  padding: 3px 10px;
+}
 
-    .search-module {
-        position: relative; min-width: 320px; z-index: 2;
-    }
-    .search-module input {
-        width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 12px 20px 12px 44px; border-radius: 50px; color: #fff; font-size: 0.9rem;
-        outline: none; transition: all 0.3s;
-    }
-    .search-module input:focus { border-color: var(--cat-color); box-shadow: 0 0 15px rgba(0,0,0,0.3); background: rgba(0,0,0,0.6); }
-    .search-module i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--cat-color); font-size: 1.1rem; }
+/* ── Search + filter row ── */
+.cat-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.cat-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+.cat-search {
+  width: 100%;
+  padding: 10px 16px 10px 38px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.cat-search:focus {
+  border-color: var(--cat-color);
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 0 0 3px var(--cat-color)18;
+}
+.cat-search::placeholder { color: rgba(255,255,255,0.25); }
+.cat-search-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
 
-    /* ── Quick Filters ── */
-    .quick-filters {
-        display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2rem; position: relative; z-index: 2;
-    }
-    .filter-chip {
-        padding: 6px 16px; background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.05); border-radius: 100px;
-        font-size: 0.8rem; font-weight: 600; color: var(--muted); text-decoration: none; transition: all 0.2s;
-    }
-    .filter-chip:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.1); }
+/* Group filter pills */
+.group-pills {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.group-pill {
+  padding: 5px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.group-pill:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+.group-pill.active {
+  background: var(--cat-color)20;
+  border-color: var(--cat-color);
+  color: var(--cat-color);
+}
 
-    /* ── Group Sections ── */
-    .groups-container {
-        display: flex; flex-direction: column; gap: 4rem;
-    }
-    .tool-group {
-        scroll-margin-top: 100px;
-    }
-    .group-title {
-        font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 800;
-        margin-bottom: 1.5rem; color: var(--text); display: flex; align-items: center; gap: 12px;
-    }
-    .group-title::before {
-        content: ''; width: 12px; height: 12px; background: var(--cat-color);
-        border-radius: 2px; box-shadow: 0 0 10px var(--cat-color); opacity: 0.8;
-    }
+/* ── Results meta ── */
+.cat-meta {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
 
-    /* ── Dense Tool Grid ── */
-    .dense-tool-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
-    }
+/* ── Dense grid ── */
+.cat-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+@media (max-width: 1200px) { .cat-tool-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px)  { .cat-tool-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; } }
+@media (max-width: 480px)  { .cat-tool-grid { grid-template-columns: 1fr; } }
 
-    /* ── Compact Cards ── */
-    .compact-tool-card {
-        display: flex; align-items: center; gap: 16px; padding: 16px;
-        background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04);
-        border-radius: 12px; text-decoration: none; color: var(--text);
-        transition: all 0.2s; position: relative; overflow: hidden;
-    }
-    .compact-tool-card:hover {
-        background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1);
-        transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-    }
-    .compact-tool-card::before {
-        content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-        background: var(--cat-color); opacity: 0; transition: opacity 0.2s;
-    }
-    .compact-tool-card:hover::before { opacity: 1; }
+/* ── Tool card ── */
+.ct-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 11px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+  min-height: 56px;
+}
+.ct-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--cat-color);
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+.ct-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+}
+.ct-card:hover::before { opacity: 1; }
+.ct-card-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  background: var(--cat-color)18;
+  border: 1px solid var(--cat-color)33;
+  color: var(--cat-color);
+  transition: all 0.18s;
+}
+.ct-card:hover .ct-card-icon {
+  background: var(--cat-color);
+  color: #fff;
+  border-color: var(--cat-color);
+  box-shadow: 0 0 10px var(--cat-color)55;
+}
+.ct-card-body { flex: 1; min-width: 0; }
+.ct-card-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.ct-card-desc {
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+.ct-badge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.ct-badge-new { background: rgba(0,245,212,0.15); color: var(--accent); }
 
-    .compact-icon {
-        width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.3rem; color: var(--cat-color);
-        background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
-        transition: all 0.2s;
-    }
-    .compact-tool-card:hover .compact-icon {
-        background: var(--cat-color); color: #fff; border-color: var(--cat-color);
-        box-shadow: 0 0 15px rgba(0,0,0,0.3);
-    }
+/* ── Group header inside grid ── */
+.ct-group-header {
+  grid-column: 1 / -1;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  padding: 8px 0 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.ct-group-header::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 2px;
+  background: var(--cat-color);
+  opacity: 0.7;
+}
 
-    .compact-info { flex: 1; overflow: hidden; }
-    .t-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; font-family: 'Syne', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .t-desc { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: monospace; }
-    
-    .compact-action { color: var(--muted); opacity: 0; transition: all 0.2s; font-size: 1.2rem; transform: translateX(-10px); }
-    .compact-tool-card:hover .compact-action { opacity: 1; transform: translateX(0); color: var(--cat-color); }
+/* ── Empty state ── */
+.ct-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.ct-empty i { font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.3; }
 
-    @media (max-width: 768px) {
-        .category-shell { padding: 1rem 1rem 4rem 1rem; }
-        .header-top { flex-direction: column; align-items: stretch; }
-        .search-module { min-width: 100%; }
-        .dense-tool-grid { grid-template-columns: 1fr; }
-    }
+/* ── Fade in ── */
+@keyframes ctFade {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ct-card { animation: ctFade 0.16s ease both; }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .cat-shell { padding: 70px 0.75rem 5rem; }
+  .cat-header { padding: 1rem; }
+  .cat-header-text h1 { font-size: 1.15rem; }
+  .ct-card-desc { display: none; }
+  .ct-card { min-height: 48px; padding: 8px 10px; }
+  .ct-card-icon { width: 30px; height: 30px; font-size: 0.88rem; }
+  .ct-card-name { font-size: 0.78rem; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="category-shell">
-    <header class="category-header">
-        <div class="header-top">
-            <div class="category-title">
-                <div style="color: var(--cat-color); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.75rem; display:flex; align-items:center; gap:8px;">
-                    <i class="{{ category.icon }}"></i> LamGen Toolset
-                </div>
-                <h1>{{ category.name }}</h1>
-                <p>{{ category.description }}</p>
-            </div>
-            
-            <div class="search-module">
-                <i class="bi bi-search"></i>
-                <input type="text" id="toolsSearch" placeholder="Search {{ tools|length }} tools in {{ category.name }}...">
-            </div>
-        </div>
-        
-        {% if tool_groups|length > 1 %}
-        <div class="quick-filters">
-            {% for group_name, tools_list in tool_groups %}
-            <a href="#group-{{ forloop.counter }}" class="filter-chip">{{ group_name }}</a>
-            {% endfor %}
-        </div>
-        {% endif %}
-    </header>
+<div class="cat-shell">
 
-    <div class="groups-container">
-        {% if tool_groups %}
-            {% for group_name, tools_list in tool_groups %}
-            <div class="tool-group" id="group-{{ forloop.counter }}">
-                <h2 class="group-title">{{ group_name }}</h2>
-                <div class="dense-tool-grid">
-                    {% for tool in tools_list %}
-                    <a href="{{ tool.get_absolute_url }}" class="compact-tool-card">
-                        <div class="compact-icon"><i class="{{ tool.icon }}"></i></div>
-                        <div class="compact-info">
-                            <div class="t-name">{{ tool.name }}</div>
-                            <div class="t-desc">{{ tool.short_desc|truncatechars:50 }}</div>
-                        </div>
-                        <div class="compact-action"><i class="bi bi-arrow-right-short"></i></div>
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <!-- Fallback if no groups generated -->
-            <div class="dense-tool-grid">
-                {% for tool in tools %}
-                <a href="{{ tool.get_absolute_url }}" class="compact-tool-card">
-                    <div class="compact-icon"><i class="{{ tool.icon }}"></i></div>
-                    <div class="compact-info">
-                        <div class="t-name">{{ tool.name }}</div>
-                        <div class="t-desc">{{ tool.short_desc|truncatechars:50 }}</div>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        {% endif %}
+  <!-- Header -->
+  <header class="cat-header">
+    <div class="cat-header-left">
+      <div class="cat-header-icon"><i class="{{ category.icon }}"></i></div>
+      <div class="cat-header-text">
+        <h1>{{ category.name }}</h1>
+        <p>{{ category.description|default:category.short_desc|truncatechars:100 }}</p>
+      </div>
     </div>
+    <div class="cat-header-right">
+      <span class="cat-tool-count">{{ tools|length }} tools</span>
+      <a href="{% url 'tools:index' %}" style="font-size:.75rem;color:var(--muted);text-decoration:none;padding:4px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;">
+        ← All Tools
+      </a>
+    </div>
+  </header>
+
+  <!-- Controls -->
+  <div class="cat-controls">
+    <div class="cat-search-wrap">
+      <i class="bi bi-search cat-search-icon"></i>
+      <input type="text"
+             id="catSearch"
+             class="cat-search"
+             placeholder="Search {{ tools|length }} tools…"
+             autocomplete="off"
+             aria-label="Search tools in {{ category.name }}">
+    </div>
+    {% if tool_groups|length > 1 %}
+    <div class="group-pills" id="groupPills">
+      <button class="group-pill active" data-group="all">All</button>
+      {% for group_name, tools_list in tool_groups %}
+      <button class="group-pill" data-group="{{ forloop.counter }}">{{ group_name }}</button>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Meta -->
+  <div class="cat-meta" id="catMeta">{{ tools|length }} tools</div>
+
+  <!-- Grid -->
+  <div class="cat-tool-grid" id="catGrid" role="list">
+    {# Populated by JS #}
+  </div>
+
 </div>
+
+{# Embed tool data #}
+<script id="catToolData" type="application/json">
+[{% for tool in tools %}{"slug":"{{ tool.slug }}","name":"{{ tool.name|escapejs }}","desc":"{{ tool.short_desc|truncatechars:60|escapejs }}","icon":"{{ tool.icon }}","url":"{{ tool.get_absolute_url }}","isNew":{% if tool.is_new %}true{% else %}false{% endif %},"views":{{ tool.view_count }}}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
+
+{# Embed group data — use a safe format #}
+<script id="catGroupData" type="application/json">
+{"groups":[{% for group_name, tools_list in tool_groups %}{"id":"{{ forloop.counter }}","name":"{{ group_name|escapejs }}","count":{{ tools_list|length }}}{% if not forloop.last %},{% endif %}{% endfor %}]}
+</script>
 {% endblock %}
 
-{% block extra_js %}
+{% block tool_js %}
 <script>
-    const toolsSearch = document.getElementById('toolsSearch');
-    const toolCards = document.querySelectorAll('.compact-tool-card');
-    const toolGroups = document.querySelectorAll('.tool-group');
+(function() {
+  const ALL = JSON.parse(document.getElementById('catToolData').textContent);
+  const catColor = getComputedStyle(document.documentElement).getPropertyValue('--cat-color').trim()
+    || '{{ category.color_from }}';
 
-    if (toolsSearch) {
-        toolsSearch.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            
-            toolCards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                card.style.display = text.includes(query) ? 'flex' : 'none';
-            });
+  let query = '';
+  let activeGroup = 'all';
 
-            // Hide empty groups
-            toolGroups.forEach(group => {
-                const visibleCards = group.querySelectorAll('.compact-tool-card[style="display: flex;"]');
-                const hasVisibleCards = visibleCards.length > 0 || !group.querySelector('.compact-tool-card').hasAttribute('style');
-                group.style.display = hasVisibleCards ? 'block' : 'none';
-            });
-        });
+  const grid    = document.getElementById('catGrid');
+  const metaEl  = document.getElementById('catMeta');
+  const searchEl= document.getElementById('catSearch');
+
+  // Build group membership from Django template data
+  const groupMap = {}; // slug → group index string
+  {% for group_name, tools_list in tool_groups %}
+  {% for tool in tools_list %}
+  groupMap['{{ tool.slug }}'] = '{{ forloop.parentloop.counter }}';
+  {% endfor %}
+  {% endfor %}
+
+  function getFiltered() {
+    return ALL.filter(t => {
+      const q = query.toLowerCase();
+      const matchQ = !q || t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q);
+      const matchG = activeGroup === 'all' || groupMap[t.slug] === activeGroup;
+      return matchQ && matchG;
+    });
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function render() {
+    const tools = getFiltered();
+    metaEl.textContent = `${tools.length} tool${tools.length !== 1 ? 's' : ''}`;
+
+    if (!tools.length) {
+      grid.innerHTML = `<div class="ct-empty"><i class="bi bi-search"></i>No tools match "${escHtml(query)}"</div>`;
+      return;
     }
+
+    // Show group headers only when showing all groups and no search
+    const showGroups = activeGroup === 'all' && !query && Object.keys(groupMap).length > 0;
+    let html = '';
+    let lastGroup = null;
+    let delay = 0;
+
+    // Group name lookup
+    const groupNames = {};
+    {% for group_name, tools_list in tool_groups %}
+    groupNames['{{ forloop.counter }}'] = '{{ group_name|escapejs }}';
+    {% endfor %}
+
+    for (const t of tools) {
+      const g = groupMap[t.slug] || '1';
+      if (showGroups && g !== lastGroup) {
+        const gName = groupNames[g] || '';
+        if (gName) {
+          html += `<div class="ct-group-header">${escHtml(gName)}</div>`;
+        }
+        lastGroup = g;
+      }
+
+      const badge = t.isNew ? '<span class="ct-badge ct-badge-new">New</span>' : '';
+      html += `<a href="${escHtml(t.url)}"
+                  class="ct-card"
+                  role="listitem"
+                  aria-label="${escHtml(t.name)}"
+                  style="animation-delay:${delay}ms">
+        <div class="ct-card-icon"><i class="${escHtml(t.icon)}"></i></div>
+        <div class="ct-card-body">
+          <div class="ct-card-name">${escHtml(t.name)}</div>
+          <div class="ct-card-desc">${escHtml(t.desc)}</div>
+        </div>
+        ${badge}
+      </a>`;
+      delay = Math.min(delay + 6, 100);
+    }
+
+    grid.innerHTML = html;
+  }
+
+  // Search
+  let timer;
+  searchEl.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { query = searchEl.value.trim(); render(); }, 100);
+  });
+
+  // Group pills
+  const pillsEl = document.getElementById('groupPills');
+  if (pillsEl) {
+    pillsEl.addEventListener('click', e => {
+      const pill = e.target.closest('.group-pill');
+      if (!pill) return;
+      pillsEl.querySelectorAll('.group-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeGroup = pill.dataset.group;
+      render();
+    });
+  }
+
+  // Keyboard shortcut
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== searchEl &&
+        document.activeElement.tagName !== 'INPUT' &&
+        document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      searchEl.focus();
+    }
+  });
+
+  render();
+})();
 </script>
 {% endblock %}

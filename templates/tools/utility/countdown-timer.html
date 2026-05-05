@@ -1,0 +1,237 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.countdown-display{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;padding:24px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:16px}
+.cd-unit{text-align:center;min-width:70px}
+.cd-num{font-size:3rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);line-height:1}
+.cd-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.cd-sep{font-size:2.5rem;font-weight:800;color:var(--muted);align-self:flex-start;padding-top:8px}
+.progress-bar-wrap{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:3px;transition:width .5s}
+.saved-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px}
+.saved-item .name{flex:1;font-weight:600;font-size:.9rem}
+.saved-item .time-left{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent)}
+.saved-item.expired .time-left{color:#FF6B6B}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Event Name</div>
+      <input type="text" class="text-input" id="event-name" placeholder="e.g. New Year 2026">
+    </div>
+    <div>
+      <div class="tool-label">Target Date & Time</div>
+      <input type="datetime-local" class="num-input" id="target-dt">
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="startCountdown()"><i class="bi bi-play-fill"></i> Start Countdown</button>
+    <button class="btn-sm" onclick="saveCountdown()"><i class="bi bi-bookmark-plus"></i> Save</button>
+    <label class="btn-sm"><input type="checkbox" id="sound-chk" style="accent-color:var(--primary)"> Sound Alert</label>
+    <button class="btn-sm" onclick="shareCountdown()"><i class="bi bi-share"></i> Share URL</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="main-countdown" style="display:none">
+    <div class="tool-label" id="event-display">Countdown</div>
+    <div class="countdown-display">
+      <div class="cd-unit"><div class="cd-num" id="cd-days">00</div><div class="cd-lbl">Days</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><div class="cd-num" id="cd-hours">00</div><div class="cd-lbl">Hours</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><div class="cd-num" id="cd-mins">00</div><div class="cd-lbl">Minutes</div></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><div class="cd-num" id="cd-secs">00</div><div class="cd-lbl">Seconds</div></div>
+    </div>
+    <div style="margin-top:10px">
+      <div class="progress-bar-wrap"><div class="progress-bar" id="cd-progress" style="width:0%"></div></div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:4px" id="cd-progress-label"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="tool-label">Saved Countdowns</div>
+    <div id="saved-list" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+let mainInterval = null;
+let mainTarget = null;
+let mainStart = null;
+let soundEnabled = false;
+let alerted = false;
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 1);
+  } catch(e) {}
+}
+
+function startCountdown() {
+  const dtVal = document.getElementById('target-dt').value;
+  if (!dtVal) { showErr('status', 'Please select a target date and time'); return; }
+  const target = new Date(dtVal);
+  if (target <= new Date()) { showErr('status', 'Target date must be in the future'); return; }
+  hideStatus('status');
+  mainTarget = target;
+  mainStart = new Date();
+  alerted = false;
+  soundEnabled = document.getElementById('sound-chk').checked;
+  const name = document.getElementById('event-name').value || 'Countdown';
+  document.getElementById('event-display').textContent = name;
+  document.getElementById('main-countdown').style.display = 'block';
+  if (mainInterval) clearInterval(mainInterval);
+  mainInterval = setInterval(tickMain, 1000);
+  tickMain();
+}
+
+function tickMain() {
+  const now = new Date();
+  const diff = mainTarget - now;
+  if (diff <= 0) {
+    clearInterval(mainInterval);
+    document.getElementById('cd-days').textContent = '00';
+    document.getElementById('cd-hours').textContent = '00';
+    document.getElementById('cd-mins').textContent = '00';
+    document.getElementById('cd-secs').textContent = '00';
+    document.getElementById('cd-progress').style.width = '100%';
+    document.getElementById('cd-progress-label').textContent = 'Event reached!';
+    if (soundEnabled && !alerted) { beep(); alerted = true; }
+    return;
+  }
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  document.getElementById('cd-days').textContent = pad(days);
+  document.getElementById('cd-hours').textContent = pad(hours);
+  document.getElementById('cd-mins').textContent = pad(mins);
+  document.getElementById('cd-secs').textContent = pad(secs);
+  const total = mainTarget - mainStart;
+  const elapsed = now - mainStart;
+  const pct = Math.min(100, (elapsed / total) * 100);
+  document.getElementById('cd-progress').style.width = pct + '%';
+  document.getElementById('cd-progress-label').textContent = pct.toFixed(1) + '% elapsed';
+}
+
+function saveCountdown() {
+  const dtVal = document.getElementById('target-dt').value;
+  if (!dtVal) { showErr('status', 'Please select a target date'); return; }
+  const name = document.getElementById('event-name').value || 'Countdown';
+  const saved = JSON.parse(localStorage.getItem('countdowns') || '[]');
+  saved.push({name, target: new Date(dtVal).getTime()});
+  localStorage.setItem('countdowns', JSON.stringify(saved));
+  showOk('status', 'Saved!');
+  renderSaved();
+}
+
+function renderSaved() {
+  const saved = JSON.parse(localStorage.getItem('countdowns') || '[]');
+  const container = document.getElementById('saved-list');
+  if (!saved.length) { container.innerHTML = '<div style="color:var(--muted);font-size:.85rem">No saved countdowns</div>'; return; }
+  container.innerHTML = saved.map((s, i) => {
+    const diff = s.target - Date.now();
+    const expired = diff <= 0;
+    let timeStr;
+    if (expired) { timeStr = 'Expired'; }
+    else {
+      const d = Math.floor(diff/86400000);
+      const h = Math.floor((diff%86400000)/3600000);
+      const m = Math.floor((diff%3600000)/60000);
+      timeStr = `${d}d ${h}h ${m}m`;
+    }
+    return `<div class="saved-item ${expired?'expired':''}">
+      <span class="name">${s.name}</span>
+      <span class="time-left">${timeStr}</span>
+      <button class="btn-sm" onclick="loadSaved(${i})"><i class="bi bi-play"></i></button>
+      <button class="btn-sm" onclick="deleteSaved(${i})" style="color:#FF6B6B"><i class="bi bi-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function loadSaved(i) {
+  const saved = JSON.parse(localStorage.getItem('countdowns') || '[]');
+  const s = saved[i];
+  const dt = new Date(s.target);
+  document.getElementById('event-name').value = s.name;
+  document.getElementById('target-dt').value = new Date(dt.getTime() - dt.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  startCountdown();
+}
+
+function deleteSaved(i) {
+  const saved = JSON.parse(localStorage.getItem('countdowns') || '[]');
+  saved.splice(i, 1);
+  localStorage.setItem('countdowns', JSON.stringify(saved));
+  renderSaved();
+}
+
+function shareCountdown() {
+  const dtVal = document.getElementById('target-dt').value;
+  const name = document.getElementById('event-name').value || 'Countdown';
+  if (!dtVal) return;
+  const url = window.location.href.split('?')[0] + '?name=' + encodeURIComponent(name) + '&target=' + encodeURIComponent(dtVal);
+  navigator.clipboard.writeText(url).then(() => showOk('status', 'URL copied to clipboard!'));
+}
+
+// Load from URL params
+const params = new URLSearchParams(window.location.search);
+if (params.get('target')) {
+  document.getElementById('target-dt').value = params.get('target');
+  document.getElementById('event-name').value = params.get('name') || '';
+  startCountdown();
+}
+
+renderSaved();
+setInterval(renderSaved, 10000);
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') startCountdown();
+});
+</script>
+{% endblock %}

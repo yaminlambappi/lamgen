@@ -1,0 +1,216 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:10px 13px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.tool-textarea{width:100%;padding:10px 13px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;resize:vertical;min-height:70px;box-sizing:border-box}
+.tool-textarea:focus{border-color:var(--primary)}
+.tool-textarea::placeholder{color:rgba(255,255,255,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.section-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;padding-bottom:.5rem;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:.75rem}
+.line-item-row{display:grid;grid-template-columns:3fr 1fr 1fr 1fr auto;gap:.5rem;align-items:center;margin-bottom:.5rem}
+@media(max-width:640px){.line-item-row{grid-template-columns:1fr 1fr;gap:.4rem}}
+.line-total{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--accent);text-align:right;padding:10px 0}
+.totals-box{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem 1.2rem}
+.total-row{display:flex;justify-content:space-between;padding:.3rem 0;font-size:.9rem;color:var(--muted)}
+.total-row.grand{font-size:1.1rem;font-weight:700;color:var(--text);border-top:1px solid rgba(255,255,255,.1);margin-top:.5rem;padding-top:.75rem}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div>
+      <div class="section-title"><i class="bi bi-person-fill"></i> From</div>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        <div><div class="tool-label">Name / Company</div><input class="tool-input" id="fromName" placeholder="Your Name or Company" /></div>
+        <div><div class="tool-label">Email</div><input class="tool-input" id="fromEmail" type="email" placeholder="you@company.com" /></div>
+        <div><div class="tool-label">Address</div><input class="tool-input" id="fromAddress" placeholder="123 Main St, City" /></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title"><i class="bi bi-building"></i> To (Client)</div>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        <div><div class="tool-label">Client Name / Company</div><input class="tool-input" id="toName" placeholder="Client Name" /></div>
+        <div><div class="tool-label">Client Email</div><input class="tool-input" id="toEmail" type="email" placeholder="client@company.com" /></div>
+        <div><div class="tool-label">Client Address</div><input class="tool-input" id="toAddress" placeholder="456 Client Ave, City" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div><div class="tool-label">Quote Number</div><input class="tool-input" id="quoteNum" placeholder="QUO-001" /></div>
+    <div><div class="tool-label">Quote Date</div><input class="tool-input" id="quoteDate" type="date" /></div>
+    <div><div class="tool-label">Valid Until</div><input class="tool-input" id="validUntil" type="date" /></div>
+  </div>
+
+  <div>
+    <div class="section-title"><i class="bi bi-list-ul"></i> Line Items</div>
+    <div style="display:grid;grid-template-columns:3fr 1fr 1fr 1fr auto;gap:.5rem;margin-bottom:.4rem">
+      <div class="tool-label">Description</div>
+      <div class="tool-label">Qty</div>
+      <div class="tool-label">Rate ($)</div>
+      <div class="tool-label" style="text-align:right">Total</div>
+      <div></div>
+    </div>
+    <div id="lineItems"></div>
+    <button class="btn-sm" onclick="addLine()" style="margin-top:.5rem"><i class="bi bi-plus-circle"></i> Add Line</button>
+  </div>
+
+  <div class="grid-3">
+    <div><div class="tool-label">Discount (%)</div><input class="tool-input" id="discount" type="number" min="0" max="100" step="0.1" placeholder="0" oninput="calcTotals()" /></div>
+    <div><div class="tool-label">Tax Rate (%)</div><input class="tool-input" id="taxRate" type="number" min="0" max="100" step="0.1" placeholder="0" oninput="calcTotals()" /></div>
+    <div><div class="tool-label">Currency Symbol</div><input class="tool-input" id="currency" value="$" oninput="calcTotals()" /></div>
+  </div>
+
+  <div>
+    <div class="tool-label">Terms & Conditions</div>
+    <textarea class="tool-textarea" id="terms" placeholder="This quotation is valid for 30 days. Prices are subject to change after expiry."></textarea>
+  </div>
+
+  <div class="totals-box">
+    <div class="total-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
+    <div class="total-row"><span>Discount (<span id="discPct">0</span>%)</span><span id="discAmt">-$0.00</span></div>
+    <div class="total-row"><span>Tax (<span id="taxPct">0</span>%)</span><span id="taxAmt">$0.00</span></div>
+    <div class="total-row grand"><span>Total</span><span id="grandTotal">$0.00</span></div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="printQuote()"><i class="bi bi-printer-fill"></i> Print / Save PDF</button>
+    <button class="btn-sm" onclick="previewQuote()"><i class="bi bi-eye"></i> Preview</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+  </div>
+
+  <div id="previewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;overflow:auto;padding:2rem">
+    <div style="max-width:800px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;background:#f5f5f5;border-bottom:1px solid #ddd">
+        <strong style="color:#333">Quotation Preview</strong>
+        <div style="display:flex;gap:.5rem">
+          <button onclick="printQuote()" style="padding:6px 14px;background:#6C63FF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.85rem">Print / PDF</button>
+          <button onclick="closePreview()" style="padding:6px 14px;background:#eee;color:#333;border:none;border-radius:6px;cursor:pointer;font-size:.85rem">Close</button>
+        </div>
+      </div>
+      <div id="quotePreview" style="padding:2rem"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let lineCount = 0;
+
+function addLine(desc='', qty=1, rate=0) {
+  lineCount++;
+  const id = lineCount;
+  const row = document.createElement('div');
+  row.className = 'line-item-row';
+  row.id = `line-${id}`;
+  row.innerHTML = `
+    <input class="tool-input" placeholder="Description" value="${escAttr(desc)}" oninput="calcTotals()" />
+    <input class="tool-input" type="number" min="0" step="0.01" value="${qty}" oninput="calcTotals()" />
+    <input class="tool-input" type="number" min="0" step="0.01" value="${rate}" oninput="calcTotals()" />
+    <div class="line-total" id="lt-${id}">$0.00</div>
+    <button class="btn-sm" onclick="removeLine(${id})" style="padding:6px 8px"><i class="bi bi-trash"></i></button>
+  `;
+  document.getElementById('lineItems').appendChild(row);
+  calcTotals();
+}
+
+function removeLine(id) { document.getElementById(`line-${id}`)?.remove(); calcTotals(); }
+
+function getLines() {
+  return Array.from(document.querySelectorAll('#lineItems .line-item-row')).map(row => {
+    const inputs = row.querySelectorAll('input');
+    const qty = parseFloat(inputs[1].value) || 0;
+    const rate = parseFloat(inputs[2].value) || 0;
+    return { desc: inputs[0].value.trim(), qty, rate, total: qty * rate };
+  });
+}
+
+function calcTotals() {
+  const cur = document.getElementById('currency').value || '$';
+  const lines = getLines();
+  const rows = document.querySelectorAll('#lineItems .line-item-row');
+  rows.forEach((row, i) => {
+    const lt = row.querySelector('[id^="lt-"]');
+    if (lt) lt.textContent = cur + lines[i].total.toFixed(2);
+  });
+  const sub = lines.reduce((s, l) => s + l.total, 0);
+  const discRate = parseFloat(document.getElementById('discount').value) || 0;
+  const disc = sub * discRate / 100;
+  const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+  const tax = (sub - disc) * taxRate / 100;
+  const grand = sub - disc + tax;
+  document.getElementById('subtotal').textContent = cur + sub.toFixed(2);
+  document.getElementById('discAmt').textContent = '-' + cur + disc.toFixed(2);
+  document.getElementById('discPct').textContent = discRate;
+  document.getElementById('taxAmt').textContent = cur + tax.toFixed(2);
+  document.getElementById('taxPct').textContent = taxRate;
+  document.getElementById('grandTotal').textContent = cur + grand.toFixed(2);
+}
+
+function buildQuoteHTML() {
+  const cur = document.getElementById('currency').value || '$';
+  const lines = getLines();
+  const sub = lines.reduce((s, l) => s + l.total, 0);
+  const discRate = parseFloat(document.getElementById('discount').value) || 0;
+  const disc = sub * discRate / 100;
+  const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+  const tax = (sub - disc) * taxRate / 100;
+  const grand = sub - disc + tax;
+  const f = id => document.getElementById(id).value;
+  const lineRows = lines.map(l => `<tr><td style="padding:10px 12px;border-bottom:1px solid #eee">${escHtml(l.desc)}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center">${l.qty}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right">${cur}${l.rate.toFixed(2)}</td><td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:600">${cur}${l.total.toFixed(2)}</td></tr>`).join('');
+  return `<div style="font-family:Arial,sans-serif;color:#333;max-width:700px;margin:0 auto">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem">
+      <div><h1 style="font-size:2rem;font-weight:800;color:#6C63FF;margin:0">QUOTATION</h1><div style="color:#888;margin-top:.25rem">${escHtml(f('quoteNum'))}</div></div>
+      <div style="text-align:right"><div style="font-weight:700;font-size:1.1rem">${escHtml(f('fromName'))}</div><div style="color:#666;font-size:.9rem">${escHtml(f('fromEmail'))}</div><div style="color:#666;font-size:.9rem">${escHtml(f('fromAddress'))}</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:2rem">
+      <div><div style="font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#999;margin-bottom:.3rem">Prepared For</div><div style="font-weight:700">${escHtml(f('toName'))}</div><div style="color:#666;font-size:.9rem">${escHtml(f('toEmail'))}</div><div style="color:#666;font-size:.9rem">${escHtml(f('toAddress'))}</div></div>
+      <div style="text-align:right"><div style="margin-bottom:.3rem"><span style="color:#999;font-size:.85rem">Date: </span><strong>${escHtml(f('quoteDate'))}</strong></div><div><span style="color:#999;font-size:.85rem">Valid Until: </span><strong style="color:#FF6B6B">${escHtml(f('validUntil'))}</strong></div></div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:1.5rem"><thead><tr style="background:#6C63FF;color:#fff"><th style="padding:10px 12px;text-align:left;font-size:.85rem">Description</th><th style="padding:10px 12px;text-align:center;font-size:.85rem">Qty</th><th style="padding:10px 12px;text-align:right;font-size:.85rem">Rate</th><th style="padding:10px 12px;text-align:right;font-size:.85rem">Total</th></tr></thead><tbody>${lineRows}</tbody></table>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1.5rem"><div style="min-width:240px"><div style="display:flex;justify-content:space-between;padding:.4rem 0;color:#666;font-size:.9rem"><span>Subtotal</span><span>${cur}${sub.toFixed(2)}</span></div><div style="display:flex;justify-content:space-between;padding:.4rem 0;color:#666;font-size:.9rem"><span>Discount (${discRate}%)</span><span>-${cur}${disc.toFixed(2)}</span></div><div style="display:flex;justify-content:space-between;padding:.4rem 0;color:#666;font-size:.9rem"><span>Tax (${taxRate}%)</span><span>${cur}${tax.toFixed(2)}</span></div><div style="display:flex;justify-content:space-between;padding:.6rem 0;font-size:1.1rem;font-weight:800;border-top:2px solid #6C63FF;margin-top:.3rem"><span>Total</span><span style="color:#6C63FF">${cur}${grand.toFixed(2)}</span></div></div></div>
+    ${f('terms') ? `<div style="background:#f9f9f9;border-left:4px solid #6C63FF;padding:1rem;border-radius:4px;font-size:.9rem;color:#555"><strong>Terms:</strong> ${escHtml(f('terms'))}</div>` : ''}
+  </div>`;
+}
+
+function previewQuote() {
+  document.getElementById('quotePreview').innerHTML = buildQuoteHTML();
+  document.getElementById('previewModal').style.display = 'block';
+}
+function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
+function printQuote() {
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Quotation</title><style>body{font-family:Arial,sans-serif;margin:2rem}</style></head><body>${buildQuoteHTML()}</body></html>`);
+  win.document.close(); win.focus(); setTimeout(() => win.print(), 500);
+}
+function clearAll() {
+  ['fromName','fromEmail','fromAddress','toName','toEmail','toAddress','quoteNum','quoteDate','validUntil','discount','taxRate','terms'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('lineItems').innerHTML = ''; lineCount = 0; calcTotals();
+}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return String(s||'').replace(/"/g,'&quot;');}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  const valid = new Date(Date.now() + 30*86400000).toISOString().split('T')[0];
+  document.getElementById('quoteDate').value = today;
+  document.getElementById('validUntil').value = valid;
+  document.getElementById('quoteNum').value = 'QUO-' + String(Math.floor(Math.random()*900)+100);
+  addLine('Consulting Services', 10, 150);
+  addLine('', 0, 0);
+});
+</script>
+{% endblock %}

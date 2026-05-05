@@ -1,0 +1,191 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:12px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:1rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.format-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;transition:border-color .2s}
+.format-row:hover{border-color:rgba(108,99,255,.2)}
+.format-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);width:100px;flex-shrink:0}
+.format-value{flex:1;font-family:'JetBrains Mono',monospace;font-size:.88rem;color:var(--text);word-break:break-all}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.mode-tabs{display:flex;gap:4px}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.relative-time{font-size:1.1rem;font-weight:700;color:var(--accent);font-family:'Syne',sans-serif;padding:.75rem 1rem;background:rgba(0,245,212,.05);border:1px solid rgba(0,245,212,.15);border-radius:10px;text-align:center}
+.opt-label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);cursor:pointer}
+.opt-label input{accent-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+    <div class="tool-label" style="margin-bottom:0">Conversion Mode</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode(this,'ts2date')">Timestamp → Date</button>
+      <button class="mode-tab" onclick="setMode(this,'date2ts')">Date → Timestamp</button>
+    </div>
+  </div>
+
+  <div id="ts2dateSection">
+    <div class="tool-label">Unix Timestamp</div>
+    <div style="display:flex;gap:.5rem">
+      <input class="tool-input" id="tsInput" placeholder="e.g. 1700000000" oninput="convertTS()" />
+      <button class="btn-go" onclick="useNow()" style="white-space:nowrap"><i class="bi bi-clock"></i> Now</button>
+    </div>
+    <div style="display:flex;gap:.75rem;margin-top:.5rem;flex-wrap:wrap">
+      <label class="opt-label"><input type="radio" name="tsUnit" value="s" checked onchange="convertTS()"> Seconds</label>
+      <label class="opt-label"><input type="radio" name="tsUnit" value="ms" onchange="convertTS()"> Milliseconds</label>
+    </div>
+  </div>
+
+  <div id="date2tsSection" style="display:none">
+    <div class="tool-label">Date & Time</div>
+    <input class="tool-input" id="dateInput" type="datetime-local" oninput="convertDate()" />
+  </div>
+
+  <div class="status" id="st"></div>
+
+  <div id="results" style="display:none;flex-direction:column;gap:.75rem">
+    <div class="relative-time" id="relativeTime"></div>
+
+    <div style="display:flex;flex-direction:column;gap:.5rem" id="formatList">
+      <div class="format-row">
+        <div class="format-label">Unix (s)</div>
+        <div class="format-value" id="fUnixS">—</div>
+        <button class="btn-sm" onclick="copyFmt('fUnixS')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="format-row">
+        <div class="format-label">Unix (ms)</div>
+        <div class="format-value" id="fUnixMs">—</div>
+        <button class="btn-sm" onclick="copyFmt('fUnixMs')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="format-row">
+        <div class="format-label">ISO 8601</div>
+        <div class="format-value" id="fISO">—</div>
+        <button class="btn-sm" onclick="copyFmt('fISO')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="format-row">
+        <div class="format-label">RFC 2822</div>
+        <div class="format-value" id="fRFC">—</div>
+        <button class="btn-sm" onclick="copyFmt('fRFC')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="format-row">
+        <div class="format-label">Local Time</div>
+        <div class="format-value" id="fLocal">—</div>
+        <button class="btn-sm" onclick="copyFmt('fLocal')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="format-row">
+        <div class="format-label">UTC</div>
+        <div class="format-value" id="fUTC">—</div>
+        <button class="btn-sm" onclick="copyFmt('fUTC')"><i class="bi bi-clipboard"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let currentMode = 'ts2date';
+
+function setMode(btn, mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ts2dateSection').style.display = mode === 'ts2date' ? 'block' : 'none';
+  document.getElementById('date2tsSection').style.display = mode === 'date2ts' ? 'block' : 'none';
+  document.getElementById('results').style.display = 'none';
+  hideStatus('st');
+}
+
+function useNow() {
+  const unit = document.querySelector('input[name="tsUnit"]:checked').value;
+  const now = unit === 'ms' ? Date.now() : Math.floor(Date.now() / 1000);
+  document.getElementById('tsInput').value = now;
+  convertTS();
+}
+
+function convertTS() {
+  const raw = document.getElementById('tsInput').value.trim();
+  if (!raw) { document.getElementById('results').style.display = 'none'; hideStatus('st'); return; }
+  const unit = document.querySelector('input[name="tsUnit"]:checked').value;
+  let ts = parseFloat(raw);
+  if (isNaN(ts)) { showErr('st','Invalid timestamp'); return; }
+  if (unit === 's') ts *= 1000;
+  renderDate(new Date(ts));
+}
+
+function convertDate() {
+  const raw = document.getElementById('dateInput').value;
+  if (!raw) { document.getElementById('results').style.display = 'none'; return; }
+  renderDate(new Date(raw));
+}
+
+function renderDate(date) {
+  if (isNaN(date.getTime())) { showErr('st','Invalid date'); return; }
+  hideStatus('st');
+
+  const unixS = Math.floor(date.getTime() / 1000);
+  const unixMs = date.getTime();
+
+  document.getElementById('fUnixS').textContent = unixS;
+  document.getElementById('fUnixMs').textContent = unixMs;
+  document.getElementById('fISO').textContent = date.toISOString();
+  document.getElementById('fRFC').textContent = date.toUTCString();
+  document.getElementById('fLocal').textContent = date.toLocaleString();
+  document.getElementById('fUTC').textContent = date.toUTCString();
+
+  // Relative time
+  const now = Date.now();
+  const diff = date.getTime() - now;
+  const absDiff = Math.abs(diff);
+  const isPast = diff < 0;
+  let rel = '';
+  if (absDiff < 60000) rel = 'just now';
+  else if (absDiff < 3600000) rel = `${Math.round(absDiff/60000)} minutes ${isPast?'ago':'from now'}`;
+  else if (absDiff < 86400000) rel = `${Math.round(absDiff/3600000)} hours ${isPast?'ago':'from now'}`;
+  else if (absDiff < 2592000000) rel = `${Math.round(absDiff/86400000)} days ${isPast?'ago':'from now'}`;
+  else if (absDiff < 31536000000) rel = `${Math.round(absDiff/2592000000)} months ${isPast?'ago':'from now'}`;
+  else rel = `${Math.round(absDiff/31536000000)} years ${isPast?'ago':'from now'}`;
+
+  document.getElementById('relativeTime').textContent = rel;
+  document.getElementById('results').style.display = 'flex';
+}
+
+function copyFmt(id) {
+  const text = document.getElementById(id).textContent;
+  if (text === '—') return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target.closest('button');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+// Auto-set current time for date input
+document.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  document.getElementById('dateInput').value = local;
+});
+</script>
+{% endblock %}

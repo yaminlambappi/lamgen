@@ -1,0 +1,169 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+.input-grp { margin-bottom: 1.2rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.roast-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; margin-bottom: 0.8rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.roast-card:hover { border-color: rgba(255,107,107,0.3); }
+.roast-text { font-size: 1rem; color: var(--text); line-height: 1.5; flex: 1; }
+.heat-badge { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px; white-space: nowrap; }
+.heat-mild { background: rgba(0,200,100,0.15); color: #00c864; }
+.heat-medium { background: rgba(255,200,0,0.15); color: #ffc800; }
+.heat-spicy { background: rgba(255,107,107,0.15); color: var(--danger); }
+.heat-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+.heat-tab { flex: 1; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem; transition: all 0.2s; text-align: center; }
+.heat-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.disclaimer { background: rgba(255,200,0,0.08); border: 1px solid rgba(255,200,0,0.2); border-radius: 8px; padding: 0.8rem 1rem; color: #ffc800; font-size: 0.82rem; margin-bottom: 1.5rem; }
+.results-panel { max-height: 500px; overflow-y: auto; }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="disclaimer">
+  😄 All roasts are purely for fun and entertainment. No harm intended. Use responsibly with friends who have a good sense of humor!
+</div>
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:2rem;">
+  <div>
+    <div class="input-grp">
+      <span class="tool-label">Name (optional)</span>
+      <input type="text" id="in-name" class="num-input" placeholder="e.g. Alex (or leave blank)">
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Heat Level</span>
+      <div class="heat-tabs">
+        <button class="heat-tab active" id="tab-mild" onclick="setHeat('mild')">🌿 Mild</button>
+        <button class="heat-tab" id="tab-medium" onclick="setHeat('medium')">🌶️ Medium</button>
+        <button class="heat-tab" id="tab-spicy" onclick="setHeat('spicy')">🔥 Spicy</button>
+      </div>
+    </div>
+    <button class="btn-go" id="btn-roast">🔥 Roast!</button>
+    <button class="btn-sm" id="btn-regen" style="margin-top:0.5rem;width:100%;padding:0.6rem;">🔄 Regenerate</button>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:0.6rem;">Ctrl+Enter to roast</p>
+  </div>
+  <div>
+    <span class="tool-label">Roasts</span>
+    <div class="results-panel" id="results">
+      <div style="color:var(--muted);text-align:center;padding:3rem 0;">Click "Roast!" to generate</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const roasts = {
+    mild: [
+      "{name} is so slow, they make a sloth look like a sprinter.",
+      "I'd roast {name} but my mom said I'm not allowed to burn trash.",
+      "{name}'s jokes are like their WiFi — weak and unreliable.",
+      "If {name} were any more basic, they'd be a pH of 14.",
+      "{name} has the energy of a Monday morning.",
+      "I've seen better comebacks in a boomerang.",
+      "{name} is proof that even evolution makes mistakes sometimes.",
+      "Calling {name} average would be a compliment.",
+      "{name}'s fashion sense called — it wants to stay in the past.",
+      "I'd agree with {name} but then we'd both be wrong.",
+      "{name} is like a cloud — when they disappear, it's a beautiful day.",
+      "The only thing sharp about {name} is their elbows.",
+      "{name} has the attention span of a goldfish with amnesia.",
+      "I'd explain it to {name} but I left my crayons at home.",
+      "{name} is the reason instructions have pictures.",
+      "If {name} were a spice, they'd be flour.",
+      "{name}'s personality has the depth of a parking lot puddle.",
+      "I've met furniture with more personality than {name}.",
+      "{name} is like a software update — nobody asked for them.",
+      "The last time {name} had a good idea, it was an accident.",
+    ],
+    medium: [
+      "{name} is so boring, their dreams have a loading screen.",
+      "I'd call {name} a tool but that would imply they're useful.",
+      "{name}'s brain is like a browser with 100 tabs open and none of them loading.",
+      "If {name} were a book, they'd be a pamphlet.",
+      "{name} has the charisma of a wet sock.",
+      "I'd roast {name} harder but I don't want to set the bar too high for them.",
+      "{name} is the human equivalent of a participation trophy.",
+      "Talking to {name} is like reading the terms and conditions — nobody wants to.",
+      "{name} has the social skills of a dial-up modem.",
+      "If {name} were any more average, they'd be a math problem.",
+      "{name}'s life is like a broken pencil — pointless.",
+      "I've seen better decisions made by a Magic 8-Ball.",
+      "{name} is like a speed bump — annoying and slowing everyone down.",
+      "The only exercise {name} gets is jumping to conclusions.",
+      "{name} is so forgettable, their own reflection does a double take.",
+      "If {name} had a dollar for every smart thought, they'd be broke.",
+      "{name} is the reason the gene pool needs a lifeguard.",
+      "I'd say {name} is out of their mind but they'd have to have one first.",
+      "{name} is like a broken clock — right twice a day, wrong the rest.",
+      "The WiFi in {name}'s brain has a password nobody knows.",
+    ],
+    spicy: [
+      "{name} is so dense, light bends around them.",
+      "I'd say {name} is a legend but legends are actually remembered.",
+      "{name} has the IQ of a houseplant — and the houseplant is winning.",
+      "If {name} were any more useless, they'd be a screen door on a submarine.",
+      "{name} is the human equivalent of a 404 error.",
+      "I've seen better arguments from a Magic 8-Ball.",
+      "{name} is so irrelevant, even their shadow walks away.",
+      "If {name} were a superhero, their power would be disappointing people.",
+      "{name} is like a software bug — nobody knows why they exist but they're everywhere.",
+      "The only thing {name} has going for them is low expectations.",
+      "{name} is so predictable, even their surprises are boring.",
+      "I'd roast {name} but they're already well done.",
+      "{name} is the reason aliens haven't contacted us yet.",
+      "If {name} were a movie, they'd be straight to DVD.",
+      "{name} has the depth of a kiddie pool in a drought.",
+      "I've seen better logic from a Magic 8-Ball.",
+      "{name} is so average, they make vanilla look exotic.",
+      "The only thing {name} excels at is being mediocre.",
+      "{name} is like a broken elevator — they never rise to the occasion.",
+      "If {name} were a color, they'd be beige — dull and forgettable.",
+    ],
+  };
+
+  let heat = 'mild';
+
+  window.setHeat = (h) => {
+    heat = h;
+    ['mild','medium','spicy'].forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === h);
+    });
+  };
+
+  function generate() {
+    const name = document.getElementById('in-name').value.trim() || 'They';
+    const pool = roasts[heat];
+    const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, 8);
+    const heatClass = { mild: 'heat-mild', medium: 'heat-medium', spicy: 'heat-spicy' }[heat];
+    const heatLabel = { mild: '🌿 Mild', medium: '🌶️ Medium', spicy: '🔥 Spicy' }[heat];
+    document.getElementById('results').innerHTML = shuffled.map(r => {
+      const text = r.replace(/{name}/g, name);
+      return `<div class="roast-card">
+        <div class="roast-text">${text}</div>
+        <div style="display:flex;flex-direction:column;gap:0.4rem;align-items:flex-end;">
+          <span class="heat-badge ${heatClass}">${heatLabel}</span>
+          <button class="btn-sm" onclick="copyText(this,\`${text.replace(/`/g,'\\`')}\`)"><i class="bi bi-clipboard"></i></button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  window.copyText = async (btn, text) => {
+    await navigator.clipboard.writeText(text);
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i>', 1500);
+  };
+
+  document.getElementById('btn-roast').addEventListener('click', generate);
+  document.getElementById('btn-regen').addEventListener('click', generate);
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+});
+</script>
+{% endblock %}

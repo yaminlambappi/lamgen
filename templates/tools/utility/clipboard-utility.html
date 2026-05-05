@@ -1,0 +1,173 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.clip-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;transition:border-color .2s}
+.clip-item:hover{border-color:rgba(255,255,255,.12)}
+.clip-text{flex:1;font-size:.85rem;line-height:1.5;word-break:break-all;max-height:80px;overflow:hidden;color:var(--text)}
+.clip-meta{font-size:.72rem;color:var(--muted);margin-top:4px}
+.clip-actions{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
+.search-wrap{position:relative}
+.search-wrap input{padding-left:36px}
+.search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem}
+.empty-state{text-align:center;padding:32px;color:var(--muted);font-size:.9rem}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Add Entry</div>
+    <div style="display:flex;gap:8px">
+      <textarea class="num-input" id="new-entry" placeholder="Paste or type text to save..." rows="3" style="resize:none;flex:1"></textarea>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="addEntry()"><i class="bi bi-plus-circle"></i> Add</button>
+    <button class="btn-sm" onclick="pasteFromClipboard()"><i class="bi bi-clipboard-plus"></i> Paste from Clipboard</button>
+    <button class="btn-sm" onclick="exportAll()"><i class="bi bi-download"></i> Export All</button>
+    <button class="btn-sm" onclick="clearAll()" style="color:#FF6B6B"><i class="bi bi-trash"></i> Clear All</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div>
+    <div class="search-wrap">
+      <i class="bi bi-search search-icon"></i>
+      <input type="text" class="num-input" id="search-input" placeholder="Search entries..." oninput="renderEntries()">
+    </div>
+  </div>
+
+  <div>
+    <div class="tool-label">Saved Entries (<span id="entry-count">0</span>/20)</div>
+    <div id="entries-list" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+function loadEntries() {
+  return JSON.parse(localStorage.getItem('clipboard_entries') || '[]');
+}
+function saveEntries(entries) {
+  localStorage.setItem('clipboard_entries', JSON.stringify(entries));
+}
+
+function addEntry(text) {
+  const val = text || document.getElementById('new-entry').value.trim();
+  if (!val) { showErr('status', 'Enter some text first'); return; }
+  const entries = loadEntries();
+  if (entries.length >= 20) { showErr('status', 'Maximum 20 entries. Delete some first.'); return; }
+  entries.unshift({text: val, time: Date.now()});
+  saveEntries(entries);
+  document.getElementById('new-entry').value = '';
+  hideStatus('status');
+  renderEntries();
+  showOk('status', 'Entry added');
+}
+
+async function pasteFromClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text) addEntry(text);
+  } catch(e) {
+    showErr('status', 'Clipboard access denied. Paste manually.');
+  }
+}
+
+function deleteEntry(i) {
+  const entries = loadEntries();
+  entries.splice(i, 1);
+  saveEntries(entries);
+  renderEntries();
+}
+
+function exportAll() {
+  const entries = loadEntries();
+  if (!entries.length) return;
+  const content = entries.map((e,i) => `--- Entry ${i+1} (${new Date(e.time).toLocaleString()}) ---\n${e.text}`).join('\n\n');
+  downloadText(content, 'clipboard-entries.txt');
+}
+
+function clearAll() {
+  if (!confirm('Delete all entries?')) return;
+  saveEntries([]);
+  renderEntries();
+}
+
+function renderEntries() {
+  const entries = loadEntries();
+  const query = document.getElementById('search-input').value.toLowerCase();
+  const filtered = query ? entries.filter(e => e.text.toLowerCase().includes(query)) : entries;
+  document.getElementById('entry-count').textContent = entries.length;
+  const container = document.getElementById('entries-list');
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state"><i class="bi bi-clipboard" style="font-size:2rem;display:block;margin-bottom:8px"></i>${query ? 'No matching entries' : 'No saved entries yet'}</div>`;
+    return;
+  }
+  container.innerHTML = filtered.map((e, fi) => {
+    const realIdx = entries.indexOf(e);
+    const preview = e.text.length > 200 ? e.text.slice(0,200) + '...' : e.text;
+    const timeStr = new Date(e.time).toLocaleString();
+    return `<div class="clip-item">
+      <div style="flex:1">
+        <div class="clip-text">${preview.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+        <div class="clip-meta"><i class="bi bi-clock"></i> ${timeStr} · ${e.text.length} chars</div>
+      </div>
+      <div class="clip-actions">
+        <button class="btn-sm" style="padding:5px 8px" onclick="copyText(${JSON.stringify(e.text)},this)" title="Copy"><i class="bi bi-clipboard"></i></button>
+        <button class="btn-sm" style="padding:5px 8px;color:#FF6B6B" onclick="deleteEntry(${realIdx})" title="Delete"><i class="bi bi-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderEntries();
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    if (document.activeElement.id === 'new-entry') addEntry();
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:10px 13px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.tool-textarea{width:100%;padding:10px 13px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;resize:vertical;min-height:70px;box-sizing:border-box}
+.tool-textarea:focus{border-color:var(--primary)}
+.tool-textarea::placeholder{color:rgba(255,255,255,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.section-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;padding-bottom:.5rem;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:.75rem}
+.project-block{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:1rem;display:flex;flex-direction:column;gap:.6rem}
+.project-num{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);margin-bottom:.2rem}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div><div class="tool-label">Your Name</div><input class="tool-input" id="pName" placeholder="Jane Smith" /></div>
+    <div><div class="tool-label">Role / Title</div><input class="tool-input" id="pRole" placeholder="Full Stack Developer" /></div>
+    <div><div class="tool-label">Tagline</div><input class="tool-input" id="pTagline" placeholder="Building products people love" /></div>
+    <div><div class="tool-label">Email</div><input class="tool-input" id="pEmail" type="email" placeholder="jane@example.com" /></div>
+    <div><div class="tool-label">GitHub / LinkedIn URL</div><input class="tool-input" id="pGithub" placeholder="https://github.com/janesmith" /></div>
+    <div><div class="tool-label">Website / Portfolio URL</div><input class="tool-input" id="pWebsite" placeholder="https://janesmith.com" /></div>
+  </div>
+
+  <div>
+    <div class="tool-label">About (2-3 sentences)</div>
+    <textarea class="tool-textarea" id="pAbout" placeholder="I'm a passionate developer with 5 years of experience building scalable web applications. I love turning complex problems into elegant solutions. Currently open to new opportunities."></textarea>
+  </div>
+
+  <div>
+    <div class="tool-label">Skills (comma-separated)</div>
+    <input class="tool-input" id="pSkills" placeholder="React, Node.js, Python, PostgreSQL, Docker, AWS" />
+  </div>
+
+  <div>
+    <div class="section-title"><i class="bi bi-folder-fill"></i> Projects (up to 3)</div>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <div class="project-block">
+        <div class="project-num">Project 1</div>
+        <div class="grid-2">
+          <div><div class="tool-label">Name</div><input class="tool-input" id="p1name" placeholder="Project Name" /></div>
+          <div><div class="tool-label">Live URL (optional)</div><input class="tool-input" id="p1url" placeholder="https://myproject.com" /></div>
+        </div>
+        <div><div class="tool-label">Description</div><textarea class="tool-textarea" id="p1desc" style="min-height:55px" placeholder="What does this project do? What problem does it solve?"></textarea></div>
+        <div><div class="tool-label">Tech Stack</div><input class="tool-input" id="p1tech" placeholder="React, Node.js, MongoDB" /></div>
+      </div>
+      <div class="project-block">
+        <div class="project-num">Project 2</div>
+        <div class="grid-2">
+          <div><div class="tool-label">Name</div><input class="tool-input" id="p2name" placeholder="Project Name" /></div>
+          <div><div class="tool-label">Live URL (optional)</div><input class="tool-input" id="p2url" placeholder="https://myproject.com" /></div>
+        </div>
+        <div><div class="tool-label">Description</div><textarea class="tool-textarea" id="p2desc" style="min-height:55px" placeholder="What does this project do?"></textarea></div>
+        <div><div class="tool-label">Tech Stack</div><input class="tool-input" id="p2tech" placeholder="Python, Django, PostgreSQL" /></div>
+      </div>
+      <div class="project-block">
+        <div class="project-num">Project 3</div>
+        <div class="grid-2">
+          <div><div class="tool-label">Name</div><input class="tool-input" id="p3name" placeholder="Project Name" /></div>
+          <div><div class="tool-label">Live URL (optional)</div><input class="tool-input" id="p3url" placeholder="https://myproject.com" /></div>
+        </div>
+        <div><div class="tool-label">Description</div><textarea class="tool-textarea" id="p3desc" style="min-height:55px" placeholder="What does this project do?"></textarea></div>
+        <div><div class="tool-label">Tech Stack</div><input class="tool-input" id="p3tech" placeholder="Vue.js, Firebase" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generatePortfolio()"><i class="bi bi-globe"></i> Generate Portfolio</button>
+    <button class="btn-sm" onclick="previewPortfolio()"><i class="bi bi-eye"></i> Preview</button>
+    <button class="btn-sm" onclick="downloadPortfolio()"><i class="bi bi-download"></i> Download HTML</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="previewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;overflow:auto;padding:2rem">
+    <div style="max-width:900px;margin:0 auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <strong style="color:#fff">Portfolio Preview</strong>
+        <div style="display:flex;gap:.5rem">
+          <button onclick="downloadPortfolio()" style="padding:7px 16px;background:#6C63FF;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.85rem">Download HTML</button>
+          <button onclick="closePreview()" style="padding:7px 16px;background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.85rem">Close</button>
+        </div>
+      </div>
+      <iframe id="portfolioFrame" style="width:100%;height:80vh;border:none;border-radius:12px;background:#fff"></iframe>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let portfolioHTML = '';
+
+function buildPortfolioHTML() {
+  const f = id => document.getElementById(id).value.trim();
+  const name = f('pName') || 'Your Name';
+  const role = f('pRole') || 'Developer';
+  const tagline = f('pTagline') || 'Building great things';
+  const email = f('pEmail');
+  const github = f('pGithub');
+  const website = f('pWebsite');
+  const about = f('pAbout');
+  const skillsRaw = f('pSkills');
+  const skills = skillsRaw ? skillsRaw.split(',').map(s=>s.trim()).filter(Boolean) : [];
+
+  const projects = [1,2,3].map(i => ({
+    name: f(`p${i}name`),
+    url: f(`p${i}url`),
+    desc: f(`p${i}desc`),
+    tech: f(`p${i}tech`)
+  })).filter(p => p.name);
+
+  const skillTags = skills.map(s => `<span style="display:inline-block;padding:5px 14px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:50px;font-size:.85rem;color:#6C63FF;margin:3px">${escHtml(s)}</span>`).join('');
+
+  const projectCards = projects.map(p => `
+    <div style="background:#f8f9ff;border:1px solid #e8e8f0;border-radius:16px;padding:1.5rem;transition:transform .2s">
+      <h3 style="font-size:1.1rem;font-weight:700;margin:0 0 .5rem;color:#1a1a2e">${escHtml(p.name)}</h3>
+      ${p.desc ? `<p style="color:#555;font-size:.9rem;line-height:1.6;margin:0 0 .75rem">${escHtml(p.desc)}</p>` : ''}
+      ${p.tech ? `<div style="margin-bottom:.75rem">${p.tech.split(',').map(t=>`<span style="display:inline-block;padding:3px 10px;background:#eee;border-radius:50px;font-size:.78rem;color:#555;margin:2px">${escHtml(t.trim())}</span>`).join('')}</div>` : ''}
+      ${p.url ? `<a href="${escHtml(p.url)}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;color:#6C63FF;font-size:.85rem;font-weight:600;text-decoration:none">View Project →</a>` : ''}
+    </div>`).join('');
+
+  const contactLinks = [
+    email ? `<a href="mailto:${escHtml(email)}" style="color:#6C63FF;text-decoration:none;font-weight:600">${escHtml(email)}</a>` : '',
+    github ? `<a href="${escHtml(github)}" target="_blank" style="color:#6C63FF;text-decoration:none;font-weight:600">GitHub</a>` : '',
+    website ? `<a href="${escHtml(website)}" target="_blank" style="color:#6C63FF;text-decoration:none;font-weight:600">Website</a>` : ''
+  ].filter(Boolean).join(' · ');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escHtml(name)} — Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#fff;color:#333;line-height:1.6}
+.hero{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:5rem 2rem;text-align:center}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(2.5rem,8vw,4rem);font-weight:800;margin-bottom:.5rem}
+.hero .role{font-size:1.2rem;color:rgba(255,255,255,.7);margin-bottom:.75rem}
+.hero .tagline{font-size:1rem;color:#00F5D4;font-weight:600}
+.container{max-width:900px;margin:0 auto;padding:0 2rem}
+section{padding:4rem 0}
+h2{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:1.5rem;color:#1a1a2e}
+h2 span{color:#6C63FF}
+.about-text{font-size:1rem;color:#555;max-width:600px;line-height:1.8}
+.skills-wrap{display:flex;flex-wrap:wrap;gap:4px}
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem}
+.contact-section{background:#f8f9ff;border-radius:20px;padding:3rem;text-align:center}
+.contact-section p{color:#555;margin-bottom:1rem}
+footer{text-align:center;padding:2rem;color:#999;font-size:.85rem;border-top:1px solid #eee}
+@media(max-width:600px){.projects-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="container">
+    <h1>${escHtml(name)}</h1>
+    <div class="role">${escHtml(role)}</div>
+    <div class="tagline">${escHtml(tagline)}</div>
+  </div>
+</div>
+
+${about ? `<section><div class="container"><h2>About <span>Me</span></h2><p class="about-text">${escHtml(about)}</p></div></section>` : ''}
+
+${skills.length ? `<section style="background:#f8f9ff"><div class="container"><h2>My <span>Skills</span></h2><div class="skills-wrap">${skillTags}</div></div></section>` : ''}
+
+${projects.length ? `<section><div class="container"><h2>Featured <span>Projects</span></h2><div class="projects-grid">${projectCards}</div></div></section>` : ''}
+
+<section>
+  <div class="container">
+    <div class="contact-section">
+      <h2>Get In <span>Touch</span></h2>
+      <p>I'm always open to new opportunities and interesting projects.</p>
+      <div style="font-size:1rem">${contactLinks || escHtml(email || 'your@email.com')}</div>
+    </div>
+  </div>
+</section>
+
+<footer>Built with Portfolio Generator · ${escHtml(name)}</footer>
+</body>
+</html>`;
+}
+
+function generatePortfolio() {
+  const name = document.getElementById('pName').value.trim();
+  if (!name) { showErr('st','Please enter your name'); return; }
+  portfolioHTML = buildPortfolioHTML();
+  showOk('st', 'Portfolio generated — preview or download below');
+}
+
+function previewPortfolio() {
+  if (!portfolioHTML) portfolioHTML = buildPortfolioHTML();
+  const frame = document.getElementById('portfolioFrame');
+  frame.srcdoc = portfolioHTML;
+  document.getElementById('previewModal').style.display = 'block';
+}
+
+function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
+
+function downloadPortfolio() {
+  if (!portfolioHTML) portfolioHTML = buildPortfolioHTML();
+  const name = document.getElementById('pName').value.trim().replace(/\s+/g,'-').toLowerCase() || 'portfolio';
+  const blob = new Blob([portfolioHTML], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${name}-portfolio.html`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generatePortfolio(); }
+});
+</script>
+{% endblock %}
