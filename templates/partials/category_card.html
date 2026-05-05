@@ -2,23 +2,32 @@
 <a href="{{ category.get_absolute_url }}"
    class="category-card"
    aria-label="{{ category.name }} — {{ category.short_desc }}"
-   style="display:flex; flex-direction:column; gap:12px; padding:1.4rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:18px; text-decoration:none; color:var(--text); transition:all 0.25s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden;"
-   onmouseover="this.style.background='rgba(255,255,255,0.055)'; this.style.borderColor='rgba(255,255,255,0.13)'; this.style.transform='translateY(-3px)';"
-   onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.07)'; this.style.transform='translateY(0)';">
+   style="display:flex; flex-direction:column; gap:12px; padding:1.35rem;
+          background:var(--lg-card-bg);
+          border:1px solid var(--lg-card-border);
+          border-radius:18px; text-decoration:none; color:var(--lg-text);
+          transition:transform 0.24s cubic-bezier(0.22,1,0.36,1), background 0.24s, border-color 0.24s, box-shadow 0.24s;
+          position:relative; overflow:hidden;
+          box-shadow:var(--lg-card-shadow);"
+   onmouseover="this.style.background='var(--lg-card-hover-bg)'; this.style.borderColor='var(--lg-card-hover-border)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='var(--lg-card-hover-shadow)';"
+   onmouseout="this.style.background='var(--lg-card-bg)'; this.style.borderColor='var(--lg-card-border)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--lg-card-shadow)';">
 
-  <div style="position:absolute; inset:0; background:linear-gradient(135deg, {{ category.color_from }}08, {{ category.color_to }}04); pointer-events:none;"></div>
+  <!-- Category color tint -->
+  <div style="position:absolute; inset:0; background:linear-gradient(135deg, {{ category.color_from }}0A, {{ category.color_to }}05); pointer-events:none;"></div>
+  <!-- Top accent line -->
+  <div style="position:absolute; top:0; left:1.35rem; right:1.35rem; height:1px; background:linear-gradient(90deg, transparent, {{ category.color_from }}55, transparent);"></div>
 
   <div style="display:flex; align-items:center; gap:12px;">
-    <div style="width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; background:linear-gradient(135deg, {{ category.color_from }}22, {{ category.color_to }}22); border:1px solid {{ category.color_from }}44; flex-shrink:0;">
+    <div style="width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:1.35rem; background:linear-gradient(135deg, {{ category.color_from }}22, {{ category.color_to }}14); border:1px solid {{ category.color_from }}44; flex-shrink:0; box-shadow:0 4px 16px {{ category.color_from }}18;">
       <i class="{{ category.icon }}" style="background:linear-gradient(135deg, {{ category.color_from }}, {{ category.color_to }}); -webkit-background-clip:text; -webkit-text-fill-color:transparent;"></i>
     </div>
     <div>
-      <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem;">{{ category.name }}</div>
-      <div style="font-size:0.75rem; color:var(--muted);">{{ category.tools.count }} tools</div>
+      <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; color:var(--lg-text);">{{ category.name }}</div>
+      <div style="font-size:0.72rem; color:var(--lg-text-muted); margin-top:1px;">{{ category.tools.count }} tools</div>
     </div>
   </div>
 
   {% if category.short_desc %}
-    <p style="font-size:0.82rem; color:var(--muted); line-height:1.4; margin:0;">{{ category.short_desc }}</p>
+    <p style="font-size:0.80rem; color:var(--lg-text-muted); line-height:1.45; margin:0;">{{ category.short_desc }}</p>
   {% endif %}
 </a>

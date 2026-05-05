@@ -4,149 +4,287 @@
 
 {% block extra_css %}
 <style>
-    /* Denser shell */
     .os-shell {
         max-width: 1440px;
         margin: 0 auto;
-        padding: 1rem 1.5rem 4rem 1.5rem;
+        padding: 1rem 1.5rem 4rem;
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 2.5rem;
         position: relative;
     }
 
-    /* Holographic Grid Background */
+    /* Subtle grid overlay */
     .os-shell::before {
-        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-        background-size: 40px 40px; pointer-events: none; z-index: -1;
-        mask-image: radial-gradient(ellipse at top, black 0%, transparent 60%);
-        -webkit-mask-image: radial-gradient(ellipse at top, black 0%, transparent 60%);
+        content: '';
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-image:
+            linear-gradient(rgba(120,110,255,0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(120,110,255,0.025) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none; z-index: -1;
+        mask-image: radial-gradient(ellipse at top, black 0%, transparent 55%);
+        -webkit-mask-image: radial-gradient(ellipse at top, black 0%, transparent 55%);
     }
 
-    /* ── SECTION ZONES ── */
+    /* Section zone titles */
     .zone-title {
-        font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
-        color: var(--muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;
+        font-family: 'Syne', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--lg-text-muted);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-    .zone-title i { font-size: 1.1rem; }
+    .zone-title i { font-size: 0.95rem; }
+    .zone-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(120,110,255,0.13), transparent);
+        margin-left: 8px;
+    }
 
-    /* ── 2. ACTIVE SYSTEMS ── */
+    /* Bento grid */
     .bento-grid {
-        display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem; margin-bottom: 2rem;
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 1rem;
+        margin-bottom: 0.5rem;
     }
-    .panel {
-        background: rgba(20, 20, 30, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1.25rem;
-        position: relative; overflow: hidden; transition: all 0.2s;
-    }
-    .panel:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    
-    .span-12 { grid-column: span 12; } .span-8 { grid-column: span 8; } .span-6 { grid-column: span 6; }
-    .span-4 { grid-column: span 4; } .span-3 { grid-column: span 3; }
 
-    /* Compact Tool Cards */
+    /* Panel — real surface, not fog */
+    .panel {
+        background: var(--lg-card-bg);
+        border: 1px solid var(--lg-card-border);
+        border-radius: 16px;
+        padding: 1.25rem;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.22s, box-shadow 0.22s;
+        box-shadow: var(--lg-card-shadow);
+    }
+    .panel:hover {
+        border-color: var(--lg-card-hover-border);
+        box-shadow: var(--lg-card-hover-shadow);
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-8  { grid-column: span 8; }
+    .span-6  { grid-column: span 6; }
+    .span-4  { grid-column: span 4; }
+    .span-3  { grid-column: span 3; }
+
+    /* Category workspace cards */
     .ws-card {
-        display: flex; align-items: flex-start; gap: 12px; text-decoration: none; color: var(--text);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        text-decoration: none;
+        color: var(--lg-text);
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        transition: background 0.18s, border-color 0.18s, transform 0.18s;
+    }
+    .ws-card:hover {
+        background: rgba(120,110,255,0.11);
+        border-color: rgba(120,110,255,0.14);
+        transform: translateY(-1px);
     }
     .ws-icon {
-        width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        background: var(--cat-color, var(--lg-violet))18;
+        border: 1px solid var(--cat-color, var(--lg-violet))33;
+        color: var(--cat-color, var(--lg-violet));
+        transition: background 0.18s, box-shadow 0.18s, color 0.18s;
     }
-    .ws-card:hover .ws-icon { background: var(--cat-color); color: #fff; border-color: var(--cat-color); box-shadow: 0 0 15px rgba(0,0,0,0.4); }
-    .ws-info { flex: 1; }
-    .ws-info h3 { font-size: 0.95rem; font-weight: 700; font-family: 'Syne', sans-serif; margin: 0 0 2px 0; }
-    .ws-meta { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: var(--muted); font-family: monospace; }
+    .ws-card:hover .ws-icon {
+        background: var(--cat-color, var(--lg-violet));
+        color: #fff;
+        border-color: var(--cat-color, var(--lg-violet));
+        box-shadow: 0 4px 16px var(--cat-color, var(--lg-violet))44;
+    }
+    .ws-info h3 {
+        font-size: 0.88rem;
+        font-weight: 700;
+        font-family: 'Syne', sans-serif;
+        margin: 0 0 2px;
+        color: var(--lg-text);
+    }
+    .ws-meta {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 0.68rem;
+        color: var(--lg-text-muted);
+        font-family: monospace;
+    }
     .ws-meta span { display: flex; align-items: center; gap: 4px; }
-    .ws-meta span::before { content:''; width:4px; height:4px; border-radius:50%; background: var(--cat-color); opacity: 0.8; }
-
-    /* Telemetry Lists (Mini links) */
-    .action-list { display: grid; gap: 0.5rem; }
-    .action-link {
-        display: flex; align-items: center; gap: 10px; padding: 8px 12px;
-        background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 8px; text-decoration: none; color: var(--text); transition: all 0.2s;
+    .ws-meta span::before {
+        content: '';
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: var(--cat-color, var(--lg-cyan));
+        opacity: 0.8;
     }
-    .action-link:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); transform: translateX(2px); }
-    .action-link i { font-size: 1rem; }
-    .action-text { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
-    .action-label { font-size: 0.65rem; padding: 2px 6px; background: rgba(255,255,255,0.05); border-radius: 4px; font-family: monospace; text-transform: uppercase; color: var(--muted); }
 
-    /* ── 3. TOOL ACCESS ── */
+    /* Quick action links */
+    .action-list { display: grid; gap: 6px; }
+    .action-link {
+        display: flex; align-items: center; gap: 10px;
+        padding: 9px 12px;
+        background: rgba(100,90,255,0.07);
+        border: 1px solid rgba(120,110,255,0.12);
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--lg-text);
+        transition: background 0.18s, border-color 0.18s, transform 0.18s;
+    }
+    .action-link:hover {
+        background: rgba(120,110,255,0.13);
+        border-color: rgba(130,120,255,0.20);
+        transform: translateX(2px);
+    }
+    .action-link i { font-size: 1rem; flex-shrink: 0; }
+    .action-text {
+        font-size: 0.84rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+    }
+    .action-label {
+        font-size: 0.62rem;
+        padding: 2px 7px;
+        background: rgba(120,110,255,0.12);
+        border: 1px solid rgba(120,110,255,0.14);
+        border-radius: 50px;
+        font-family: monospace;
+        text-transform: uppercase;
+        color: var(--lg-text-muted);
+        flex-shrink: 0;
+    }
+
+    /* Panel section label */
+    .panel-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--lg-text-helper);
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 0.85rem;
+    }
+
+    /* Tool grid */
     .tool-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 8px;
     }
     .tool-card-mini {
-        display: flex; align-items: center; gap: 12px; padding: 12px;
-        background: rgba(20, 20, 30, 0.4); border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 10px; text-decoration: none; color: var(--text); transition: all 0.2s;
+        display: flex; align-items: center; gap: 11px;
+        padding: 11px 13px;
+        background: var(--lg-card-bg);
+        border: 1px solid var(--lg-card-border);
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--lg-text);
+        transition: background 0.18s, border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+        box-shadow: var(--lg-shadow-sm);
     }
-    .tool-card-mini:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
-    .t-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .tool-card-mini:hover {
+        background: var(--lg-card-hover-bg);
+        border-color: var(--lg-card-hover-border);
+        transform: translateY(-2px);
+        box-shadow: var(--lg-shadow-md);
+    }
+    .t-icon { font-size: 1.05rem; flex-shrink: 0; }
     .t-details { flex: 1; overflow: hidden; }
-    .t-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-name {
+        font-size: 0.83rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--lg-text);
+    }
 
     @media (max-width: 1024px) {
-        .span-8 { grid-column: span 12; } .span-6, .span-4, .span-3 { grid-column: span 6; }
+        .span-8 { grid-column: span 12; }
+        .span-6, .span-4, .span-3 { grid-column: span 6; }
     }
-    @media (max-width: 640px) { .span-6, .span-4, .span-3 { grid-column: span 12; } }
+    @media (max-width: 640px) {
+        .span-6, .span-4, .span-3 { grid-column: span 12; }
+        .os-shell { padding: 0.75rem 0.75rem 4rem; gap: 2rem; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="os-shell">
-    
-    <!-- ── 2. ACTIVE SYSTEMS ── -->
+
+    <!-- Active Systems -->
     <div>
-        <div class="zone-title" style="color: #00F5D4;"><i class="bi bi-cpu"></i> Active Systems</div>
+        <div class="zone-title" style="color:var(--lg-cyan);"><i class="bi bi-cpu"></i> Active Systems</div>
         <div class="bento-grid">
-            
-            <!-- Tools (Span 8) -->
-            <div class="panel span-8 hide-on-mobile" style="display:flex; flex-direction:column; gap:1rem;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+
+            <!-- Category cards -->
+            <div class="panel span-8 hide-on-mobile">
+                <div class="panel-label">Tool Categories</div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:8px;">
                     {% for cat in categories %}
-                    <a href="{{ cat.get_absolute_url }}" class="ws-card" style="--cat-color: {{ cat.color_from }};">
-                        <div class="ws-icon" style="color: {{ cat.color_from }};"><i class="{{ cat.icon }}"></i></div>
+                    <a href="{{ cat.get_absolute_url }}" class="ws-card" style="--cat-color:{{ cat.color_from }};">
+                        <div class="ws-icon"><i class="{{ cat.icon }}"></i></div>
                         <div class="ws-info">
                             <h3>{{ cat.name }}</h3>
-                            <div class="ws-meta"><span>{{ cat.tools.all|length }} Nodes</span></div>
+                            <div class="ws-meta"><span>{{ cat.tools.all|length }} tools</span></div>
                         </div>
                     </a>
                     {% endfor %}
                 </div>
             </div>
 
-            <!-- Quick Actions / Overrides (Span 4) -->
+            <!-- Quick actions -->
             <div class="panel span-4">
-                <div style="font-size:0.7rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:0.75rem; letter-spacing:1px;">Quick Override</div>
+                <div class="panel-label">Quick Access</div>
                 <div class="action-list">
-                    <a href="{% url 'thesis:upload' %}" class="action-link" style="border-color:rgba(108,99,255,0.2); background:rgba(108,99,255,0.05);">
-                        <i class="bi bi-magic" style="color:#6C63FF;"></i>
+                    <a href="{% url 'thesis:upload' %}" class="action-link" style="border-color:rgba(139,127,255,0.22); background:rgba(139,127,255,0.08);">
+                        <i class="bi bi-magic" style="color:var(--lg-violet);"></i>
                         <span class="action-text">AI Thesis Builder</span>
-                        <span class="action-label" style="color:#6C63FF;">CORE</span>
+                        <span class="action-label" style="color:var(--lg-violet); border-color:rgba(139,127,255,0.25); background:rgba(139,127,255,0.10);">CORE</span>
                     </a>
                     <a href="/tools/media/image-compressor/" class="action-link">
-                        <i class="bi bi-file-zip" style="color:#00F5D4;"></i><span class="action-text">Compress Image</span>
+                        <i class="bi bi-file-zip" style="color:var(--lg-cyan);"></i>
+                        <span class="action-text">Compress Image</span>
                     </a>
                     <a href="/tools/developer/json-formatter/" class="action-link">
-                        <i class="bi bi-braces" style="color:#FF6B6B;"></i><span class="action-text">Format JSON</span>
+                        <i class="bi bi-braces" style="color:#FF6B6B;"></i>
+                        <span class="action-text">Format JSON</span>
                     </a>
                     <a href="/tools/media/pdf-merge/" class="action-link">
-                        <i class="bi bi-file-pdf" style="color:#FFC107;"></i><span class="action-text">Merge PDF</span>
+                        <i class="bi bi-file-pdf" style="color:var(--lg-warning);"></i>
+                        <span class="action-text">Merge PDF</span>
                     </a>
                 </div>
             </div>
-            
-            <!-- Active Telemetry (Recent Tools) -->
+
+            <!-- Recent tools telemetry -->
             {% if recent_tools %}
             <div class="panel span-12">
-                <div style="font-size:0.7rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:0.75rem; letter-spacing:1px;">Active Telemetry</div>
-                <div style="display:flex; gap:0.75rem; overflow-x:auto; padding-bottom:0.5rem; scrollbar-width:none;">
+                <div class="panel-label">Recently Used</div>
+                <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;">
                     {% for tool in recent_tools %}
-                    <a href="{{ tool.get_absolute_url }}" class="action-link" style="min-width: 180px;">
-                        <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }}; font-size:0.9rem;"></i>
-                        <span class="action-text" style="font-size:0.8rem;">{{ tool.name }}</span>
+                    <a href="{{ tool.get_absolute_url }}" class="action-link" style="min-width:175px; flex-shrink:0;">
+                        <i class="{{ tool.icon }}" style="color:{{ tool.category.color_from }}; font-size:0.9rem;"></i>
+                        <span class="action-text" style="font-size:0.78rem;">{{ tool.name }}</span>
                         <span class="action-label" style="font-size:0.55rem;">{{ tool.category.name }}</span>
                     </a>
                     {% endfor %}
@@ -157,18 +295,18 @@
         </div>
     </div>
 
-    <!-- ── 3. TOOL ACCESS ── -->
+    <!-- Trending tools -->
     {% if trending %}
     <div>
-        <div class="zone-title" style="color: #FF6B6B;"><i class="bi bi-fire"></i> High Priority Vectors</div>
+        <div class="zone-title" style="color:var(--lg-danger);"><i class="bi bi-fire"></i> Trending Tools</div>
         <div class="tool-grid">
             {% for tool in trending %}
             <a href="{{ tool.get_absolute_url }}" class="tool-card-mini">
-                <i class="{{ tool.icon }} t-icon" style="color: {{ tool.category.color_from }};"></i>
+                <i class="{{ tool.icon }} t-icon" style="color:{{ tool.category.color_from }};"></i>
                 <div class="t-details">
                     <div class="t-name">{{ tool.name }}</div>
                 </div>
-                <i class="bi bi-arrow-right-short" style="color:var(--muted); opacity:0.5;"></i>
+                <i class="bi bi-arrow-right-short" style="color:var(--lg-text-helper); flex-shrink:0;"></i>
             </a>
             {% endfor %}
         </div>
@@ -180,11 +318,11 @@
 
 {% block extra_js %}
 <script>
-    const osSearch = document.getElementById('osSearch');
     document.addEventListener('keydown', (e) => {
         if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
             e.preventDefault();
-            osSearch.focus();
+            const inp = document.getElementById('inlineSearchInput');
+            if (inp) inp.focus();
         }
     });
 </script>

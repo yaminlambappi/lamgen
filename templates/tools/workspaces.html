@@ -179,10 +179,10 @@
 .tool-launcher-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 12px;
 }
 @media (max-width: 1200px) { .tool-launcher-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px)  { .tool-launcher-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; } }
+@media (max-width: 768px)  { .tool-launcher-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
 @media (max-width: 480px)  { .tool-launcher-grid { grid-template-columns: 1fr; } }
 
 /* ── Tool card ── */
@@ -190,35 +190,37 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 11px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.050);
+  border-radius: 14px;
   text-decoration: none;
   color: var(--text);
-  transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
+  transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), background 0.22s, border-color 0.22s, box-shadow 0.22s;
   position: relative;
   overflow: hidden;
   min-height: 58px;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 .tl-card:hover {
-  background: rgba(255,255,255,0.055);
-  border-color: rgba(255,255,255,0.13);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  background: rgba(255,255,255,0.065);
+  border-color: rgba(255,255,255,0.10);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 .tl-card-icon {
   width: 34px; height: 34px;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
-  transition: all 0.18s;
+  transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s, filter 0.22s;
 }
 .tl-card:hover .tl-card-icon {
-  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.18);
+  transform: translateY(-1px);
 }
 .tl-card-body {
   flex: 1;
@@ -304,8 +306,8 @@
   .cat-filter-bar { gap: 5px; }
   .cat-pill { padding: 4px 10px; font-size: 0.72rem; }
   .quick-strip { display: none; }
-  .tl-card { padding: 8px 10px; min-height: 50px; }
-  .tl-card-icon { width: 30px; height: 30px; font-size: 0.9rem; }
+  .tl-card { padding: 10px 12px; min-height: 50px; }
+  .tl-card-icon { width: 30px; height: 30px; font-size: 0.9rem; border-radius: 9px; }
   .tl-card-name { font-size: 0.78rem; }
   .tl-card-desc { display: none; }
 }

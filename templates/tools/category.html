@@ -10,295 +10,327 @@
 <style>
 /* ── Shell ── */
 .cat-shell {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 80px 1.5rem 5rem;
-  --cat-color: {{ category.color_from|default:"var(--primary)" }};
-  --cat-color-to: {{ category.color_to|default:"var(--accent)" }};
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 80px 1.5rem 5rem;
+    --cat-color: {{ category.color_from|default:"var(--lg-violet)" }};
+    --cat-color-to: {{ category.color_to|default:"var(--lg-cyan)" }};
 }
 
 /* ── Header ── */
 .cat-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.25rem;
-  padding: 1.25rem 1.5rem;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
-  position: relative;
-  overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--lg-card-shadow);
 }
 .cat-header::before {
-  content: '';
-  position: absolute;
-  top: -60px; right: -60px;
-  width: 200px; height: 200px;
-  background: radial-gradient(circle, var(--cat-color), transparent 70%);
-  opacity: 0.07;
-  pointer-events: none;
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, var(--cat-color), transparent 70%);
+    opacity: 0.08;
+    pointer-events: none;
+}
+.cat-header::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 1.5rem; right: 1.5rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cat-color)55, transparent);
 }
 .cat-header-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex: 1;
-  min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
 }
 .cat-header-icon {
-  width: 46px; height: 46px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, var(--cat-color)22, var(--cat-color-to)11);
-  border: 1px solid var(--cat-color)44;
-  color: var(--cat-color);
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--cat-color)22, var(--cat-color-to)14);
+    border: 1px solid var(--cat-color)44;
+    color: var(--cat-color);
+    box-shadow: 0 4px 20px var(--cat-color)22;
 }
 .cat-header-text h1 {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.4rem;
-  font-weight: 800;
-  margin: 0 0 2px;
-  line-height: 1.2;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 0 0 3px;
+    line-height: 1.2;
+    color: var(--lg-text);
 }
 .cat-header-text p {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin: 0;
-  line-height: 1.4;
+    font-size: 0.80rem;
+    color: var(--lg-text-muted);
+    margin: 0;
+    line-height: 1.45;
 }
 .cat-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
 }
 .cat-tool-count {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--cat-color);
-  background: var(--cat-color)18;
-  border: 1px solid var(--cat-color)33;
-  border-radius: 50px;
-  padding: 3px 10px;
+    font-size: 0.70rem;
+    font-weight: 700;
+    color: var(--cat-color);
+    background: var(--cat-color)18;
+    border: 1px solid var(--cat-color)33;
+    border-radius: 50px;
+    padding: 4px 12px;
+}
+.cat-back-link {
+    font-size: 0.74rem;
+    color: var(--lg-text-muted);
+    text-decoration: none;
+    padding: 5px 12px;
+    background: rgba(120,110,255,0.10);
+    border: 1px solid rgba(120,110,255,0.14);
+    border-radius: 50px;
+    transition: all 0.15s;
+}
+.cat-back-link:hover {
+    background: rgba(120,110,255,0.14);
+    border-color: rgba(140,130,255,0.26);
+    color: var(--lg-text);
 }
 
 /* ── Search + filter row ── */
 .cat-controls {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-  align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
 }
 .cat-search-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 200px;
+    position: relative;
+    flex: 1;
+    min-width: 200px;
 }
 .cat-search {
-  width: 100%;
-  padding: 10px 16px 10px 38px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 10px;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.88rem;
-  outline: none;
-  transition: all 0.2s;
-  box-sizing: border-box;
+    width: 100%;
+    padding: 10px 16px 10px 38px;
+    background: var(--lg-field-bg);
+    border: 1px solid var(--lg-field-border);
+    border-radius: 50px;
+    color: var(--lg-text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    box-sizing: border-box;
+    caret-color: var(--lg-cyan);
 }
 .cat-search:focus {
-  border-color: var(--cat-color);
-  background: rgba(255,255,255,0.06);
-  box-shadow: 0 0 0 3px var(--cat-color)18;
+    border-color: var(--cat-color);
+    background: var(--lg-field-bg-focus);
+    box-shadow: 0 0 0 3px var(--cat-color)18, var(--lg-field-shadow);
 }
-.cat-search::placeholder { color: rgba(255,255,255,0.25); }
+.cat-search::placeholder { color: var(--lg-placeholder); }
 .cat-search-icon {
-  position: absolute;
-  left: 12px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted);
-  font-size: 0.9rem;
-  pointer-events: none;
+    position: absolute;
+    left: 13px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--lg-text-muted);
+    font-size: 0.88rem;
+    pointer-events: none;
 }
 
 /* Group filter pills */
-.group-pills {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-}
+.group-pills { display: flex; gap: 5px; flex-wrap: wrap; }
 .group-pill {
-  padding: 5px 12px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 50px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.15s;
-  user-select: none;
+    padding: 5px 14px;
+    background: rgba(120,110,255,0.10);
+    border: 1px solid rgba(120,110,255,0.14);
+    border-radius: 50px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--lg-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
 }
-.group-pill:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+.group-pill:hover {
+    background: rgba(120,110,255,0.14);
+    border-color: rgba(140,130,255,0.26);
+    color: var(--lg-text);
+}
 .group-pill.active {
-  background: var(--cat-color)20;
-  border-color: var(--cat-color);
-  color: var(--cat-color);
+    background: var(--cat-color)20;
+    border-color: var(--cat-color);
+    color: var(--cat-color);
+    box-shadow: 0 0 0 1px var(--cat-color)18 inset;
 }
 
 /* ── Results meta ── */
 .cat-meta {
-  font-size: 0.72rem;
-  color: var(--muted);
-  margin-bottom: 0.75rem;
+    font-size: 0.70rem;
+    color: var(--lg-text-helper);
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.3px;
 }
 
 /* ── Dense grid ── */
 .cat-tool-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
 }
 @media (max-width: 1200px) { .cat-tool-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px)  { .cat-tool-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; } }
+@media (max-width: 768px)  { .cat-tool-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
 @media (max-width: 480px)  { .cat-tool-grid { grid-template-columns: 1fr; } }
 
 /* ── Tool card ── */
 .ct-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 11px;
-  text-decoration: none;
-  color: var(--text);
-  transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
-  position: relative;
-  overflow: hidden;
-  min-height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 14px;
+    text-decoration: none;
+    color: var(--lg-text);
+    transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), background 0.22s, border-color 0.22s, box-shadow 0.22s;
+    position: relative;
+    overflow: hidden;
+    min-height: 56px;
+    box-shadow: var(--lg-card-shadow);
 }
 .ct-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 2px;
-  background: var(--cat-color);
-  opacity: 0;
-  transition: opacity 0.18s;
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--cat-color);
+    opacity: 0;
+    transition: opacity 0.18s;
+    border-radius: 0 2px 2px 0;
 }
 .ct-card:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.12);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+    background: var(--lg-card-hover-bg);
+    border-color: var(--lg-card-hover-border);
+    transform: translateY(-2px);
+    box-shadow: var(--lg-card-hover-shadow);
 }
 .ct-card:hover::before { opacity: 1; }
 .ct-card-icon {
-  width: 34px; height: 34px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
-  background: var(--cat-color)18;
-  border: 1px solid var(--cat-color)33;
-  color: var(--cat-color);
-  transition: all 0.18s;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    background: var(--cat-color)18;
+    border: 1px solid var(--cat-color)33;
+    color: var(--cat-color);
+    transition: all 0.22s cubic-bezier(0.22,1,0.36,1);
 }
 .ct-card:hover .ct-card-icon {
-  background: var(--cat-color);
-  color: #fff;
-  border-color: var(--cat-color);
-  box-shadow: 0 0 10px var(--cat-color)55;
+    background: var(--cat-color);
+    color: #fff;
+    border-color: var(--cat-color);
+    box-shadow: 0 4px 16px var(--cat-color)44;
+    transform: translateY(-1px);
 }
 .ct-card-body { flex: 1; min-width: 0; }
 .ct-card-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    color: var(--lg-text);
 }
 .ct-card-desc {
-  font-size: 0.7rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 1px;
+    font-size: 0.70rem;
+    color: var(--lg-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
 }
 .ct-badge {
-  font-size: 0.58rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 1px 5px;
-  border-radius: 4px;
-  flex-shrink: 0;
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 50px;
+    flex-shrink: 0;
 }
-.ct-badge-new { background: rgba(0,245,212,0.15); color: var(--accent); }
+.ct-badge-new {
+    background: rgba(62,236,216,0.14);
+    color: var(--lg-cyan);
+    border: 1px solid rgba(62,236,216,0.28);
+}
 
-/* ── Group header inside grid ── */
+/* ── Group header ── */
 .ct-group-header {
-  grid-column: 1 / -1;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--muted);
-  padding: 8px 0 4px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  margin-top: 4px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
+    grid-column: 1 / -1;
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--lg-text-helper);
+    padding: 8px 0 4px;
+    border-bottom: 1px solid rgba(120,110,255,0.12);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 .ct-group-header::before {
-  content: '';
-  width: 6px; height: 6px;
-  border-radius: 2px;
-  background: var(--cat-color);
-  opacity: 0.7;
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 2px;
+    background: var(--cat-color);
+    opacity: 0.8;
 }
 
 /* ── Empty state ── */
 .ct-empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 2.5rem 1rem;
-  color: var(--muted);
-  font-size: 0.88rem;
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--lg-text-muted);
+    font-size: 0.88rem;
 }
-.ct-empty i { font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.3; }
+.ct-empty i { font-size: 2rem; display: block; margin-bottom: 0.5rem; opacity: 0.25; }
 
 /* ── Fade in ── */
 @keyframes ctFade {
-  from { opacity: 0; transform: translateY(4px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+    from { opacity: 0; transform: translateY(5px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 .ct-card { animation: ctFade 0.16s ease both; }
 
 /* ── Mobile ── */
 @media (max-width: 640px) {
-  .cat-shell { padding: 70px 0.75rem 5rem; }
-  .cat-header { padding: 1rem; }
-  .cat-header-text h1 { font-size: 1.15rem; }
-  .ct-card-desc { display: none; }
-  .ct-card { min-height: 48px; padding: 8px 10px; }
-  .ct-card-icon { width: 30px; height: 30px; font-size: 0.88rem; }
-  .ct-card-name { font-size: 0.78rem; }
+    .cat-shell { padding: 70px 0.75rem 5rem; }
+    .cat-header { padding: 1rem; }
+    .cat-header-text h1 { font-size: 1.15rem; }
+    .ct-card-desc { display: none; }
+    .ct-card { min-height: 48px; padding: 9px 11px; }
+    .ct-card-icon { width: 30px; height: 30px; font-size: 0.85rem; border-radius: 9px; }
+    .ct-card-name { font-size: 0.78rem; }
 }
 </style>
 {% endblock %}
@@ -306,51 +338,47 @@
 {% block content %}
 <div class="cat-shell">
 
-  <!-- Header -->
-  <header class="cat-header">
-    <div class="cat-header-left">
-      <div class="cat-header-icon"><i class="{{ category.icon }}"></i></div>
-      <div class="cat-header-text">
-        <h1>{{ category.name }}</h1>
-        <p>{{ category.description|default:category.short_desc|truncatechars:100 }}</p>
-      </div>
-    </div>
-    <div class="cat-header-right">
-      <span class="cat-tool-count">{{ tools|length }} tools</span>
-      <a href="{% url 'tools:index' %}" style="font-size:.75rem;color:var(--muted);text-decoration:none;padding:4px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;">
-        ← All Tools
-      </a>
-    </div>
-  </header>
+    <!-- Header -->
+    <header class="cat-header">
+        <div class="cat-header-left">
+            <div class="cat-header-icon"><i class="{{ category.icon }}"></i></div>
+            <div class="cat-header-text">
+                <h1>{{ category.name }}</h1>
+                <p>{{ category.description|default:category.short_desc|truncatechars:100 }}</p>
+            </div>
+        </div>
+        <div class="cat-header-right">
+            <span class="cat-tool-count">{{ tools|length }} tools</span>
+            <a href="{% url 'tools:index' %}" class="cat-back-link">← All Tools</a>
+        </div>
+    </header>
 
-  <!-- Controls -->
-  <div class="cat-controls">
-    <div class="cat-search-wrap">
-      <i class="bi bi-search cat-search-icon"></i>
-      <input type="text"
-             id="catSearch"
-             class="cat-search"
-             placeholder="Search {{ tools|length }} tools…"
-             autocomplete="off"
-             aria-label="Search tools in {{ category.name }}">
+    <!-- Controls -->
+    <div class="cat-controls">
+        <div class="cat-search-wrap">
+            <i class="bi bi-search cat-search-icon"></i>
+            <input type="text"
+                   id="catSearch"
+                   class="cat-search"
+                   placeholder="Search {{ tools|length }} tools…"
+                   autocomplete="off"
+                   aria-label="Search tools in {{ category.name }}">
+        </div>
+        {% if tool_groups|length > 1 %}
+        <div class="group-pills" id="groupPills">
+            <button class="group-pill active" data-group="all">All</button>
+            {% for group_name, tools_list in tool_groups %}
+            <button class="group-pill" data-group="{{ forloop.counter }}">{{ group_name }}</button>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
-    {% if tool_groups|length > 1 %}
-    <div class="group-pills" id="groupPills">
-      <button class="group-pill active" data-group="all">All</button>
-      {% for group_name, tools_list in tool_groups %}
-      <button class="group-pill" data-group="{{ forloop.counter }}">{{ group_name }}</button>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
 
-  <!-- Meta -->
-  <div class="cat-meta" id="catMeta">{{ tools|length }} tools</div>
+    <!-- Meta -->
+    <div class="cat-meta" id="catMeta">{{ tools|length }} tools</div>
 
-  <!-- Grid -->
-  <div class="cat-tool-grid" id="catGrid" role="list">
-    {# Populated by JS #}
-  </div>
+    <!-- Grid -->
+    <div class="cat-tool-grid" id="catGrid" role="list"></div>
 
 </div>
 
@@ -359,7 +387,6 @@
 [{% for tool in tools %}{"slug":"{{ tool.slug }}","name":"{{ tool.name|escapejs }}","desc":"{{ tool.short_desc|truncatechars:60|escapejs }}","icon":"{{ tool.icon }}","url":"{{ tool.get_absolute_url }}","isNew":{% if tool.is_new %}true{% else %}false{% endif %},"views":{{ tool.view_count }}}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
 
-{# Embed group data — use a safe format #}
 <script id="catGroupData" type="application/json">
 {"groups":[{% for group_name, tools_list in tool_groups %}{"id":"{{ forloop.counter }}","name":"{{ group_name|escapejs }}","count":{{ tools_list|length }}}{% if not forloop.last %},{% endif %}{% endfor %}]}
 </script>
@@ -368,119 +395,108 @@
 {% block tool_js %}
 <script>
 (function() {
-  const ALL = JSON.parse(document.getElementById('catToolData').textContent);
-  const catColor = getComputedStyle(document.documentElement).getPropertyValue('--cat-color').trim()
-    || '{{ category.color_from }}';
+    const ALL = JSON.parse(document.getElementById('catToolData').textContent);
+    let query = '';
+    let activeGroup = 'all';
 
-  let query = '';
-  let activeGroup = 'all';
+    const grid     = document.getElementById('catGrid');
+    const metaEl   = document.getElementById('catMeta');
+    const searchEl = document.getElementById('catSearch');
 
-  const grid    = document.getElementById('catGrid');
-  const metaEl  = document.getElementById('catMeta');
-  const searchEl= document.getElementById('catSearch');
+    const groupMap = {};
+    {% for group_name, tools_list in tool_groups %}
+    {% for tool in tools_list %}
+    groupMap['{{ tool.slug }}'] = '{{ forloop.parentloop.counter }}';
+    {% endfor %}
+    {% endfor %}
 
-  // Build group membership from Django template data
-  const groupMap = {}; // slug → group index string
-  {% for group_name, tools_list in tool_groups %}
-  {% for tool in tools_list %}
-  groupMap['{{ tool.slug }}'] = '{{ forloop.parentloop.counter }}';
-  {% endfor %}
-  {% endfor %}
-
-  function getFiltered() {
-    return ALL.filter(t => {
-      const q = query.toLowerCase();
-      const matchQ = !q || t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q);
-      const matchG = activeGroup === 'all' || groupMap[t.slug] === activeGroup;
-      return matchQ && matchG;
-    });
-  }
-
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  function render() {
-    const tools = getFiltered();
-    metaEl.textContent = `${tools.length} tool${tools.length !== 1 ? 's' : ''}`;
-
-    if (!tools.length) {
-      grid.innerHTML = `<div class="ct-empty"><i class="bi bi-search"></i>No tools match "${escHtml(query)}"</div>`;
-      return;
-    }
-
-    // Show group headers only when showing all groups and no search
-    const showGroups = activeGroup === 'all' && !query && Object.keys(groupMap).length > 0;
-    let html = '';
-    let lastGroup = null;
-    let delay = 0;
-
-    // Group name lookup
     const groupNames = {};
     {% for group_name, tools_list in tool_groups %}
     groupNames['{{ forloop.counter }}'] = '{{ group_name|escapejs }}';
     {% endfor %}
 
-    for (const t of tools) {
-      const g = groupMap[t.slug] || '1';
-      if (showGroups && g !== lastGroup) {
-        const gName = groupNames[g] || '';
-        if (gName) {
-          html += `<div class="ct-group-header">${escHtml(gName)}</div>`;
+    function getFiltered() {
+        return ALL.filter(t => {
+            const q = query.toLowerCase();
+            const matchQ = !q || t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q);
+            const matchG = activeGroup === 'all' || groupMap[t.slug] === activeGroup;
+            return matchQ && matchG;
+        });
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function render() {
+        const tools = getFiltered();
+        metaEl.textContent = `${tools.length} tool${tools.length !== 1 ? 's' : ''}`;
+
+        if (!tools.length) {
+            grid.innerHTML = `<div class="ct-empty"><i class="bi bi-search"></i>No tools match "${escHtml(query)}"</div>`;
+            return;
         }
-        lastGroup = g;
-      }
 
-      const badge = t.isNew ? '<span class="ct-badge ct-badge-new">New</span>' : '';
-      html += `<a href="${escHtml(t.url)}"
-                  class="ct-card"
-                  role="listitem"
-                  aria-label="${escHtml(t.name)}"
-                  style="animation-delay:${delay}ms">
-        <div class="ct-card-icon"><i class="${escHtml(t.icon)}"></i></div>
-        <div class="ct-card-body">
-          <div class="ct-card-name">${escHtml(t.name)}</div>
-          <div class="ct-card-desc">${escHtml(t.desc)}</div>
-        </div>
-        ${badge}
-      </a>`;
-      delay = Math.min(delay + 6, 100);
+        const showGroups = activeGroup === 'all' && !query && Object.keys(groupMap).length > 0;
+        let html = '';
+        let lastGroup = null;
+        let delay = 0;
+
+        for (const t of tools) {
+            const g = groupMap[t.slug] || '1';
+            if (showGroups && g !== lastGroup) {
+                const gName = groupNames[g] || '';
+                if (gName) html += `<div class="ct-group-header">${escHtml(gName)}</div>`;
+                lastGroup = g;
+            }
+
+            const badge = t.isNew ? '<span class="ct-badge ct-badge-new">New</span>' : '';
+            html += `<a href="${escHtml(t.url)}"
+                        class="ct-card"
+                        role="listitem"
+                        aria-label="${escHtml(t.name)}"
+                        style="animation-delay:${delay}ms">
+                <div class="ct-card-icon"><i class="${escHtml(t.icon)}"></i></div>
+                <div class="ct-card-body">
+                    <div class="ct-card-name">${escHtml(t.name)}</div>
+                    <div class="ct-card-desc">${escHtml(t.desc)}</div>
+                </div>
+                ${badge}
+            </a>`;
+            delay = Math.min(delay + 6, 100);
+        }
+
+        grid.innerHTML = html;
     }
 
-    grid.innerHTML = html;
-  }
-
-  // Search
-  let timer;
-  searchEl.addEventListener('input', () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { query = searchEl.value.trim(); render(); }, 100);
-  });
-
-  // Group pills
-  const pillsEl = document.getElementById('groupPills');
-  if (pillsEl) {
-    pillsEl.addEventListener('click', e => {
-      const pill = e.target.closest('.group-pill');
-      if (!pill) return;
-      pillsEl.querySelectorAll('.group-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      activeGroup = pill.dataset.group;
-      render();
+    let timer;
+    searchEl.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { query = searchEl.value.trim(); render(); }, 100);
     });
-  }
 
-  // Keyboard shortcut
-  document.addEventListener('keydown', e => {
-    if (e.key === '/' && document.activeElement !== searchEl &&
-        document.activeElement.tagName !== 'INPUT' &&
-        document.activeElement.tagName !== 'TEXTAREA') {
-      e.preventDefault();
-      searchEl.focus();
+    const pillsEl = document.getElementById('groupPills');
+    if (pillsEl) {
+        pillsEl.addEventListener('click', e => {
+            const pill = e.target.closest('.group-pill');
+            if (!pill) return;
+            pillsEl.querySelectorAll('.group-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            activeGroup = pill.dataset.group;
+            render();
+        });
     }
-  });
 
-  render();
+    document.addEventListener('keydown', e => {
+        if (e.key === '/' && document.activeElement !== searchEl &&
+            document.activeElement.tagName !== 'INPUT' &&
+            document.activeElement.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            searchEl.focus();
+        }
+    });
+
+    render();
 })();
 </script>
 {% endblock %}

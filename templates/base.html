@@ -24,7 +24,7 @@
     {% block extra_schema %}{% endblock %}
     <!-- Edge Cache & PWA -->
     <meta http-equiv="Cache-Control" content="public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400">
-    <meta name="theme-color" content="#0a0a0f">
+    <meta name="theme-color" content="#0b0c18">
     <!-- Core Web Vitals Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,842 +35,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"></noscript>
     {% load static %}
-    <style>
-        :root {
-            --bg: #0A0A0F;
-            --surface: rgba(255,255,255,0.04);
-            --border: rgba(255,255,255,0.08);
-            --primary: #6C63FF;
-            --accent: #00F5D4;
-            --danger: #FF6B6B;
-            --text: #F0F0F5;
-            --muted: rgba(240,240,245,0.5);
-            --glow: 0 0 40px rgba(108,99,255,0.25);
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%;
-            background: transparent;
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* ── Cinematic Alien Environment ── */
-        .space-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 100%, #1a163a 0%, #080614 60%, #000000 100%);
-            overflow: hidden;
-            pointer-events: none; /* Make sure it doesn't block clicks */
-        }
-
-        /* Distant Galaxy Clusters - Optimized without heavy blur */
-        .galaxy-cluster {
-            position: absolute;
-            width: 150vw;
-            height: 100vh;
-            top: 10vh; left: -25vw;
-            background: radial-gradient(ellipse at center, rgba(108, 99, 255, 0.08) 0%, transparent 60%);
-            transform: rotate(-15deg);
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        /* Subtle Alien/Tech Grid fading to top */
-        .alien-grid {
-            position: absolute;
-            inset: 0;
-            background-size: 100px 100px;
-            background-image: 
-                linear-gradient(to right, rgba(0, 245, 212, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 245, 212, 0.05) 1px, transparent 1px);
-            transform: perspective(1000px) rotateX(70deg) translateY(100px) translateZ(-200px);
-            transform-origin: bottom;
-            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
-            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
-            z-index: 1;
-        }
-
-        /* Deep-space glowing planet arc - Optimized without expensive box-shadow */
-        .planet {
-            position: absolute;
-            width: 250vw;
-            height: 250vw;
-            border-radius: 50%;
-            background: radial-gradient(circle at 50% 100%, rgba(0, 245, 212, 0.04) 0%, rgba(108, 99, 255, 0.08) 40%, transparent 70%);
-            top: 45vh;
-            left: -75vw;
-            z-index: 0;
-        }
-
-        /* Volumetric Light Beams */
-        .light-beams {
-            position: absolute;
-            inset: -20vw; /* extended to prevent clipping during animation */
-            background: repeating-linear-gradient(
-                75deg,
-                rgba(255, 255, 255, 0.01) 0px,
-                rgba(255, 255, 255, 0.01) 50px,
-                transparent 50px,
-                transparent 150px
-            );
-            mask-image: radial-gradient(circle at 50% 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
-            -webkit-mask-image: radial-gradient(circle at 50% 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
-            animation: beamsDrift 80s linear infinite;
-            z-index: 1;
-            will-change: transform;
-        }
-
-        .stars {
-            position: absolute;
-            inset: 0;
-            background-image: 
-                radial-gradient(2px 2px at 20vw 30vh, rgba(255,255,255,0.8), transparent),
-                radial-gradient(2px 2px at 40vw 70vh, rgba(255,255,255,0.6), transparent),
-                radial-gradient(3px 3px at 80vw 40vh, rgba(255,255,255,0.7), transparent),
-                radial-gradient(2px 2px at 60vw 10vh, rgba(0,245,212,0.4), transparent),
-                radial-gradient(3px 3px at 90vw 90vh, rgba(108,99,255,0.4), transparent);
-            background-size: 200vw 200vh;
-            animation: starsDrift 200s linear infinite;
-            z-index: 2;
-            will-change: transform;
-        }
-        
-        .stars::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: 
-                radial-gradient(1px 1px at 15vw 25vh, rgba(255,255,255,0.5), transparent),
-                radial-gradient(1.5px 1.5px at 75vw 35vh, rgba(255,255,255,0.3), transparent);
-            background-size: 150vw 150vh;
-            animation: starsDrift 300s linear infinite reverse;
-            will-change: transform;
-        }
-
-        /* Holographic Dust / Particles - No drop shadow */
-        .particles {
-            position: absolute;
-            inset: -200px;
-            background-image: radial-gradient(3px 3px at 0px 0px, rgba(0,245,212,0.4), transparent);
-            background-size: 150px 150px;
-            animation: particlesDrift 60s linear infinite;
-            z-index: 3;
-            will-change: transform;
-        }
-        
-        .particles::after {
-            content: '';
-            position: absolute;
-            inset: -200px;
-            background-image: radial-gradient(4px 4px at 0px 0px, rgba(108,99,255,0.4), transparent);
-            background-size: 250px 250px;
-            animation: particlesDrift 90s linear infinite reverse;
-            will-change: transform;
-        }
-
-        /* Energy/Rune Particles */
-        .rune-particles {
-            position: absolute;
-            inset: -100px;
-            background-image: 
-                radial-gradient(1px 10px at 50px 50px, rgba(0,245,212,0.3), transparent),
-                radial-gradient(10px 1px at 150px 150px, rgba(108,99,255,0.3), transparent);
-            background-size: 400px 400px;
-            animation: runeFloat 30s ease-in-out infinite;
-            z-index: 3;
-            will-change: transform;
-        }
-
-        /* Layered Volumetric Fog / Nebula - Optimized gradients without blur() */
-        .nebula {
-            position: absolute;
-            border-radius: 50%;
-            z-index: 1;
-            will-change: transform;
-        }
-        .fog-1 {
-            width: 120vw; height: 120vh;
-            background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, rgba(108,99,255,0.05) 40%, transparent 70%);
-            top: -20vh; left: -20vw;
-            animation: fogSway 45s ease-in-out infinite alternate;
-        }
-        .fog-2 {
-            width: 100vw; height: 100vh;
-            background: radial-gradient(circle, rgba(0,245,212,0.1) 0%, rgba(0,245,212,0.03) 40%, transparent 70%);
-            bottom: -30vh; right: -15vw;
-            animation: fogSway2 55s ease-in-out infinite alternate;
-        }
-        .fog-3 {
-            width: 80vw; height: 80vh;
-            background: radial-gradient(circle, rgba(255,107,107,0.08) 0%, transparent 60%);
-            top: 10vh; left: 20vw;
-            animation: fogSway 65s ease-in-out infinite alternate-reverse;
-        }
-        
-        /* Ambient Aurora Waves - Opacity animation only */
-        .ambient-pulse {
-            position: absolute;
-            width: 100vw; height: 60vh;
-            top: 0; left: 0;
-            background: linear-gradient(180deg, rgba(0,245,212,0.15) 0%, rgba(108,99,255,0.05) 50%, transparent 100%);
-            animation: pulseOpacity 15s ease-in-out infinite alternate;
-            z-index: 1;
-            mask-image: repeating-linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 10%, rgba(0,0,0,1) 20%);
-            -webkit-mask-image: repeating-linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 10%, rgba(0,0,0,1) 20%);
-            background-size: 200% 100%;
-            will-change: opacity;
-        }
-
-        /* Ultra-smooth GPU-accelerated Keyframes */
-        @keyframes starsDrift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-20vw, -30vh, 0); } }
-        @keyframes particlesDrift { from { transform: translate3d(0, 0, 0) rotate(0deg); } to { transform: translate3d(-100px, -150px, 0) rotate(10deg); } }
-        @keyframes fogSway { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(8vw, 5vh, 0) scale(1.1); } }
-        @keyframes fogSway2 { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-8vw, -5vh, 0) scale(1.05); } }
-        @keyframes runeFloat { 0% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(20px, -30px, 0); } 100% { transform: translate3d(0, 0, 0); } }
-        @keyframes pulseOpacity { 0% { opacity: 0.4; } 100% { opacity: 0.8; } }
-        @keyframes beamsDrift { from { transform: translate3d(-5vw, 0, 0); } to { transform: translate3d(5vw, 0, 0); } }
-
-        /* ── Global Top Navigation ── */
-        .top-nav-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            pointer-events: none;
-            /* Align to content container */
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Inner bar — matches content max-width and padding */
-        .top-nav-inner {
-            pointer-events: none;
-            width: 100%;
-            max-width: 1440px;
-            padding: 14px 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* LEFT: logo/brand link */
-        .nav-brand {
-            pointer-events: auto;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: var(--text);
-            flex-shrink: 0;
-        }
-        .nav-brand-mark {
-            width: 32px; height: 32px;
-            border-radius: 9px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.9rem; color: #fff;
-            box-shadow: 0 0 14px rgba(108,99,255,0.35);
-            flex-shrink: 0;
-        }
-        .nav-brand-name {
-            font-family: 'Syne', sans-serif;
-            font-weight: 800;
-            font-size: 0.95rem;
-            letter-spacing: 0.5px;
-            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.6) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        @media (max-width: 640px) { .nav-brand-name { display: none; } }
-
-        /* CENTER: search pill (flex-grows to fill space) */
-        .nav-center {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            min-width: 0;
-        }
-
-        .global-search-pill {
-            pointer-events: auto;
-            display: flex;
-            align-items: center;
-            background: rgba(12, 12, 20, 0.55);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 50px;
-            padding: 7px 16px;
-            width: 380px;
-            max-width: 100%;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: text;
-        }
-        .global-search-pill:hover,
-        .global-search-pill:focus-within {
-            background: rgba(12, 12, 20, 0.85);
-            border-color: rgba(255,255,255,0.18);
-            box-shadow: 0 6px 28px rgba(108,99,255,0.18);
-            width: 440px;
-        }
-        .global-search-pill input {
-            background: transparent;
-            border: none;
-            color: var(--text);
-            font-size: 0.88rem;
-            width: 100%;
-            outline: none;
-            padding: 3px 8px;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .global-search-pill input::placeholder { color: rgba(255,255,255,0.35); }
-        .global-search-pill .kbd {
-            font-size: 0.65rem;
-            color: var(--muted);
-            background: rgba(255,255,255,0.08);
-            padding: 2px 5px;
-            border-radius: 4px;
-            font-family: monospace;
-            flex-shrink: 0;
-        }
-
-        /* RIGHT: profile + quick actions */
-        .nav-right {
-            pointer-events: auto;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        /* Quick action icon buttons */
-        .nav-action-btn {
-            width: 34px; height: 34px;
-            border-radius: 9px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--muted);
-            font-size: 0.95rem;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.18s;
-        }
-        .nav-action-btn:hover {
-            background: rgba(255,255,255,0.09);
-            border-color: rgba(255,255,255,0.15);
-            color: var(--text);
-        }
-
-        /* Profile button */
-        .profile-btn {
-            width: 34px; height: 34px;
-            border-radius: 9px;
-            background: rgba(108,99,255,0.12);
-            border: 1px solid rgba(108,99,255,0.25);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--primary);
-            cursor: pointer;
-            transition: all 0.18s;
-            font-size: 1rem;
-        }
-        .profile-btn:hover {
-            background: rgba(108,99,255,0.22);
-            border-color: rgba(108,99,255,0.45);
-            box-shadow: 0 0 12px rgba(108,99,255,0.25);
-        }
-
-        /* Dropdown */
-        .nav-dropdown { position: relative; }
-        .nav-dropdown-menu {
-            display: none;
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            min-width: 200px;
-            background: rgba(14, 14, 22, 0.95);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            padding: 6px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
-            animation: fadeUp 0.18s ease forwards;
-            z-index: 2001;
-        }
-        .nav-dropdown.open .nav-dropdown-menu { display: block; }
-        .nav-dropdown-menu a,
-        .nav-dropdown-menu button {
-            display: flex; align-items: center; gap: 9px;
-            width: 100%;
-            padding: 9px 12px;
-            border-radius: 9px;
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 0.875rem;
-            background: none; border: none; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.15s;
-            text-align: left;
-        }
-        .nav-dropdown-menu a:hover,
-        .nav-dropdown-menu button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-        .nav-dropdown-menu .danger-item { color: var(--danger) !important; }
-        .nav-dropdown-menu .danger-item:hover { background: rgba(255,107,107,0.1); }
-        .nav-dropdown-menu .divider { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
-        .nav-dropdown-menu .menu-label {
-            padding: 7px 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: 0.3px;
-        }
-
-        /* Thin frosted bar behind the nav on scroll */
-        .top-nav-wrapper::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(10,10,15,0.6) 0%, transparent 100%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        /* Mobile: tighter */
-        @media (max-width: 640px) {
-            .top-nav-inner { padding: 10px 0.75rem; gap: 8px; }
-            .global-search-pill { width: 100%; }
-            .global-search-pill:hover,
-            .global-search-pill:focus-within { width: 100%; }
-        }
-
-        /* ── Floating OS Dock ── */
-        .os-dock {
-            display: none;
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 24px;
-            background: rgba(10, 10, 15, 0.6);
-            backdrop-filter: blur(30px) saturate(150%);
-            -webkit-backdrop-filter: blur(30px) saturate(150%);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 24px;
-            max-width: calc(100vw - 2rem);
-            overflow-x: auto;
-            scrollbar-width: none;
-            -webkit-overflow-scrolling: touch;
-        }
-        .os-dock::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* ── OS Global Layout Shell ── */
-        .tools-shell {
-            display: grid;
-            grid-template-columns: 1fr 280px;
-            gap: 2rem;
-            min-height: calc(100vh - 100px);
-            max-width: 1440px;
-            margin: 0 auto;
-            padding: 72px 2rem 60px;
-            perspective: 2000px;
-        }
-
-        /* Floating Panels General */
-        .spatial-panel {
-            background: rgba(10, 10, 15, 0.85);
-            backdrop-filter: blur(50px) saturate(200%);
-            -webkit-backdrop-filter: blur(50px) saturate(200%);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 24px;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        /* Left Sidebar */
-        .tools-sidebar { transform: translateZ(-20px) rotateY(5deg); position: sticky; top: 100px; height: calc(100vh - 140px); overflow-y: auto; }
-        .tools-sidebar::-webkit-scrollbar { display: none; }
-        .tools-sidebar:hover { transform: translateZ(0) rotateY(0); box-shadow: var(--glow); }
-        
-        .sidebar-section h4 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--muted);
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-        .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
-        .sidebar-link {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            color: rgba(255,255,255,0.6);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
-        }
-        .sidebar-link:hover {
-            background: rgba(255,255,255,0.04);
-            color: #fff;
-            transform: translateX(4px);
-        }
-        .sidebar-link.active {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.15);
-            color: #fff;
-            box-shadow: 0 0 20px rgba(108,99,255,0.2);
-        }
-
-        /* Center Content */
-        .tools-main {
-            transform: translateZ(30px);
-            min-width: 0;
-            padding-bottom: 4rem;
-        }
-
-        /* Right Panel */
-        .tools-actions { transform: translateZ(-20px) rotateY(-5deg); position: sticky; top: 100px; height: calc(100vh - 140px); overflow-y: auto; }
-        .tools-actions::-webkit-scrollbar { display: none; }
-        .tools-actions:hover { transform: translateZ(0) rotateY(0); box-shadow: var(--glow); }
-
-        .action-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 1.25rem;
-        }
-
-        @media (max-width: 1200px) {
-            .tools-shell { grid-template-columns: 260px 1fr; }
-            .tools-actions { display: none; }
-        }
-        @media (max-width: 992px) {
-            .tools-shell { grid-template-columns: 1fr; padding: 62px 1rem 100px; overflow-x: hidden; }
-            .tools-sidebar { display: none; }
-            .tools-main { transform: none; min-width: 0; max-width: 100vw; }
-        }
-
-        .dock-item {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            color: var(--text);
-            text-decoration: none;
-            font-size: 1.4rem;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            background: rgba(255,255,255,0.02);
-            border: 1px solid transparent;
-        }
-        .dock-item:hover {
-            transform: translateY(-8px) scale(1.15);
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            z-index: 10;
-        }
-        .dock-item.active {
-            background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(0,245,212,0.2));
-            border-color: rgba(108,99,255,0.4);
-            box-shadow: 0 0 20px rgba(108,99,255,0.3);
-        }
-        @media (max-width: 768px) {
-            .os-dock { display: flex; padding: 8px 16px; bottom: 16px; gap: 10px; width: auto; min-width: 240px; }
-            .dock-item { width: 44px; height: 44px; font-size: 1.25rem; }
-            .tools-actions { display: none !important; }
-            .cat-dock-link { display: none !important; }
-            .dock-divider { display: none !important; }
-        }
-        .dock-item::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            top: -40px;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-family: 'DM Sans', sans-serif;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s, transform 0.2s;
-            transform: translateY(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .dock-item:hover::after {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .dock-divider {
-            width: 1px;
-            height: 32px;
-            background: rgba(255,255,255,0.1);
-            margin: 0 4px;
-        }
-
-        @media (max-width: 640px) {
-            .hide-on-mobile { display: none !important; }
-        }
-
-        /* ── Main ── */
-        main { padding-top: 62px; padding-bottom: 100px; min-height: 100vh; position: relative; z-index: 1; }
-
-        /* ── Toast ── */
-        .toast-container {
-            position: fixed;
-            top: 80px; right: 1.5rem;
-            z-index: 9999;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        .nexus-toast {
-            display: flex; align-items: center; gap: 10px;
-            padding: 12px 16px;
-            background: rgba(15,15,22,0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 0.875rem;
-            color: var(--text);
-            box-shadow: var(--glow);
-            animation: fadeUp 0.3s ease forwards;
-            min-width: 260px;
-        }
-        .nexus-toast.success { border-color: rgba(0,245,212,0.3); }
-        .nexus-toast.danger  { border-color: rgba(255,107,107,0.3); }
-        .nexus-toast .toast-close {
-            margin-left: auto; background: none; border: none;
-            color: var(--muted); cursor: pointer; font-size: 1rem;
-        }
-
-        /* ── Cards ── */
-        .glass-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        /* ── Buttons ── */
-        .btn-primary-nexus, .btn-nexus {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 12px 28px;
-            background: linear-gradient(135deg, var(--primary), #8B85FF);
-            color: #fff !important;
-            border: none; border-radius: 14px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 600; font-size: 0.95rem;
-            cursor: pointer; text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 20px rgba(108,99,255,0.2);
-        }
-        .btn-primary-nexus:hover, .btn-nexus:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(108,99,255,0.4);
-            filter: brightness(1.1);
-        }
-        .btn-ghost-nexus, .btn-nexus-secondary {
-            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 12px 28px;
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 500; font-size: 0.95rem;
-            cursor: pointer; text-decoration: none;
-            transition: all 0.2s;
-        }
-        .btn-ghost-nexus:hover, .btn-nexus-secondary:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.2);
-            color: #fff;
-        }
-
-        /* ── Inputs & Form Elements ── */
-        .nexus-input, .input-nexus {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.95rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            outline: none;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .nexus-input:focus, .input-nexus:focus { 
-            background: rgba(255,255,255,0.06);
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 4px rgba(108,99,255,0.15), inset 0 2px 4px rgba(0,0,0,0.2); 
-        }
-        .nexus-input::placeholder, .input-nexus::placeholder { color: rgba(255,255,255,0.3); }
-        .nexus-input option, .input-nexus option { background: #0F0F1A; color: #fff; }
-        
-        textarea.nexus-input, textarea.input-nexus {
-            line-height: 1.6;
-            resize: vertical;
-        }
-
-        /* ── Animations ── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50%       { transform: translateY(-10px); }
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .fade-up { animation: fadeUp 0.6s ease forwards; opacity: 0; }
-        .stagger-1 { animation-delay: 0.1s; }
-        .stagger-2 { animation-delay: 0.2s; }
-        .stagger-3 { animation-delay: 0.3s; }
-        .stagger-4 { animation-delay: 0.4s; }
-
-        /* ── Footer ── */
-        .nexus-footer {
-            border-top: 1px solid var(--border);
-            padding: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
-        .nexus-footer .footer-brand {
-            display: flex; align-items: center; gap: 8px;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            color: var(--text);
-            text-decoration: none;
-        }
-        .nexus-footer .footer-links { display: flex; gap: 1.5rem; }
-        .nexus-footer .footer-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
-        .nexus-footer .footer-links a:hover { color: var(--text); }
-
-        /* ── Status badges ── */
-        .badge-nexus {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 4px 10px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .badge-completed { background: rgba(0,245,212,0.12); color: var(--accent); border: 1px solid rgba(0,245,212,0.25); }
-        .badge-processing { background: rgba(255,193,7,0.12); color: #FFC107; border: 1px solid rgba(255,193,7,0.25); }
-        .badge-pending    { background: rgba(240,240,245,0.08); color: var(--muted); border: 1px solid var(--border); }
-        .badge-failed     { background: rgba(255,107,107,0.12); color: var(--danger); border: 1px solid rgba(255,107,107,0.25); }
-        .pulse-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: pulse-dot 1.4s ease-in-out infinite;
-        }
-
-        /* ── Modal overlay ── */
-        .nexus-modal-overlay {
-            display: none;
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            z-index: 2000;
-            align-items: center; justify-content: center;
-        }
-        .nexus-modal-overlay.open { display: flex; }
-        .nexus-modal {
-            background: rgba(15, 15, 22, 0.7);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 24px;
-            padding: 2rem;
-            max-width: 440px;
-            width: 90%;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1);
-            animation: fadeUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        .nexus-modal h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem; }
-        .nexus-modal p  { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
-        .nexus-modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-        /* ── Bootstrap form-control override (Django renders these) ── */
-        .form-control, .form-control-lg {
-            width: 100%;
-            padding: 10px 14px;
-            background: rgba(255,255,255,0.05) !important;
-            border: 1px solid var(--border) !important;
-            border-radius: 10px !important;
-            color: var(--text) !important;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.9rem;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-            outline: none;
-            box-shadow: none !important;
-        }
-        .form-control:focus, .form-control-lg:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 3px rgba(108,99,255,0.15) !important;
-            background: rgba(255,255,255,0.07) !important;
-        }
-        .form-control::placeholder { color: var(--muted); }
-        .form-control option { background: #0F0F1A; color: var(--text); }
-        textarea.form-control { resize: vertical; }
-
-        /* ── Scrollbar ── */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-
-        /* ── Utility ── */
-        .text-accent { color: var(--accent); }
-        .text-primary-nexus { color: var(--primary); }
-        .text-muted-nexus { color: var(--muted); }
-        .section-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1.8rem;
-            color: var(--text);
-        }
-        .invalid-msg { color: var(--danger); font-size: 0.8rem; margin-top: 4px; }
-        .form-label-nexus { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; display: block; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
     <!-- Cinematic Alien-World Environment -->
@@ -892,34 +57,8 @@
     <div class="top-nav-wrapper">
       <div class="top-nav-inner">
 
-        <!-- LEFT: Brand -->
-        <a href="{% url 'home' %}" class="nav-brand" aria-label="LamGen Home">
-          <div class="nav-brand-mark"><i class="bi bi-cpu"></i></div>
-          <span class="nav-brand-name">LamGen</span>
-        </a>
-
-        <!-- CENTER: Search (suppressed on pages with dedicated search) -->
-        <div class="nav-center">
-          {% block nav_search %}
-          <div class="global-search-pill" style="position:relative;overflow:visible;">
-            <i class="bi bi-search" style="color:var(--muted);font-size:0.95rem;flex-shrink:0;"></i>
-            <input type="text" id="inlineSearchInput"
-                   placeholder="Search LamGen…"
-                   style="background:transparent;border:none;color:var(--text);flex:1;outline:none;font-size:0.88rem;font-family:'DM Sans',sans-serif;"
-                   autocomplete="off">
-            <div style="display:flex;gap:3px;flex-shrink:0;">
-              <span class="kbd">⌘</span><span class="kbd">K</span>
-            </div>
-            <!-- Inline results -->
-            <div id="inlineSearchResults"
-                 style="display:none;position:absolute;top:calc(100% + 8px);left:0;width:100%;min-width:280px;background:rgba(12,12,20,0.97);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:0.4rem;max-height:380px;overflow-y:auto;box-shadow:0 16px 40px rgba(0,0,0,0.5);z-index:2000;">
-            </div>
-          </div>
-          {% endblock nav_search %}
-        </div>
-
-        <!-- RIGHT: Quick actions + profile -->
-        <div class="nav-right">
+        <!-- LEFT: Quick actions + profile -->
+        <div class="nav-left">
           <!-- All Tools shortcut -->
           <a href="{% url 'tools:index' %}" class="nav-action-btn" title="All Tools" aria-label="All Tools">
             <i class="bi bi-grid-3x3-gap"></i>
@@ -957,6 +96,32 @@
           </div>
         </div>
 
+        <!-- CENTER: Search (suppressed on pages with dedicated search) -->
+        <div class="nav-center">
+          {% block nav_search %}
+          <div class="global-search-pill" style="position:relative;overflow:visible;">
+            <i class="bi bi-search" style="color:var(--muted);font-size:0.95rem;flex-shrink:0;"></i>
+            <input type="text" id="inlineSearchInput"
+                   placeholder="Search LamGen…"
+                   style="background:transparent;border:none;color:var(--text);flex:1;outline:none;font-size:0.88rem;font-family:'DM Sans',sans-serif;"
+                   autocomplete="off">
+            <div style="display:flex;gap:3px;flex-shrink:0;">
+              <span class="kbd">⌘</span><span class="kbd">K</span>
+            </div>
+            <!-- Inline results -->
+            <div id="inlineSearchResults"
+                 style="display:none;position:absolute;top:calc(100% + 8px);left:0;width:100%;min-width:280px;background:rgba(10,12,24,0.96);backdrop-filter:blur(28px);border:1px solid rgba(130,120,255,0.20);border-radius:16px;padding:0.4rem;max-height:380px;overflow-y:auto;box-shadow:0 24px 56px rgba(0,0,0,0.50),inset 0 1px 0 rgba(120,110,255,0.12);z-index:2000;">
+            </div>
+          </div>
+          {% endblock nav_search %}
+        </div>
+
+        <!-- RIGHT: Brand (anchored) -->
+        <a href="{% url 'home' %}" class="nav-brand" aria-label="LamGen Home">
+          <span class="nav-brand-name">LamGen</span>
+          <div class="nav-brand-mark"><i class="bi bi-cpu"></i></div>
+        </a>
+
       </div>
     </div>
 
@@ -970,38 +135,47 @@
         </div>
 
         <!-- Default Right Sidebar: Navigation -->
-        <aside class="spatial-panel tools-actions" style="padding: 1.5rem; justify-content: flex-start; overflow-y: auto; display: flex; flex-direction: column; gap: 2rem;">
+        <aside class="spatial-panel tools-actions" style="padding:1.25rem 1rem; justify-content:flex-start; overflow-y:auto; display:flex; flex-direction:column; gap:1.5rem;">
             {% block right_sidebar %}
-            
-            <!-- CORE OS NAVIGATION -->
-            <div class="sidebar-group">
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Home Button -->
-                    <a href="{% url 'home' %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: {% if request.path == '/' %}rgba(108,99,255,0.15){% else %}transparent{% endif %}; transition: all 0.2s;" onmouseover="this.style.background='{% if request.path == '/' %}rgba(108,99,255,0.15){% else %}rgba(255,255,255,0.05){% endif %}'" onmouseout="this.style.background='{% if request.path == '/' %}rgba(108,99,255,0.15){% else %}transparent{% endif %}'">
-                        <div style="width: 36px; height: 36px; border-radius: 10px; background: {% if request.path == '/' %}rgba(108,99,255,0.3){% else %}rgba(255,255,255,0.05){% endif %}; display: flex; align-items: center; justify-content: center; box-shadow: {% if request.path == '/' %}0 0 20px rgba(108,99,255,0.5), inset 0 0 10px rgba(255,255,255,0.2){% else %}none{% endif %}; transition: all 0.3s;"><i class="bi bi-cpu" style="font-size: 1.2rem; color: {% if request.path == '/' %}#fff{% else %}var(--primary){% endif %};"></i></div>
-                        <span style="font-weight: 700; font-size: 1.05rem; letter-spacing: 0.5px;">Home</span>
-                    </a>
-                    
-                    <!-- All Tools -->
-                    <a href="{% url 'tools:index' %}" style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: {% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}transparent{% endif %}; transition: all 0.2s;" onmouseover="this.style.background='{% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}rgba(255,255,255,0.05){% endif %}'" onmouseout="this.style.background='{% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}transparent{% endif %}'">
-                        <div style="width: 32px; height: 32px; border-radius: 8px; background: {% if request.path == '/tools/' %}rgba(108,99,255,0.2){% else %}rgba(255,255,255,0.05){% endif %}; display: flex; align-items: center; justify-content: center;"><i class="bi bi-grid" style="color: {% if request.path == '/tools/' %}#fff{% else %}var(--muted){% endif %};"></i></div>
-                        <span style="font-weight: 600; font-size: 0.95rem; color: {% if request.path == '/tools/' %}#fff{% else %}var(--muted){% endif %};">All Tools</span>
-                    </a>
-                </div>
-            </div>
 
-            <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 0 0.5rem;"></div>
-
-            <!-- TOOLS GROUP -->
-            <div class="sidebar-group">
-                <div style="display: flex; flex-direction: column; gap: 4px;">
-                    {% for cat in nav_categories %}
-                    <a href="{{ cat.get_absolute_url }}" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; text-decoration: none; color: var(--text); background: {% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}transparent{% endif %}; transition: all 0.2s;" onmouseover="this.style.background='{% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}rgba(255,255,255,0.05){% endif %}'" onmouseout="this.style.background='{% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}transparent{% endif %}'">
-                        <div style="width: 32px; height: 32px; border-radius: 8px; background: {% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.15){% else %}rgba(255,255,255,0.05){% endif %}; display: flex; align-items: center; justify-content: center;"><i class="{{ cat.icon }}" style="color: {{ cat.color_from }};"></i></div>
-                        <span style="font-weight: 600; font-size: 0.95rem;">{{ cat.name }}</span>
-                    </a>
-                    {% endfor %}
+            <!-- Home -->
+            <a href="{% url 'home' %}"
+               style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:12px; text-decoration:none; color:var(--lg-text); background:{% if request.path == '/' %}rgba(139,127,255,0.16){% else %}transparent{% endif %}; border:1px solid {% if request.path == '/' %}rgba(139,127,255,0.30){% else %}transparent{% endif %}; transition:all 0.18s;"
+               onmouseover="if(!this.style.background.includes('139'))this.style.background='rgba(120,110,255,0.11)'"
+               onmouseout="if(!this.style.background.includes('139'))this.style.background='transparent'">
+                <div style="width:32px; height:32px; border-radius:9px; background:{% if request.path == '/' %}rgba(139,127,255,0.28){% else %}rgba(120,110,255,0.12){% endif %}; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid {% if request.path == '/' %}rgba(139,127,255,0.40){% else %}rgba(120,110,255,0.14){% endif %};">
+                    <i class="bi bi-cpu" style="color:{% if request.path == '/' %}#fff{% else %}var(--lg-violet){% endif %}; font-size:0.95rem;"></i>
                 </div>
+                <span style="font-weight:700; font-size:0.92rem; letter-spacing:0.2px;">Home</span>
+            </a>
+
+            <!-- All Tools -->
+            <a href="{% url 'tools:index' %}"
+               style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:12px; text-decoration:none; color:var(--lg-text); background:{% if request.path == '/tools/' %}rgba(139,127,255,0.12){% else %}transparent{% endif %}; border:1px solid {% if request.path == '/tools/' %}rgba(139,127,255,0.22){% else %}transparent{% endif %}; transition:all 0.18s;"
+               onmouseover="if(!this.style.background.includes('139'))this.style.background='rgba(120,110,255,0.11)'"
+               onmouseout="if(!this.style.background.includes('139'))this.style.background='transparent'">
+                <div style="width:32px; height:32px; border-radius:9px; background:rgba(120,110,255,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid rgba(120,110,255,0.14);">
+                    <i class="bi bi-grid" style="color:var(--lg-text-muted); font-size:0.9rem;"></i>
+                </div>
+                <span style="font-weight:600; font-size:0.88rem; color:var(--lg-text-muted);">All Tools</span>
+            </a>
+
+            <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(120,110,255,0.14) 30%,rgba(120,110,255,0.14) 70%,transparent); margin:0 0.25rem;"></div>
+
+            <!-- Category nav -->
+            <div style="display:flex; flex-direction:column; gap:3px;">
+                <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--lg-text-helper); padding:0 12px; margin-bottom:4px;">Categories</div>
+                {% for cat in nav_categories %}
+                <a href="{{ cat.get_absolute_url }}"
+                   style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:11px; text-decoration:none; color:var(--lg-text); background:{% if request.path == cat.get_absolute_url %}rgba(120,110,255,0.14){% else %}transparent{% endif %}; border:1px solid {% if request.path == cat.get_absolute_url %}rgba(130,120,255,0.20){% else %}transparent{% endif %}; transition:all 0.18s;"
+                   onmouseover="if(!this.style.background.includes('0.09'))this.style.background='rgba(120,110,255,0.10)'"
+                   onmouseout="if(!this.style.background.includes('0.09'))this.style.background='transparent'">
+                    <div style="width:28px; height:28px; border-radius:8px; background:{{ cat.color_from }}18; border:1px solid {{ cat.color_from }}33; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="{{ cat.icon }}" style="color:{{ cat.color_from }}; font-size:0.82rem;"></i>
+                    </div>
+                    <span style="font-weight:600; font-size:0.86rem;">{{ cat.name }}</span>
+                </a>
+                {% endfor %}
             </div>
             {% endblock %}
         </aside>
@@ -1135,13 +309,13 @@
                     }
 
                     inlineResults.innerHTML = data.results.map(r => `
-                        <a href="${r.url}" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 8px; text-decoration: none; color: var(--text); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
-                            <div style="width: 32px; height: 32px; background: ${r.category_color_from}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                                <i class="${r.icon}"></i>
+                        <a href="${r.url}" style="display:flex; align-items:center; gap:12px; padding:9px 10px; border-radius:10px; text-decoration:none; color:var(--lg-text); transition:background 0.15s;" onmouseover="this.style.background='rgba(120,110,255,0.12)'" onmouseout="this.style.background='transparent'">
+                            <div style="width:32px; height:32px; background:${r.category_color_from}22; border:1px solid ${r.category_color_from}44; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="${r.icon}" style="color:${r.category_color_from}; font-size:0.95rem;"></i>
                             </div>
-                            <div style="flex: 1; overflow: hidden;">
-                                <div style="font-weight: 600; font-size: 0.95rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${r.name}</div>
-                                <div style="font-size: 0.8rem; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${r.category} &bull; ${r.short_desc}</div>
+                            <div style="flex:1; overflow:hidden;">
+                                <div style="font-weight:600; font-size:0.88rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; color:var(--lg-text);">${r.name}</div>
+                                <div style="font-size:0.74rem; color:var(--lg-text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${r.category} &bull; ${r.short_desc}</div>
                             </div>
                         </a>
                     `).join('');
@@ -1161,34 +335,34 @@
          role="dialog"
          aria-modal="true"
          aria-label="Command palette — search tools"
-         style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); align-items:flex-start; justify-content:center; padding-top:15vh;">
-      <div style="width:100%; max-width:580px; margin:0 1rem; background:rgba(12,12,20,0.98); border:1px solid rgba(255,255,255,0.12); border-radius:20px; overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.8);">
+         style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(4,5,16,0.65); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); align-items:flex-start; justify-content:center; padding-top:14vh;">
+      <div style="width:100%; max-width:580px; margin:0 1rem; background:rgba(10,12,24,0.96); border:1px solid rgba(130,120,255,0.24); border-radius:22px; overflow:hidden; box-shadow:0 48px 96px rgba(0,0,0,0.65), inset 0 1px 0 rgba(120,110,255,0.13);">
         <!-- Search input -->
-        <div style="display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.07);">
-          <i class="bi bi-search" style="color:var(--muted); font-size:1.1rem; flex-shrink:0;"></i>
+        <div style="display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid rgba(120,110,255,0.14);">
+          <i class="bi bi-search" style="color:var(--lg-text-muted); font-size:1.05rem; flex-shrink:0;"></i>
           <input id="cmd-input"
                  type="text"
                  placeholder="Search tools…"
                  autocomplete="off"
                  spellcheck="false"
                  aria-label="Search tools"
-                 style="flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:1rem; font-family:'DM Sans',sans-serif;">
-          <kbd style="font-size:0.7rem; color:var(--muted); background:rgba(255,255,255,0.07); padding:3px 7px; border-radius:5px; font-family:monospace; flex-shrink:0;">Esc</kbd>
+                 style="flex:1; background:transparent; border:none; outline:none; color:var(--lg-text); font-size:1rem; font-family:'DM Sans',sans-serif; caret-color:var(--lg-cyan);">
+          <kbd style="font-size:0.68rem; color:var(--lg-text-muted); background:rgba(120,110,255,0.13); padding:3px 7px; border-radius:5px; font-family:monospace; flex-shrink:0; border:1px solid rgba(120,110,255,0.14);">Esc</kbd>
         </div>
         <!-- Results -->
         <div id="cmd-results"
              role="listbox"
              style="max-height:380px; overflow-y:auto; padding:8px;">
-          <div style="padding:2rem; text-align:center; color:var(--muted); font-size:0.9rem;">
-            <i class="bi bi-command" style="font-size:1.5rem; display:block; margin-bottom:8px; opacity:0.4;"></i>
+          <div style="padding:2rem; text-align:center; color:var(--lg-text-muted); font-size:0.88rem;">
+            <i class="bi bi-command" style="font-size:1.5rem; display:block; margin-bottom:8px; opacity:0.35;"></i>
             Type to search 100+ tools
           </div>
         </div>
         <!-- Footer -->
-        <div style="padding:10px 18px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:16px; font-size:0.75rem; color:var(--muted);">
-          <span><kbd style="background:rgba(255,255,255,0.07); padding:2px 6px; border-radius:4px; font-family:monospace;">↑↓</kbd> Navigate</span>
-          <span><kbd style="background:rgba(255,255,255,0.07); padding:2px 6px; border-radius:4px; font-family:monospace;">↵</kbd> Open</span>
-          <span><kbd style="background:rgba(255,255,255,0.07); padding:2px 6px; border-radius:4px; font-family:monospace;">Esc</kbd> Close</span>
+        <div style="padding:10px 18px; border-top:1px solid rgba(120,110,255,0.12); display:flex; gap:16px; font-size:0.72rem; color:var(--lg-text-helper);">
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">↑↓</kbd> Navigate</span>
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">↵</kbd> Open</span>
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">Esc</kbd> Close</span>
         </div>
       </div>
     </div>
@@ -1278,7 +452,7 @@
              role="option"
              data-idx="${i}"
              style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; text-decoration:none; color:var(--text); transition:background 0.15s; outline:none;"
-             onmouseover="this.style.background='rgba(255,255,255,0.06)'"
+             onmouseover="this.style.background='rgba(120,110,255,0.11)'"
              onmouseout="this.style.background=''"
              onclick="closePaletteGlobal()">
             <div style="width:34px; height:34px; border-radius:8px; background:${r.category_color_from}22; border:1px solid ${r.category_color_from}44; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">

@@ -5,248 +5,133 @@
 <style>
 /* ── Tool page shell ── */
 .tool-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  max-width: 900px;       /* focused operational width */
-  margin: 0 auto;
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-width: 920px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* ── Compact header ── */
 .tool-page-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-top: 0.1rem;
 }
-
-.tool-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: var(--muted);
-}
-.tool-breadcrumb a {
-  color: inherit;
-  text-decoration: none;
-  transition: color 0.15s;
-}
-.tool-breadcrumb a:hover { color: var(--text); }
-.tool-breadcrumb-sep { opacity: 0.35; }
-
 .tool-title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 0.15rem;
 }
-
 .tool-icon-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.15rem;
-  flex-shrink: 0;
-  /* Soft tinted background — no harsh inset glow */
-  background: {{ category.color_from }}18;
-  border: 1px solid {{ category.color_from }}33;
-  color: {{ category.color_from }};
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    background: {{ category.color_from }}1A;
+    border: 1px solid {{ category.color_from }}38;
+    color: {{ category.color_from }};
+    box-shadow: 0 4px 16px {{ category.color_from }}18;
 }
-
 .tool-page-title {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(1.35rem, 3.5vw, 1.75rem);  /* calm, not cinematic */
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text);
-  margin: 0;
-  /* Subtle gradient — not full white-to-muted */
-  background: linear-gradient(135deg, #fff 30%, rgba(240,240,245,0.7) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.2rem, 2.8vw, 1.55rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--lg-text);
+    margin: 0;
+    background: linear-gradient(135deg, #F0F4FF 20%, rgba(220,228,255,0.75) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
-
 .tool-page-desc {
-  font-size: 0.875rem;
-  color: var(--muted);
-  line-height: 1.55;
-  max-width: 580px;
-  margin: 0;
+    font-size: 0.84rem;
+    color: var(--lg-text-muted);
+    line-height: 1.55;
+    max-width: 580px;
+    margin: 0;
 }
 
-/* ── Tool canvas (main working area) ── */
+/* ── Tool canvas ── */
 .tool-canvas {
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 16px;
-  padding: 1.5rem;
-  /* No heavy inset shadow — just a clean surface */
+    background:
+        radial-gradient(800px 400px at 5% 0%, rgba(139,127,255,0.12), transparent 55%),
+        radial-gradient(600px 300px at 95% 10%, rgba(62,236,216,0.08), transparent 50%),
+        var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 18px;
+    padding: 1rem;
+    box-shadow: var(--lg-card-shadow);
+    transition: border-color 0.22s, box-shadow 0.22s;
+}
+.tool-canvas:hover {
+    border-color: rgba(62,236,216,0.20);
+    box-shadow: var(--lg-card-hover-shadow);
 }
 
-/* ── Shared input/output styles injected into every tool ── */
-/* These override the per-tool inline styles for consistency */
-.tool-canvas textarea,
-.tool-canvas .tool-code {
-  background: rgba(0,0,0,0.22) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
-  border-radius: 10px !important;
-  color: var(--text) !important;
-  font-size: 0.85rem !important;
-  line-height: 1.65 !important;
-  padding: 12px 14px !important;
-  transition: border-color 0.18s !important;
-  resize: vertical;
-  outline: none;
-  width: 100%;
-  box-sizing: border-box;
-}
-.tool-canvas textarea:focus,
-.tool-canvas .tool-code:focus {
-  border-color: rgba(108,99,255,0.45) !important;
-  box-shadow: 0 0 0 3px rgba(108,99,255,0.08) !important;
-  background: rgba(0,0,0,0.28) !important;
-}
-.tool-canvas textarea.out,
-.tool-canvas .tool-code.out {
-  background: rgba(0,0,0,0.18) !important;
-  cursor: default;
-}
+/* Internal spacing */
+.tool-canvas > * + * { margin-top: 0.85rem; }
+.tool-canvas .dev-tool-wrap > * + * { margin-top: 0.75rem; }
+.tool-canvas .grid-2 { gap: 0.75rem !important; }
 
-/* ── Shared button system ── */
-.tool-canvas .btn-go,
-.tool-canvas .btn-nexus,
-.tool-canvas .btn-primary-nexus {
-  height: 38px !important;
-  padding: 0 18px !important;
-  border-radius: 9px !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  font-family: 'DM Sans', sans-serif !important;
-  background: linear-gradient(135deg, rgba(108,99,255,0.85), rgba(139,133,255,0.85)) !important;
-  border: 1px solid rgba(108,99,255,0.4) !important;
-  color: #fff !important;
-  box-shadow: 0 2px 10px rgba(108,99,255,0.18) !important;
-  transition: all 0.18s !important;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-.tool-canvas .btn-go:hover,
-.tool-canvas .btn-nexus:hover,
-.tool-canvas .btn-primary-nexus:hover {
-  background: linear-gradient(135deg, rgba(108,99,255,1), rgba(139,133,255,1)) !important;
-  box-shadow: 0 4px 16px rgba(108,99,255,0.28) !important;
-  transform: translateY(-1px) !important;
-}
-.tool-canvas .btn-go:disabled {
-  opacity: 0.45 !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-}
-
-.tool-canvas .btn-sm,
-.tool-canvas .btn-ghost-nexus,
-.tool-canvas .btn-nexus-secondary {
-  height: 34px !important;
-  padding: 0 13px !important;
-  border-radius: 8px !important;
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
-  font-family: 'DM Sans', sans-serif !important;
-  background: rgba(255,255,255,0.04) !important;
-  border: 1px solid rgba(255,255,255,0.09) !important;
-  color: var(--muted) !important;
-  transition: all 0.15s !important;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.tool-canvas .btn-sm:hover,
-.tool-canvas .btn-ghost-nexus:hover,
-.tool-canvas .btn-nexus-secondary:hover {
-  background: rgba(255,255,255,0.08) !important;
-  border-color: rgba(255,255,255,0.15) !important;
-  color: var(--text) !important;
-}
-
-/* ── Status badges ── */
-.tool-canvas .status.ok,
-.tool-canvas .status.err {
-  font-size: 0.78rem !important;
-  padding: 5px 12px !important;
-  border-radius: 7px !important;
-}
-
-/* ── Labels ── */
-.tool-canvas .tool-label {
-  font-size: 0.72rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.7px !important;
-  color: rgba(240,240,245,0.45) !important;
-  margin-bottom: 0.35rem !important;
-}
-
-/* ── Related tools footer ── */
+/* ── Related tools ── */
 .tool-related {
-  border-top: 1px solid rgba(255,255,255,0.06);
-  padding-top: 1rem;
+    border-top: 1px solid rgba(120,110,255,0.12);
+    padding-top: 0.85rem;
 }
 .tool-related-title {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: var(--muted);
-  margin-bottom: 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--lg-text-helper);
+    margin-bottom: 0.5rem;
 }
 .tool-related-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
 }
 .tool-related-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 8px;
-  font-size: 0.78rem;
-  color: var(--muted);
-  text-decoration: none;
-  transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: rgba(100,90,255,0.07);
+    border: 1px solid rgba(120,110,255,0.13);
+    border-radius: 50px;
+    font-size: 0.74rem;
+    color: var(--lg-text-muted);
+    text-decoration: none;
+    transition: all 0.15s;
 }
 .tool-related-link:hover {
-  background: rgba(255,255,255,0.07);
-  border-color: rgba(255,255,255,0.13);
-  color: var(--text);
+    background: rgba(120,110,255,0.13);
+    border-color: rgba(130,120,255,0.20);
+    color: var(--lg-text);
+    transform: translateY(-1px);
 }
-.tool-related-link i { font-size: 0.75rem; }
+.tool-related-link i { font-size: 0.72rem; }
 
-/* ── SEO info section ── */
+/* ── SEO section ── */
 .tool-seo-section {
-  font-size: 0.82rem;
-  color: rgba(240,240,245,0.35);
-  line-height: 1.6;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.80rem;
+    color: rgba(180,196,230,0.30);
+    line-height: 1.6;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(120,110,255,0.10);
 }
 
 /* ── Mobile ── */
 @media (max-width: 640px) {
-  .tool-canvas { padding: 1rem; }
-  .tool-page-title { font-size: 1.25rem; }
-  .tool-page-desc { font-size: 0.82rem; }
+    .tool-page { gap: 0.7rem; }
+    .tool-canvas { padding: 0.9rem; }
+    .tool-page-title { font-size: 1.2rem; }
+    .tool-page-desc { font-size: 0.80rem; }
 }
 </style>
 {% block tool_css %}{% endblock %}
@@ -256,50 +141,45 @@
 {% block content %}
 <div class="tool-page">
 
-  <!-- ── Compact header ── -->
-  <header class="tool-page-header">
-    <nav class="tool-breadcrumb" aria-label="Breadcrumb">
-      <a href="{% url 'tools:index' %}">All Tools</a>
-      <span class="tool-breadcrumb-sep"><i class="bi bi-chevron-right" style="font-size:0.6rem"></i></span>
-      <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>
-    </nav>
-    <div class="tool-title-row">
-      <div class="tool-icon-badge" aria-hidden="true">
-        <i class="{{ tool.icon }}"></i>
-      </div>
-      <h1 class="tool-page-title">{{ tool.name }}</h1>
+    <!-- Header -->
+    <header class="tool-page-header">
+        <div class="tool-title-row">
+            <div class="tool-icon-badge" aria-hidden="true">
+                <i class="{{ tool.icon }}"></i>
+            </div>
+            <h1 class="tool-page-title">{{ tool.name }}</h1>
+        </div>
+        {% if tool.description %}
+        <p class="tool-page-desc">{{ tool.description }}</p>
+        {% elif tool.short_desc %}
+        <p class="tool-page-desc">{{ tool.short_desc }}</p>
+        {% endif %}
+    </header>
+
+    <!-- Tool canvas -->
+    <section class="tool-canvas" aria-label="{{ tool.name }} tool">
+        {% block tool_content %}{% endblock %}
+    </section>
+
+    <!-- Related tools -->
+    {% if related_tools %}
+    <div class="tool-related">
+        <div class="tool-related-title">Related tools</div>
+        <div class="tool-related-grid">
+            {% for rt in related_tools|slice:":8" %}
+            <a href="{{ rt.get_absolute_url }}" class="tool-related-link">
+                <i class="{{ rt.icon }}" style="color:{{ rt.category.color_from }}"></i>
+                {{ rt.name }}
+            </a>
+            {% endfor %}
+        </div>
     </div>
-    {% if tool.description %}
-    <p class="tool-page-desc">{{ tool.description }}</p>
-    {% elif tool.short_desc %}
-    <p class="tool-page-desc">{{ tool.short_desc }}</p>
     {% endif %}
-  </header>
 
-  <!-- ── Main tool canvas ── -->
-  <section class="tool-canvas" aria-label="{{ tool.name }} tool">
-    {% block tool_content %}{% endblock %}
-  </section>
-
-  <!-- ── Related tools ── -->
-  {% if related_tools %}
-  <div class="tool-related">
-    <div class="tool-related-title">Related tools</div>
-    <div class="tool-related-grid">
-      {% for rt in related_tools|slice:":8" %}
-      <a href="{{ rt.get_absolute_url }}" class="tool-related-link">
-        <i class="{{ rt.icon }}" style="color:{{ rt.category.color_from }}"></i>
-        {{ rt.name }}
-      </a>
-      {% endfor %}
+    <!-- SEO -->
+    <div class="tool-seo-section">
+        {{ tool.short_desc }} — runs entirely in your browser. No data is sent to any server.
     </div>
-  </div>
-  {% endif %}
-
-  <!-- ── SEO / description ── -->
-  <div class="tool-seo-section">
-    {{ tool.short_desc }} — runs entirely in your browser. No data is sent to any server.
-  </div>
 
 </div>
 {% endblock %}
@@ -307,31 +187,81 @@
 
 {% block extra_js %}
 <script>
-// Bookmark toggle
 (function() {
-  const btn = document.getElementById('btn-favorite');
-  if (!btn) return;
-  btn.addEventListener('click', async function() {
-    const slug = this.dataset.slug;
-    try {
-      const res = await fetch('/tools/bookmark/save/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({ tool_slug: slug })
-      });
-      const data = await res.json();
-      if (data.bookmarked) {
-        this.innerHTML = '<i class="bi bi-bookmark-fill"></i> Saved';
-        this.style.color = 'var(--accent)';
-      } else {
-        this.innerHTML = '<i class="bi bi-bookmark"></i> Save';
-        this.style.color = '';
-      }
-    } catch(e) {}
-  });
+    const btn = document.getElementById('btn-favorite');
+    if (!btn) return;
+    btn.addEventListener('click', async function() {
+        const slug = this.dataset.slug;
+        try {
+            const res = await fetch('/tools/bookmark/save/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ tool_slug: slug })
+            });
+            const data = await res.json();
+            if (data.bookmarked) {
+                this.innerHTML = '<i class="bi bi-bookmark-fill"></i> Saved';
+                this.style.color = 'var(--lg-cyan)';
+            } else {
+                this.innerHTML = '<i class="bi bi-bookmark"></i> Save';
+                this.style.color = '';
+            }
+        } catch(e) {}
+    });
+})();
+</script>
+<script>
+/* Global placeholder upgrader */
+(function () {
+    function isGeneric(ph) {
+        if (!ph) return true;
+        const p = ph.trim().toLowerCase();
+        return p === 'enter text' || p === 'type here' || p === 'type something' ||
+               p === 'input' || p === 'output' || p === '...' || p === 'e.g.' ||
+               p === 'example' || p.startsWith('e.g') || p.includes('will appear here');
+    }
+    function nearestLabelText(el) {
+        const byFor = el.id ? document.querySelector(`label[for="${CSS.escape(el.id)}"]`) : null;
+        if (byFor?.textContent) return byFor.textContent.trim();
+        const inGroupLabel = el.closest('.input-group')?.querySelector('.input-label, label');
+        if (inGroupLabel?.textContent) return inGroupLabel.textContent.trim();
+        let node = el.parentElement; let hops = 0;
+        while (node && hops < 4) {
+            const t = node.querySelector?.('.tool-label');
+            if (t?.textContent) return t.textContent.trim();
+            node = node.parentElement; hops++;
+        }
+        return '';
+    }
+    function friendlyFromLabel(label, el) {
+        const l = (label || '').replace(/\*/g, '').trim();
+        const isArea = el.tagName === 'TEXTAREA';
+        const isReadOnly = el.hasAttribute('readonly');
+        if (isReadOnly) return 'Output will appear here…';
+        if (!l) return isArea ? 'Paste or type here…' : 'Type here…';
+        const base = l.toLowerCase();
+        if (base.includes('json')) return 'Paste raw JSON here…';
+        if (base.includes('keyword')) return 'Enter your target keyword…';
+        if (base.includes('url')) return 'Paste a URL…';
+        if (base.includes('email')) return 'Enter an email subject/topic…';
+        if (base.includes('topic')) return 'Enter a topic or keyword…';
+        if (base.includes('audience')) return 'Describe your target audience…';
+        if (base.includes('date')) return 'Pick a date and time…';
+        if (base.includes('timestamp')) return 'Paste a Unix timestamp…';
+        return isArea ? `Paste ${l.toLowerCase()} here…` : `Enter ${l.toLowerCase()}…`;
+    }
+    function run() {
+        const root = document.querySelector('.tool-canvas');
+        if (!root) return;
+        root.querySelectorAll('textarea, input').forEach(el => {
+            if (el.type === 'file' || el.type === 'range' || el.type === 'radio' || el.type === 'checkbox') return;
+            const ph = el.getAttribute('placeholder') || '';
+            if (!isGeneric(ph)) return;
+            el.setAttribute('placeholder', friendlyFromLabel(nearestLabelText(el), el));
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+    else run();
 })();
 </script>
 {% block tool_js %}{% endblock %}

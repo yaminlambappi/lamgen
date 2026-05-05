@@ -31,7 +31,7 @@
 <div class="dev-tool-wrap">
   <div>
     <div class="tool-label">Input JSON</div>
-    <textarea class="tool-code" id="jsonIn" placeholder='{"id":1,"name":"Alice","email":"alice@example.com","active":true}'></textarea>
+    <textarea class="tool-code" id="jsonIn" placeholder='Paste raw JSON here…&#10;Example: {"id":1,"name":"Alice","email":"alice@example.com","active":true}&#10;&#10;Tip: Press Ctrl+Enter to generate.'></textarea>
     <div class="chips">
       <span class="chip" onclick="loadEx('user')">User Object</span>
       <span class="chip" onclick="loadEx('api')">API Response</span>
@@ -64,7 +64,7 @@
         <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download .ts</button>
       </div>
     </div>
-    <textarea class="tool-code out" id="tsOut" readonly placeholder="TypeScript interface will appear here..."></textarea>
+    <textarea class="tool-code out" id="tsOut" readonly placeholder="Generated TypeScript will appear here… (Copy or download when ready)"></textarea>
     <div class="meta-row" id="stats"></div>
   </div>
 </div>
