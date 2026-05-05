@@ -17,4 +17,8 @@ app.conf.beat_schedule = {
         'task': 'generation.tasks.cleanup_old_generation_uploads',
         'schedule': crontab(minute=0),  # every hour
     },
+    'cleanup-tools-uploads-every-30min': {
+        'task': 'tools.tasks.cleanup_uploaded_files',
+        'schedule': crontab(minute='*/30'),  # every 30 minutes
+    },
 }

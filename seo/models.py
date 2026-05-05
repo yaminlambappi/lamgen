@@ -16,6 +16,11 @@ class SEOCategory(models.Model):
         max_length=300,
         default='Browse {count}+ {topic} ideas. Free, curated, and ready to use.',
     )
+    schema_type = models.CharField(
+        max_length=30,
+        default='ItemList',
+        choices=[('ItemList', 'ItemList'), ('FAQPage', 'FAQPage'), ('Article', 'Article')],
+    )
     is_active = models.BooleanField(default=True)
     order = models.IntegerField(default=0)
 
@@ -40,6 +45,7 @@ class SEOPage(models.Model):
     items = models.JSONField(default=list, help_text='Array of content items')
     meta_title = models.CharField(max_length=70, blank=True)
     meta_description = models.CharField(max_length=160, blank=True)
+    related_tools = models.ManyToManyField('tools.Tool', blank=True, related_name='seo_pages')
     view_count = models.BigIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

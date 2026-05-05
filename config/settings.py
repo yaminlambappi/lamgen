@@ -201,3 +201,9 @@ SECTION_COUNT_DEFAULT = env.int('SECTION_COUNT_DEFAULT', default=5)
 # Maximum budget in USD cents for a single generation job (soft warning only).
 # Used for cost estimation display — does not block generation.
 MAX_GENERATION_BUDGET_CENTS = env.int('MAX_GENERATION_BUDGET_CENTS', default=25)
+
+# ---------------------------------------------------------------------------
+# Tool Categories — imported from config/tool_categories.py
+# Used by seed_tools management command and the frontend Design System.
+# ---------------------------------------------------------------------------
+from config.tool_categories import TOOL_CATEGORIES  # noqa: E402

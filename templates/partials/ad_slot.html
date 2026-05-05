@@ -1,6 +1,9 @@
-<div class="ad-slot" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border); border-radius: 12px; padding: 2rem; text-align: center; color: var(--muted); margin: 2rem 0; font-size: 0.9rem; position: relative;">
-    <div style="position: absolute; top: 5px; right: 10px; font-size: 0.7rem; color: var(--muted); text-transform: uppercase;">Advertisement</div>
-    <div style="margin-bottom: 0.5rem;"><i class="bi bi-badge-ad" style="font-size: 2rem; color: var(--primary);"></i></div>
-    <div>Support LamGen Tools by disabling your ad blocker!</div>
-    <!-- Future: Insert Google AdSense / Carbon Ads snippet here -->
+{# Ad slot placeholder — inject ad network script to target data-ad-slot attribute #}
+<div
+  class="ad-slot"
+  data-ad-slot="{{ slot_id|default:'default' }}"
+  aria-hidden="true"
+  style="min-height:90px; background:rgba(255,255,255,0.015); border:1px dashed rgba(255,255,255,0.06); border-radius:12px; display:flex; align-items:center; justify-content:center; margin:1.5rem 0; position:relative; overflow:hidden;"
+>
+  <span style="font-size:0.7rem; color:rgba(255,255,255,0.15); text-transform:uppercase; letter-spacing:1px; position:absolute; top:6px; right:10px;">Ad</span>
 </div>

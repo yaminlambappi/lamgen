@@ -8,6 +8,8 @@ urlpatterns = [
     path('search/', views.search_view, name='search'),
     path('trending/', views.trending_view, name='trending'),
     path('bookmark/toggle/', views.toggle_bookmark, name='bookmark'),
+    path('bookmark/save/', views.toggle_bookmark_auth, name='bookmark_auth'),
+    path('usage/record/', views.record_usage, name='record_usage'),
     path('<slug:category_slug>/', views.category_view, name='category'),
     path('<slug:category_slug>/<slug:tool_slug>/', views.tool_view, name='tool'),
 ]

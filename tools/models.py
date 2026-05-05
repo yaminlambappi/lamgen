@@ -46,6 +46,7 @@ class Tool(models.Model):
     is_new = models.BooleanField(default=False)
     is_pro = models.BooleanField(default=False)
     view_count = models.BigIntegerField(default=0)
+    usage_count = models.BigIntegerField(default=0)
     tags = models.CharField(max_length=500, blank=True, help_text='Comma-separated tags')
     meta_title = models.CharField(max_length=70, blank=True)
     meta_description = models.CharField(max_length=160, blank=True)
@@ -63,7 +64,7 @@ class Tool(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         if not self.meta_title:
-            self.meta_title = f'{self.name} — Free Online Tool | LamGen'
+            self.meta_title = f'{self.name} — Free Online Tool | LamGen'[:70]
         if not self.meta_description:
             self.meta_description = self.short_desc[:160]
         super().save(*args, **kwargs)
@@ -100,6 +101,13 @@ class ToolUsageHistory(models.Model):
 
     class Meta:
         ordering = ['-used_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'tool'],
+                condition=models.Q(user__isnull=False),
+                name='unique_user_tool_history',
+            )
+        ]
 
     def __str__(self):
         return f'{self.tool.name} at {self.used_at}'

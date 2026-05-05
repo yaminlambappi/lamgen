@@ -30,6 +30,12 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
+                # Merge any session bookmarks into DB bookmarks
+                try:
+                    from tools.utils.bookmarks import merge_session_bookmarks
+                    merge_session_bookmarks(request, user)
+                except Exception:
+                    pass
                 next_url = request.GET.get('next', 'home')
                 return redirect(next_url)
             else:

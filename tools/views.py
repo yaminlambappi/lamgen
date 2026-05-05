@@ -5,6 +5,7 @@ from django.views.decorators.cache import cache_page, cache_control
 from django.db.models import Q, F
 from django.core.cache import cache
 from .models import Tool, ToolCategory, ToolBookmark, ToolUsageHistory
+from .utils.rate_limit import rate_limit
 import json
 
 
@@ -165,6 +166,7 @@ def tool_view(request, category_slug, tool_slug):
 
 
 @require_GET
+@rate_limit('search', limit=60, window=60)
 def search_view(request):
     """AJAX tool search endpoint."""
     q = request.GET.get('q', '').strip()
@@ -235,7 +237,38 @@ def search_view(request):
 
 @require_POST
 def toggle_bookmark(request):
-    """Toggle bookmark for a tool (auth required)."""
+    """Toggle bookmark for a tool. Auth required for DB persistence; guests use session (max 10)."""
+    try:
+        data = json.loads(request.body)
+        tool_slug = data.get('tool_slug')
+    except (json.JSONDecodeError, AttributeError):
+        tool_slug = request.POST.get('tool_slug')
+
+    if not tool_slug:
+        return JsonResponse({'error': 'tool_slug required'}, status=400)
+
+    if not request.user.is_authenticated:
+        # Guest: session-based bookmarks, max 10
+        session_bookmarks = request.session.get('session_bookmarks', [])
+        if tool_slug in session_bookmarks:
+            session_bookmarks.remove(tool_slug)
+            bookmarked = False
+        elif len(session_bookmarks) >= 10:
+            return JsonResponse({'error': 'Session bookmark limit reached (10). Sign in to save more.'}, status=400)
+        else:
+            session_bookmarks.append(tool_slug)
+            bookmarked = True
+        request.session['session_bookmarks'] = session_bookmarks
+        request.session.modified = True
+        return JsonResponse({'bookmarked': bookmarked})
+
+    # Authenticated: DB bookmarks
+    return JsonResponse({'error': 'Login required'}, status=401)
+
+
+@require_POST
+def toggle_bookmark_auth(request):
+    """DB bookmark toggle for authenticated users only."""
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Login required'}, status=401)
 
@@ -245,14 +278,49 @@ def toggle_bookmark(request):
     except (json.JSONDecodeError, AttributeError):
         tool_slug = request.POST.get('tool_slug')
 
+    if not tool_slug:
+        return JsonResponse({'error': 'tool_slug required'}, status=400)
+
     tool = get_object_or_404(Tool, slug=tool_slug, is_active=True)
     bookmark, created = ToolBookmark.objects.get_or_create(user=request.user, tool=tool)
-
     if not created:
         bookmark.delete()
-        return JsonResponse({'bookmarked': False, 'message': 'Bookmark removed'})
+        # Invalidate cache
+        from django.core.cache import cache
+        cache.delete(f'bookmarks_{request.user.pk}')
+        return JsonResponse({'bookmarked': False})
 
-    return JsonResponse({'bookmarked': True, 'message': 'Bookmarked!'})
+    from django.core.cache import cache
+    cache.delete(f'bookmarks_{request.user.pk}')
+    return JsonResponse({'bookmarked': True})
+
+
+@require_POST
+def record_usage(request):
+    """Lightweight AJAX endpoint to increment tool usage_count."""
+    try:
+        data = json.loads(request.body)
+        tool_slug = data.get('tool_slug')
+    except (json.JSONDecodeError, AttributeError):
+        tool_slug = request.POST.get('tool_slug')
+
+    if not tool_slug:
+        return JsonResponse({'ok': False, 'error': 'tool_slug required'}, status=400)
+
+    Tool.objects.filter(slug=tool_slug, is_active=True).update(usage_count=F('usage_count') + 1)
+
+    if request.user.is_authenticated:
+        try:
+            tool = Tool.objects.get(slug=tool_slug, is_active=True)
+            ToolUsageHistory.objects.update_or_create(
+                user=request.user,
+                tool=tool,
+                defaults={},
+            )
+        except Tool.DoesNotExist:
+            pass
+
+    return JsonResponse({'ok': True})
 
 
 @cache_control(public=True, max_age=3600)

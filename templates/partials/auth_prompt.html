@@ -1,0 +1,24 @@
+{# Non-intrusive login nudge — shown to guests attempting auth-required features #}
+<div id="auth-prompt"
+     role="dialog"
+     aria-label="Sign in to save your work"
+     style="display:none; position:fixed; bottom:80px; right:20px; z-index:800; max-width:300px; background:rgba(15,15,22,0.95); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1); border-radius:18px; padding:1.25rem; box-shadow:0 20px 40px rgba(0,0,0,0.5); animation:fadeUp 0.3s ease forwards;">
+  <button onclick="document.getElementById('auth-prompt').style.display='none'"
+          aria-label="Dismiss"
+          style="position:absolute; top:10px; right:12px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem; line-height:1;">
+    <i class="bi bi-x-lg"></i>
+  </button>
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:0.75rem;">
+    <i class="bi bi-bookmark-star" style="font-size:1.4rem; color:var(--accent);"></i>
+    <strong style="font-size:0.95rem;">Save your tools</strong>
+  </div>
+  <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem; line-height:1.4;">Sign in to bookmark tools and access your history across devices.</p>
+  <div style="display:flex; gap:8px;">
+    <a href="{% url 'accounts:login' %}" class="btn-nexus" style="flex:1; font-size:0.85rem; padding:9px 14px; justify-content:center;">Sign in</a>
+    <button onclick="document.getElementById('auth-prompt').style.display='none'"
+            class="btn-ghost-nexus"
+            style="font-size:0.85rem; padding:9px 14px;">
+      Continue as guest
+    </button>
+  </div>
+</div>
