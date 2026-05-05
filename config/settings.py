@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     # Existing apps
     'accounts',
     'thesis',
-    'dashboard',
     'generation',
     # New ecosystem apps
     'tools',
@@ -83,7 +82,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Auth redirects
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Password validation

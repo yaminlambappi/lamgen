@@ -785,7 +785,7 @@
                     {% if user.is_authenticated %}
                     <div class="menu-label">{{ user.username }}</div>
                     <div class="divider"></div>
-                    <a href="{% url 'dashboard' %}"><i class="bi bi-grid"></i> Control Center</a>
+                    <a href="{% url 'home' %}"><i class="bi bi-person-fill"></i> User Account</a>
                     <div class="divider"></div>
                     <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
                         {% csrf_token %}
@@ -810,28 +810,38 @@
         </div>
 
         <!-- Default Right Sidebar: Navigation -->
-        <aside class="spatial-panel workspace-actions" style="padding: 1.5rem; justify-content: flex-start; overflow-y: auto;">
+        <aside class="spatial-panel workspace-actions" style="padding: 1.5rem; justify-content: flex-start; overflow-y: auto; display: flex; flex-direction: column; gap: 2rem;">
             {% block right_sidebar %}
-            <h4 style="font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Navigation</h4>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="{% url 'tools:index' %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: rgba(255,255,255,0.02); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'">
-                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;"><i class="bi bi-grid-fill" style="color: var(--primary);"></i></div>
-                    <span style="font-weight: 600; font-size: 0.95rem;">All Workspaces</span>
-                </a>
-                
-                {% for cat in nav_categories %}
-                <a href="{{ cat.get_absolute_url }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: rgba(255,255,255,0.02); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'">
-                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;"><i class="{{ cat.icon }}" style="color: {{ cat.color_from }};"></i></div>
-                    <span style="font-weight: 600; font-size: 0.95rem;">{{ cat.name }}</span>
-                </a>
-                {% endfor %}
+            
+            <!-- CORE OS NAVIGATION -->
+            <div class="sidebar-group">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Home Button -->
+                    <a href="{% url 'home' %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: {% if request.path == '/' %}rgba(108,99,255,0.15){% else %}transparent{% endif %}; transition: all 0.2s;" onmouseover="this.style.background='{% if request.path == '/' %}rgba(108,99,255,0.15){% else %}rgba(255,255,255,0.05){% endif %}'" onmouseout="this.style.background='{% if request.path == '/' %}rgba(108,99,255,0.15){% else %}transparent{% endif %}'">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: {% if request.path == '/' %}rgba(108,99,255,0.3){% else %}rgba(255,255,255,0.05){% endif %}; display: flex; align-items: center; justify-content: center; box-shadow: {% if request.path == '/' %}0 0 20px rgba(108,99,255,0.5), inset 0 0 10px rgba(255,255,255,0.2){% else %}none{% endif %}; transition: all 0.3s;"><i class="bi bi-cpu" style="font-size: 1.2rem; color: {% if request.path == '/' %}#fff{% else %}var(--primary){% endif %};"></i></div>
+                        <span style="font-weight: 700; font-size: 1.05rem; letter-spacing: 0.5px;">Home</span>
+                    </a>
+                    
+                    <!-- All Workspaces -->
+                    <a href="{% url 'tools:index' %}" style="display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: {% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}transparent{% endif %}; transition: all 0.2s;" onmouseover="this.style.background='{% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}rgba(255,255,255,0.05){% endif %}'" onmouseout="this.style.background='{% if request.path == '/tools/' %}rgba(108,99,255,0.1){% else %}transparent{% endif %}'">
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: {% if request.path == '/tools/' %}rgba(108,99,255,0.2){% else %}rgba(255,255,255,0.05){% endif %}; display: flex; align-items: center; justify-content: center;"><i class="bi bi-grid" style="color: {% if request.path == '/tools/' %}#fff{% else %}var(--muted){% endif %};"></i></div>
+                        <span style="font-weight: 600; font-size: 0.95rem; color: {% if request.path == '/tools/' %}#fff{% else %}var(--muted){% endif %};">All Workspaces</span>
+                    </a>
+                </div>
+            </div>
 
-                <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 8px 0;"></div>
+            <div style="height: 1px; background: rgba(255,255,255,0.08); margin: 0 0.5rem;"></div>
 
-                <a href="{% url 'dashboard' %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: rgba(255,255,255,0.02); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'">
-                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;"><i class="bi bi-speedometer2" style="color: var(--muted);"></i></div>
-                    <span style="font-weight: 600; font-size: 0.95rem;">Control Center</span>
-                </a>
+            <!-- WORKSPACES GROUP -->
+            <div class="sidebar-group">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    {% for cat in nav_categories %}
+                    <a href="{{ cat.get_absolute_url }}" style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 12px; text-decoration: none; color: var(--text); background: {% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}transparent{% endif %}; transition: all 0.2s;" onmouseover="this.style.background='{% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}rgba(255,255,255,0.05){% endif %}'" onmouseout="this.style.background='{% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.08){% else %}transparent{% endif %}'">
+                        <div style="width: 32px; height: 32px; border-radius: 8px; background: {% if request.path == cat.get_absolute_url %}rgba(255,255,255,0.15){% else %}rgba(255,255,255,0.05){% endif %}; display: flex; align-items: center; justify-content: center;"><i class="{{ cat.icon }}" style="color: {{ cat.color_from }};"></i></div>
+                        <span style="font-weight: 600; font-size: 0.95rem;">{{ cat.name }} Workspace</span>
+                    </a>
+                    {% endfor %}
+                </div>
             </div>
             {% endblock %}
         </aside>
@@ -839,18 +849,27 @@
 
     <!-- Floating OS Dock -->
     <nav class="os-dock">
-        <a href="{% url 'tools:index' %}" class="dock-item" data-tooltip="All Workspaces">
+        <a href="{% url 'home' %}" class="dock-item {% if request.path == '/' %}active{% endif %}" data-tooltip="Home">
+            <i class="bi bi-cpu-fill" style="color: {% if request.path == '/' %}#fff{% else %}var(--primary){% endif %};"></i>
+        </a>
+        <a href="{% url 'tools:index' %}" class="dock-item {% if request.path == '/tools/' %}active{% endif %}" data-tooltip="All Workspaces">
             <i class="bi bi-grid-fill"></i>
         </a>
         {% for cat in nav_categories %}
-        <a href="{{ cat.get_absolute_url }}" class="dock-item" data-tooltip="{{ cat.name }}" style="color: {{ cat.color_from }};">
+        <a href="{{ cat.get_absolute_url }}" class="dock-item {% if request.path == cat.get_absolute_url %}active{% endif %}" data-tooltip="{{ cat.name }}" style="color: {{ cat.color_from }};">
             <i class="{{ cat.icon }}"></i>
         </a>
         {% endfor %}
         <div class="dock-divider"></div>
-        <a href="{% url 'dashboard' %}" class="dock-item" data-tooltip="Control Center">
-            <i class="bi bi-speedometer2"></i>
+        {% if user.is_authenticated %}
+        <a href="{% url 'home' %}" class="dock-item {% if request.path == '/' %}active{% endif %}" data-tooltip="User Account">
+            <i class="bi bi-person-fill"></i>
         </a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="dock-item" data-tooltip="Login">
+            <i class="bi bi-box-arrow-in-right"></i>
+        </a>
+        {% endif %}
     </nav>
 
     <!-- Toast container -->

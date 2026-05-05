@@ -1,313 +1,309 @@
 {% extends "base.html" %}
 
+{% block title %}{{ page_title|default:"LAMGEN OS // Command Core" }}{% endblock %}
+
 {% block extra_css %}
 <style>
+    /* Denser, wider shell */
     .os-shell {
-        max-width: 1000px;
+        max-width: 1440px;
         margin: 0 auto;
-        padding: 6rem 2rem;
+        padding: 1.5rem 2rem 4rem 2rem;
         display: flex;
         flex-direction: column;
-        gap: 4rem;
-    }
-
-    /* Centerpiece Visuals */
-    .system-core {
-        position: relative;
-        width: 100%;
-        height: 160px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 2rem;
-    }
-    .core-pulse {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(108,99,255,0.3) 0%, transparent 70%);
-        animation: pulseCore 4s infinite alternate ease-in-out;
-        position: absolute;
-    }
-    .core-ring {
-        width: 140px;
-        height: 140px;
-        border-radius: 50%;
-        border: 1px dashed rgba(255,255,255,0.1);
-        position: absolute;
-        animation: spinRing 20s linear infinite;
-    }
-    .core-ring.secondary {
-        width: 200px;
-        height: 200px;
-        border: 1px solid rgba(0, 245, 212, 0.05);
-        animation: spinRingReverse 30s linear infinite;
-        border-style: dotted;
-    }
-    @keyframes pulseCore {
-        0% { transform: scale(0.8); opacity: 0.3; }
-        100% { transform: scale(1.5); opacity: 0.8; }
-    }
-    @keyframes spinRing { 100% { transform: rotate(360deg); } }
-    @keyframes spinRingReverse { 100% { transform: rotate(-360deg); } }
-    .core-logo {
-        position: relative;
-        z-index: 10;
-        font-family: 'Syne', sans-serif;
-        font-size: 2.5rem;
-        font-weight: 800;
-        letter-spacing: 8px;
-        text-transform: uppercase;
-        background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.2) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 0 40px rgba(255,255,255,0.1);
-    }
-
-    .sci-fi-divider {
-        width: 100%;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-        margin: 0;
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .sci-fi-divider::after {
-        content: '';
-        width: 20px;
-        height: 2px;
-        background: var(--primary);
-        box-shadow: 0 0 10px var(--primary);
-        border-radius: 2px;
-    }
-
-    /* Workspace Selector */
-    .workspace-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 1.5rem;
-        perspective: 1200px;
+        position: relative;
     }
 
-    .workspace-btn {
-        background: rgba(255, 255, 255, 0.02);
+    /* Holographic Grid Background */
+    .os-shell::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 30px 30px;
+        pointer-events: none;
+        z-index: -1;
+        mask-image: radial-gradient(ellipse at top, black 0%, transparent 70%);
+        -webkit-mask-image: radial-gradient(ellipse at top, black 0%, transparent 70%);
+    }
+
+    /* ── Top Command Bar ── */
+    .top-command-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(10, 10, 15, 0.7);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        text-decoration: none;
-        color: var(--text);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        transform-style: preserve-3d;
+        border: 1px solid rgba(255,255,255,0.08);
+        padding: 12px 24px;
+        border-radius: 100px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1);
+        margin-bottom: 0.5rem;
         position: relative;
         overflow: hidden;
     }
-
-    .workspace-btn:hover {
-        background: rgba(255, 255, 255, 0.04);
-        transform: translateY(-8px) rotateX(4deg) rotateY(4deg);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), 0 20px 40px rgba(0,0,0,0.5);
-    }
-
-    /* ── Alien Silhouette Shapes ── */
-    .workspace-btn[data-shape="developer"] {
-        clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
-        border-radius: 4px;
-    }
-    .workspace-btn[data-shape="media"] {
-        border-radius: 24px 8px 24px 8px;
-    }
-    .workspace-btn[data-shape="student"] {
-        border-radius: 20px;
-    }
-    .workspace-btn[data-shape="seo"] {
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-        border-radius: 4px;
-    }
-    .workspace-btn[data-shape="viral"] {
-        clip-path: polygon(0 16px, 16px 0, 100% 0, 100% 100%, 0 100%);
-        border-radius: 6px;
-    }
-    .workspace-btn[data-shape="utility"] {
-        clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
-        border-radius: 4px;
-    }
-
-    .workspace-btn::before {
-        content: '';
-        position: absolute;
-        top: 0; right: 0;
-        width: 150px; height: 150px;
-        background: radial-gradient(circle at top right, var(--primary), transparent 70%);
-        opacity: 0.05;
-        transition: opacity 0.4s;
-    }
-
-
     
-    .workspace-btn:hover::before { opacity: 0.2; }
-
-    .workspace-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        flex-shrink: 0;
-        transform: translateZ(20px);
-        box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .workspace-info h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; transform: translateZ(15px); }
-    .workspace-info p { font-size: 0.9rem; color: var(--muted); margin: 0; transform: translateZ(10px); }
-
-
-
-    .workflow-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-
-    .workflow-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .workflow-link {
+    .sys-status {
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 14px 16px;
-        border-radius: 12px;
-        color: var(--text);
-        text-decoration: none;
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
         font-size: 0.95rem;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        letter-spacing: 2px;
+        color: #fff;
     }
-    .workflow-link:hover {
-        background: rgba(255,255,255,0.08);
-        border-color: rgba(255,255,255,0.15);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    .sys-pulse {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--primary);
+        box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+        animation: pulseActive 2s infinite ease-in-out;
     }
-    .workflows-container {
-        display: grid; 
-        grid-template-columns: 1fr 1fr; 
-        gap: 4rem;
+    @keyframes pulseActive { 0% { opacity:1; box-shadow: 0 0 10px var(--primary); } 50% { opacity:0.4; box-shadow: 0 0 2px var(--primary); } 100% { opacity:1; box-shadow: 0 0 10px var(--primary); } }
+
+    .search-module {
+        flex: 1; max-width: 500px; position: relative;
+    }
+    .search-module input {
+        width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+        padding: 10px 20px 10px 44px; border-radius: 50px; color: #fff; font-size: 0.85rem;
+        outline: none; transition: all 0.3s; font-family: monospace;
+    }
+    .search-module input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(108,99,255,0.2); background: rgba(0,0,0,0.6); }
+    .search-module input::placeholder { color: rgba(255,255,255,0.3); }
+    .search-module i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1rem; }
+    .search-module .kbd-shortcut {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; color: var(--muted); pointer-events: none;
     }
 
-    @media (max-width: 768px) {
-        .hero-search h1 { font-size: 2.5rem; }
-        .os-shell { padding: 4rem 1.5rem; }
-        .workflows-container { grid-template-columns: 1fr; gap: 2rem; }
+    .sys-metrics {
+        display: flex; gap: 16px; font-family: monospace; font-size: 0.75rem; color: var(--muted);
+    }
+    .sys-metrics span { display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
+    .sys-metrics span::before { content:''; width:6px; height:6px; border-radius:1px; background:#00F5D4; animation: blinkNode 4s infinite; }
+    .sys-metrics span:nth-child(2)::before { background: var(--primary); animation-delay: 1s; }
+
+    /* ── Dense Bento Grid ── */
+    .bento-container {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-auto-rows: minmax(120px, auto);
+        gap: 1.25rem;
+    }
+    .bento-item {
+        background: rgba(20, 20, 30, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+    .bento-item:hover {
+        border-color: rgba(255,255,255,0.15);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+        transform: translateY(-2px);
+    }
+
+    /* Grid Span Utilities */
+    .span-12 { grid-column: span 12; }
+    .span-8  { grid-column: span 8; }
+    .span-6  { grid-column: span 6; }
+    .span-4  { grid-column: span 4; }
+    .span-3  { grid-column: span 3; }
+    .row-2   { grid-row: span 2; }
+
+    /* HUD Decorations */
+    .hud-corner { position: absolute; width: 10px; height: 10px; border: 2px solid var(--primary); opacity: 0; transition: all 0.3s; }
+    .hud-tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+    .hud-tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+    .hud-bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+    .hud-br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+    .bento-item:hover .hud-corner { opacity: 0.5; }
+
+    .node-glow {
+        position: absolute; top: 20px; right: 20px; width: 6px; height: 6px; border-radius: 50%;
+        background: #00F5D4; box-shadow: 0 0 10px #00F5D4; animation: blinkNode 3s infinite; opacity: 0.7;
+    }
+    @keyframes blinkNode { 0%, 100% { opacity:1; } 50% { opacity:0.2; } }
+
+    /* Section Headers */
+    .section-header {
+        font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 2px; color: var(--muted); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px;
+    }
+    .section-header i { font-size: 1.1rem; }
+
+    /* Workspace Modules */
+    .ws-module {
+        text-decoration: none; color: var(--text);
+        display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .ws-module::after {
+        content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 2px;
+        background: var(--primary); transition: width 0.4s ease;
+    }
+    .ws-module:hover::after { width: 100%; }
+    
+    .module-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; margin-bottom: 1rem;
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+    }
+    .ws-module.large .module-icon { width: 56px; height: 56px; font-size: 1.8rem; }
+    .ws-module h3 { font-size: 1rem; font-weight: 700; margin: 0 0 4px 0; font-family: 'Syne', sans-serif; }
+    .ws-module.large h3 { font-size: 1.3rem; }
+    .ws-module p { font-size: 0.75rem; color: var(--muted); margin: 0; font-family: monospace; }
+
+    /* Mini Links (Dense Lists) */
+    .mini-link {
+        display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+        background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 10px; text-decoration: none; color: var(--text); transition: all 0.2s;
+    }
+    .mini-link:hover {
+        background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); transform: translateX(4px);
+    }
+    .mini-link i { font-size: 1.1rem; }
+
+    .horizontal-scroll {
+        display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: none;
+    }
+    .horizontal-scroll::-webkit-scrollbar { display: none; }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .span-8 { grid-column: span 12; }
+        .span-6, .span-4, .span-3 { grid-column: span 6; }
+        .top-command-bar { flex-direction: column; gap: 1rem; border-radius: 16px; align-items: stretch; }
+        .search-module { max-width: none; }
+        .sys-metrics { justify-content: space-between; }
+    }
+    @media (max-width: 640px) {
+        .span-6, .span-4, .span-3 { grid-column: span 12; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="os-shell">
-    <!-- Cinematic Initialization Core -->
-    <div class="system-core">
-        <div class="core-pulse"></div>
-        <div class="core-ring"></div>
-        <div class="core-ring secondary"></div>
-        <div class="core-logo">LAMGEN</div>
+    
+    <!-- ── COMMAND BAR (TOP) ── -->
+    <div class="top-command-bar">
+        <div class="sys-status">
+            <div class="sys-pulse"></div>
+            <span>LAMGEN <span style="opacity:0.4; font-weight:500;">// SYS.OP</span></span>
+        </div>
+        <div class="search-module">
+            <i class="bi bi-search"></i>
+            <input type="text" id="osSearch" placeholder="Execute command, search workflows...">
+            <span class="kbd-shortcut">/</span>
+        </div>
+        <div class="sys-metrics">
+            <span>UPLINK: ACTV</span>
+            <span style="color:var(--primary);">MEM: OPTIMAL</span>
+        </div>
     </div>
 
-    <!-- Workspaces -->
-    <section>
-        <div class="workspace-grid">
-            {% for cat in categories %}
-            <a href="{{ cat.get_absolute_url }}" class="workspace-btn" data-shape="{{ cat.slug }}">
-                <div class="workspace-icon" style="background: {{ cat.color_from }};">
-                    <i class="{{ cat.icon }}"></i>
-                </div>
-                <div class="workspace-info">
-                    <h3>{{ cat.name }}</h3>
-                    <p>{{ cat.tools.count }} operational nodes</p>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-    </section>
-
-    <div class="sci-fi-divider"></div>
-
-    <div class="workflows-container">
-        <!-- Recent Workflows -->
+    <!-- ── BENTO GRID ── -->
+    <div class="bento-container">
+        
+        <!-- ROW 1: Active Telemetry (Recent Tools) -->
         {% if recent_tools %}
-        <section class="workflow-section">
-            <div class="workflow-nav">
+        <div class="bento-item span-12" style="padding: 1.25rem 1.5rem;">
+            <div class="section-header" style="color: var(--primary); margin-bottom: 0.75rem;">
+                <i class="bi bi-activity"></i> Active Telemetry
+            </div>
+            <div class="horizontal-scroll">
                 {% for tool in recent_tools %}
-                <a href="{{ tool.get_absolute_url }}" class="workflow-link">
+                <a href="{{ tool.get_absolute_url }}" class="mini-link" style="min-width: 220px;">
                     <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }};"></i>
-                    {{ tool.name }}
+                    <div style="flex:1; overflow:hidden;">
+                        <div style="font-weight: 600; font-size: 0.85rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">{{ tool.name }}</div>
+                        <div style="font-size: 0.7rem; color:var(--muted); font-family:monospace; margin-top:2px;">{{ tool.category.name|upper }}</div>
+                    </div>
                 </a>
                 {% endfor %}
             </div>
-        </section>
+        </div>
         {% endif %}
 
-        <!-- Trending Now -->
-        <section class="workflow-section">
-            <div class="workflow-nav">
-                {% for tool in trending %}
-                <a href="{{ tool.get_absolute_url }}" class="workflow-link">
-                    <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }};"></i>
-                    {{ tool.name }}
+        <!-- ROW 2: Primary Workspaces (Large) -->
+        {% for cat in categories|slice:":2" %}
+        <a href="{{ cat.get_absolute_url }}" class="bento-item span-6 ws-module large">
+            <div class="hud-corner hud-tl"></div><div class="hud-corner hud-tr"></div>
+            <div class="hud-corner hud-bl"></div><div class="hud-corner hud-br"></div>
+            <div class="node-glow" style="background: {{ cat.color_from }}; box-shadow: 0 0 10px {{ cat.color_from }};"></div>
+            
+            <div style="position:absolute; top:-30px; right:-30px; width:200px; height:200px; background:radial-gradient(circle, {{cat.color_from}}, transparent 70%); opacity:0.1; border-radius:50%; pointer-events:none;"></div>
+            
+            <div class="module-icon" style="color: {{ cat.color_from }}; border-color: {{ cat.color_from }}33;"><i class="{{ cat.icon }}"></i></div>
+            <div style="position: relative; z-index: 2;">
+                <h3>{{ cat.name }} Workspace</h3>
+                <p>{{ cat.tools.all|length }} OPERATIONAL NODES</p>
+            </div>
+        </a>
+        {% endfor %}
+
+        <!-- ROW 3: Secondary Workspaces (Dense) -->
+        {% for cat in categories|slice:"2:" %}
+        <a href="{{ cat.get_absolute_url }}" class="bento-item span-3 ws-module" style="padding: 1.25rem;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+                <div class="module-icon" style="margin:0; width:36px; height:36px; font-size:1.1rem; color:{{ cat.color_from }};"><i class="{{ cat.icon }}"></i></div>
+                <h3 style="font-size:0.95rem;">{{ cat.name }}</h3>
+            </div>
+            <p>{{ cat.tools.all|length }} NODES ONLINE</p>
+        </a>
+        {% endfor %}
+
+        <!-- ROW 4: Quick Override & High Priority Split -->
+        <div class="bento-item span-4 row-2" style="display:flex; flex-direction:column;">
+            <div class="section-header" style="color: #00F5D4;"><i class="bi bi-lightning-charge"></i> Quick Override</div>
+            <div style="display:flex; flex-direction:column; gap:0.75rem; flex:1;">
+                <a href="{% url 'thesis:upload' %}" class="mini-link" style="background:rgba(108,99,255,0.08); border-color:rgba(108,99,255,0.2);">
+                    <i class="bi bi-magic" style="color:#6C63FF;"></i>
+                    <span style="font-weight:700;">AI Thesis Builder</span>
+                </a>
+                <a href="/tools/media/image-compressor/" class="mini-link">
+                    <i class="bi bi-file-zip" style="color:#00F5D4;"></i> Compress Image
+                </a>
+                <a href="/tools/developer/json-formatter/" class="mini-link">
+                    <i class="bi bi-braces" style="color:#FF6B6B;"></i> Format JSON
+                </a>
+                <a href="/tools/media/pdf-merge/" class="mini-link">
+                    <i class="bi bi-file-pdf" style="color:#FFC107;"></i> Merge PDF
+                </a>
+            </div>
+        </div>
+
+        <div class="bento-item span-8 row-2" style="display:flex; flex-direction:column;">
+            <div class="section-header" style="color: #FF6B6B;"><i class="bi bi-fire"></i> High Priority Vectors</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:0.75rem; flex:1; align-content: start;">
+                {% for tool in trending|slice:":8" %}
+                <a href="{{ tool.get_absolute_url }}" class="mini-link" style="padding: 10px 14px;">
+                    <i class="{{ tool.icon }}" style="color:{{ tool.category.color_from }}; font-size:1rem;"></i>
+                    <div style="font-size:0.8rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ tool.name }}</div>
                 </a>
                 {% endfor %}
             </div>
-        </section>
-    </div>
-
-    <div class="sci-fi-divider"></div>
-
-    <!-- Quick Actions -->
-    <section class="workflow-section">
-        <div class="workflow-row">
-            <a href="/tools/developer/json-validator/" class="workflow-link"><i class="bi bi-braces"></i> Format JSON</a>
-            <a href="/tools/media/pdf-merge/" class="workflow-link"><i class="bi bi-file-pdf"></i> Merge PDF</a>
-            <a href="/tools/create/text-humanizer/" class="workflow-link"><i class="bi bi-magic"></i> Humanize AI</a>
-            <a href="/tools/utility/unit-converter/" class="workflow-link"><i class="bi bi-rulers"></i> Convert Units</a>
         </div>
-    </section>
+
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     const osSearch = document.getElementById('osSearch');
-    
-    // Redirect to command palette logic if needed or just focus it
-    osSearch.addEventListener('focus', () => {
-        // We can just use the global command palette logic here
-        // Or implement a dedicated UI for the home search
-    });
-
-    osSearch.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            const q = osSearch.value.trim();
-            if (q) {
-                // Perform natural language search or jump to first result
-            }
-        }
-    });
-
-    // Auto-focus on slash key
     document.addEventListener('keydown', (e) => {
         if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
             e.preventDefault();

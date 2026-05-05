@@ -38,8 +38,18 @@ def index(request):
         'trending': trending,
         'recent_tools': recent_tools[:5],
         'bookmarked_slugs': bookmarked_slugs,
-        'page_title': 'LamGen Tools — 150+ Free Online Tools',
-        'meta_description': 'Free browser-based tools for developers, students, writers & more. JSON formatter, GPA calculator, image compressor, PDF tools, and hundreds more. No signup needed.',
+        'page_title': 'Home — LamGen OS',
+        'meta_description': 'LamGen OS Home. Access your workflows, active nodes, and smart systems.',
+    })
+
+@cache_control(public=True, max_age=60)
+def workspaces_view(request):
+    """All workspaces ecosystem explorer."""
+    categories = ToolCategory.objects.filter(is_active=True).prefetch_related('tools')
+    return render(request, 'tools/workspaces.html', {
+        'categories': categories,
+        'page_title': 'All Workspaces — LamGen OS',
+        'meta_description': 'Browse all LamGen OS ecosystems and tool categories.',
     })
 
 

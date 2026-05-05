@@ -248,9 +248,9 @@
     <div class="doc-panel">
         <!-- Breadcrumb -->
         <div class="breadcrumb-nexus fade-up">
-            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'home' %}">Dashboard</a>
             <i class="bi bi-chevron-right"></i>
-            <a href="{% url 'dashboard' %}">My Theses</a>
+            <a href="{% url 'home' %}">My Theses</a>
             <i class="bi bi-chevron-right"></i>
             <span style="color:var(--text);">{{ thesis.title|truncatechars:40 }}</span>
         </div>
@@ -288,7 +288,7 @@
 
         <!-- Bottom actions -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;flex-wrap:wrap;gap:1rem;">
-            <a href="{% url 'dashboard' %}" class="btn-ghost-nexus">
+            <a href="{% url 'home' %}" class="btn-ghost-nexus">
                 <i class="bi bi-arrow-left"></i> Back to Dashboard
             </a>
             <a href="{% url 'thesis:download' thesis.pk %}" class="btn-primary-nexus">

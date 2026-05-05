@@ -36,15 +36,14 @@ def get_sitemaps():
 
 sitemaps = get_sitemaps()
 
-from dashboard.views import DashboardView
+from tools.views import index as control_center_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', DashboardView.as_view(), name='home'),
+    path('', control_center_view, name='home'),
     # Existing ecosystem apps
     path('accounts/', include('accounts.urls')),
     path('thesis/', include('thesis.urls')),
-    path('dashboard/', include('dashboard.urls')),
     path('generation/', include('generation.urls')),
     # New Tools Ecosystem
     path('tools/', include('tools.urls', namespace='tools')),

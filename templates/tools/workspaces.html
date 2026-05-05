@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .explorer-shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 4rem 2rem;
+    }
+    .explorer-header {
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+    .explorer-header h1 {
+        font-family: 'Syne', sans-serif;
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        color: var(--text);
+    }
+    .explorer-header p {
+        color: var(--muted);
+        font-size: 1.1rem;
+    }
+    .explorer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    .explorer-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        text-decoration: none;
+        color: var(--text);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .explorer-card:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255,255,255,0.15);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .explorer-icon-area {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .explorer-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #fff;
+    }
+    .explorer-info h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    .explorer-info p {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin: 0;
+    }
+    .explorer-tools {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: auto;
+    }
+    .explorer-tool-link {
+        font-size: 0.85rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .explorer-tool-link i { color: rgba(255,255,255,0.2); font-size: 0.7rem; }
+    
+    @media (max-width: 768px) {
+        .explorer-header h1 { font-size: 2.5rem; }
+        .explorer-shell { padding: 2rem 1.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="explorer-shell">
+    <header class="explorer-header">
+        <h1>Ecosystem Explorer</h1>
+        <p>Browse all specialized operational environments within LamGen OS.</p>
+    </header>
+
+    <div class="explorer-grid">
+        {% for cat in categories %}
+        <a href="{{ cat.get_absolute_url }}" class="explorer-card">
+            <div class="explorer-icon-area">
+                <div class="explorer-icon" style="background: {{ cat.color_from }};">
+                    <i class="{{ cat.icon }}"></i>
+                </div>
+                <div class="explorer-info">
+                    <h3>{{ cat.name }}</h3>
+                    <p>{{ cat.tools.count }} internal tools</p>
+                </div>
+            </div>
+            <div style="font-size: 0.95rem; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                {{ cat.description|truncatechars:100 }}
+            </div>
+            
+            <div class="explorer-tools">
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px;">Core Nodes</div>
+                {% for tool in cat.tools.all|slice:":3" %}
+                <div class="explorer-tool-link">
+                    <i class="bi bi-record-circle"></i> {{ tool.name }}
+                </div>
+                {% endfor %}
+                {% if cat.tools.count > 3 %}
+                <div class="explorer-tool-link" style="color: {{ cat.color_from }}; font-weight: 600; margin-top: 4px;">
+                    View {{ cat.tools.count|add:"-3" }} more <i class="bi bi-arrow-right"></i>
+                </div>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

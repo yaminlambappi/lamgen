@@ -7,7 +7,7 @@ from .forms import LoginForm, RegistrationForm
 
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('home')
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -21,7 +21,7 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('home')
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -30,7 +30,7 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                next_url = request.GET.get('next', 'dashboard')
+                next_url = request.GET.get('next', 'home')
                 return redirect(next_url)
             else:
                 form.add_error(None, 'Invalid username or password.')
