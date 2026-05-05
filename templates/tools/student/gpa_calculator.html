@@ -1,0 +1,123 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .gpa-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .semester-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+    .course-row {
+        display: grid;
+        grid-template-columns: 1fr 100px 100px 40px;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    .result-panel {
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(0, 245, 212, 0.1));
+        border: 1px solid var(--primary);
+        border-radius: 16px;
+    }
+    .result-val {
+        font-size: 4rem;
+        font-weight: 800;
+        font-family: 'Syne', sans-serif;
+        color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="gpa-container">
+    <div class="result-panel">
+        <p>Your Estimated GPA</p>
+        <div class="result-val" id="gpa-display">4.00</div>
+    </div>
+
+    <div class="semester-card">
+        <h3>Courses</h3>
+        <div id="course-list">
+            <div class="course-row">
+                <input type="text" class="input-nexus" placeholder="Course Name (Optional)">
+                <select class="input-nexus grade-select">
+                    <option value="4.0">A / 4.0</option>
+                    <option value="3.7">A- / 3.7</option>
+                    <option value="3.3">B+ / 3.3</option>
+                    <option value="3.0">B / 3.0</option>
+                    <option value="2.7">B- / 2.7</option>
+                    <option value="2.3">C+ / 2.3</option>
+                    <option value="2.0">C / 2.0</option>
+                    <option value="1.0">D / 1.0</option>
+                    <option value="0.0">F / 0.0</option>
+                </select>
+                <input type="number" class="input-nexus credit-input" value="3" min="0" max="10">
+                <button class="btn-nexus-secondary" style="padding: 0;" onclick="this.parentElement.remove(); calculateGPA();">✕</button>
+            </div>
+        </div>
+        <button id="add-course" class="btn-nexus-secondary" style="margin-top: 1rem;">
+            <i class="bi bi-plus-lg"></i> Add Course
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    const courseList = document.getElementById('course-list');
+    const addCourseBtn = document.getElementById('add-course');
+    const gpaDisplay = document.getElementById('gpa-display');
+
+    function calculateGPA() {
+        const rows = courseList.querySelectorAll('.course-row');
+        let totalPoints = 0;
+        let totalCredits = 0;
+
+        rows.forEach(row => {
+            const grade = parseFloat(row.querySelector('.grade-select').value);
+            const credits = parseFloat(row.querySelector('.credit-input').value);
+            if (!isNaN(grade) && !isNaN(credits)) {
+                totalPoints += grade * credits;
+                totalCredits += credits;
+            }
+        });
+
+        const gpa = totalCredits > 0 ? (totalPoints / totalCredits) : 0;
+        gpaDisplay.textContent = gpa.toFixed(2);
+    }
+
+    addCourseBtn.addEventListener('click', () => {
+        const row = document.createElement('div');
+        row.className = 'course-row';
+        row.innerHTML = `
+            <input type="text" class="input-nexus" placeholder="Course Name">
+            <select class="input-nexus grade-select">
+                <option value="4.0">A / 4.0</option>
+                <option value="3.7">A- / 3.7</option>
+                <option value="3.3">B+ / 3.3</option>
+                <option value="3.0">B / 3.0</option>
+                <option value="2.7">B- / 2.7</option>
+                <option value="2.3">C+ / 2.3</option>
+                <option value="2.0">C / 2.0</option>
+                <option value="1.0">D / 1.0</option>
+                <option value="0.0">F / 0.0</option>
+            </select>
+            <input type="number" class="input-nexus credit-input" value="3" min="0" max="10">
+            <button class="btn-nexus-secondary" style="padding: 0;" onclick="this.parentElement.remove(); calculateGPA();">✕</button>
+        `;
+        courseList.appendChild(row);
+        
+        row.querySelectorAll('input, select').forEach(el => el.addEventListener('change', calculateGPA));
+    });
+
+    courseList.querySelectorAll('input, select').forEach(el => el.addEventListener('change', calculateGPA));
+    calculateGPA();
+</script>
+{% endblock %}

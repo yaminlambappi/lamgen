@@ -1,0 +1,89 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .editor-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; height: 350px; }
+    .editor-pane { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #0A0A0F; }
+    .editor-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border); }
+    .editor-header h3 { font-size: 0.9rem; font-weight: 600; color: var(--text); margin: 0; }
+    .editor-actions { display: flex; gap: 0.5rem; }
+    .editor-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+    .editor-btn:hover { background: var(--surface); color: var(--text); }
+    .editor-content { flex-grow: 1; padding: 1rem; width: 100%; border: none; background: transparent; color: var(--text); font-family: monospace; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; word-break: break-all; }
+    @media (max-width: 768px) { .editor-container { grid-template-columns: 1fr; height: auto; } .editor-pane { height: 250px; } }
+    .controls { display: flex; justify-content: center; gap: 1rem; margin: 1.5rem 0; }
+    .controls button { padding: 0.75rem 2rem; border-radius: 50px; font-weight: 600; cursor: pointer; border: none; transition: transform 0.2s; }
+    #btn-encode { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; }
+    #btn-decode { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    #btn-encode:hover, #btn-decode:hover { transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="controls">
+    <button id="btn-encode">URL Encode &rarr;</button>
+    <button id="btn-decode">&larr; URL Decode</button>
+</div>
+<div class="editor-container">
+    <div class="editor-pane">
+        <div class="editor-header">
+            <h3>Normal Text / URL</h3>
+            <div class="editor-actions">
+                <button class="editor-btn" id="btn-clear-text" title="Clear input"><i class="bi bi-trash"></i></button>
+                <button class="editor-btn" id="btn-paste-text" title="Paste from clipboard"><i class="bi bi-clipboard"></i></button>
+            </div>
+        </div>
+        <textarea id="input-text" class="editor-content" placeholder="Enter text to encode..."></textarea>
+    </div>
+    
+    <div class="editor-pane">
+        <div class="editor-header">
+            <h3>Encoded URL</h3>
+            <div class="editor-actions">
+                <button class="editor-btn" id="btn-clear-enc" title="Clear input"><i class="bi bi-trash"></i></button>
+                <button class="editor-btn" id="btn-copy-enc" title="Copy to clipboard"><i class="bi bi-clipboard-check"></i> Copy</button>
+            </div>
+        </div>
+        <textarea id="input-enc" class="editor-content" placeholder="Enter encoded URL to decode..."></textarea>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const textIn = document.getElementById('input-text');
+        const encIn = document.getElementById('input-enc');
+        const btnEncode = document.getElementById('btn-encode');
+        const btnDecode = document.getElementById('btn-decode');
+
+        btnEncode.addEventListener('click', () => {
+            if(!textIn.value) return;
+            encIn.value = encodeURIComponent(textIn.value);
+        });
+
+        btnDecode.addEventListener('click', () => {
+            if(!encIn.value) return;
+            try {
+                textIn.value = decodeURIComponent(encIn.value);
+            } catch(e) {
+                alert('Decoding failed: Invalid URL encoded string');
+            }
+        });
+
+        document.getElementById('btn-clear-text').addEventListener('click', () => textIn.value = '');
+        document.getElementById('btn-clear-enc').addEventListener('click', () => encIn.value = '');
+        
+        document.getElementById('btn-paste-text').addEventListener('click', async () => {
+            textIn.value = await navigator.clipboard.readText();
+        });
+        
+        document.getElementById('btn-copy-enc').addEventListener('click', async () => {
+            await navigator.clipboard.writeText(encIn.value);
+            const btn = document.getElementById('btn-copy-enc');
+            btn.innerHTML = '<i class="bi bi-check2"></i> Copied';
+            setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard-check"></i> Copy', 2000);
+        });
+    });
+</script>
+{% endblock %}

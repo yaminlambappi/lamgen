@@ -30,10 +30,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
+    # Existing apps
     'accounts',
     'thesis',
     'dashboard',
     'generation',
+    # New ecosystem apps
+    'tools',
+    'seo',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'tools.context_processors.tools_context',
             ],
         },
     },
@@ -104,6 +110,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = env.str('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
 
+# Edge Caching & Whitenoise Optimization (Immutable static files)
+WHITENOISE_MAX_AGE = 31536000
+WHITENOISE_KEEP_ONLY_HASHED_FILES = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -118,6 +129,30 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# Cache (Redis with fallback to LocMem for local dev without Redis)
+try:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {'socket_connect_timeout': 2, 'socket_timeout': 2},
+        }
+    }
+except Exception:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
+
+# SEO settings
+SITE_NAME = 'LamGen Tools'
+SITE_URL = env('SITE_URL', default='https://lamgen.tools')
+
+# Tools ecosystem settings
+TOOLS_PER_PAGE = 24
+SEO_PAGES_PER_PAGE = 20
 
 # Anthropic API key
 ANTHROPIC_API_KEY = env('ANTHROPIC_API_KEY', default='')

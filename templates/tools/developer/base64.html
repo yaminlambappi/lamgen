@@ -1,0 +1,63 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_workspace %}
+<div class="flex flex-col gap-6">
+    <div class="input-group">
+        <label class="block text-sm font-medium text-muted mb-2">Input Text / Base64</label>
+        <textarea id="base64-input" class="input-nexus min-h-[200px]" placeholder="Type or paste here..."></textarea>
+    </div>
+
+    <div class="flex gap-4">
+        <button id="encode-btn" class="btn-nexus flex-1">Encode to Base64</button>
+        <button id="decode-btn" class="btn-nexus flex-1">Decode from Base64</button>
+    </div>
+
+    <div class="input-group">
+        <label class="block text-sm font-medium text-muted mb-2">Output</label>
+        <textarea id="base64-output" class="input-nexus min-h-[200px]" readonly placeholder="Result will appear here..."></textarea>
+    </div>
+    
+    <div class="flex gap-4">
+        <button id="copy-btn" class="btn-nexus-secondary flex-1">Copy Result</button>
+        <button id="clear-btn" class="btn-nexus-secondary flex-1">Clear All</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    const input = document.getElementById('base64-input');
+    const output = document.getElementById('base64-output');
+    const encodeBtn = document.getElementById('encode-btn');
+    const decodeBtn = document.getElementById('decode-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const clearBtn = document.getElementById('clear-btn');
+
+    encodeBtn.addEventListener('click', () => {
+        try {
+            output.value = btoa(unescape(encodeURIComponent(input.value)));
+        } catch (e) {
+            output.value = "Error: Cannot encode binary or invalid characters.";
+        }
+    });
+
+    decodeBtn.addEventListener('click', () => {
+        try {
+            output.value = decodeURIComponent(escape(atob(input.value)));
+        } catch (e) {
+            output.value = "Error: Invalid Base64 string.";
+        }
+    });
+
+    copyBtn.addEventListener('click', () => {
+        output.select();
+        document.execCommand('copy');
+        nexusToast.success('Result copied to clipboard!');
+    });
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        output.value = '';
+    });
+</script>
+{% endblock %}

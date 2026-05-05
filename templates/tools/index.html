@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<style>
+    .os-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 6rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 4rem;
+    }
+
+    /* Centerpiece Visuals */
+    .system-core {
+        position: relative;
+        width: 100%;
+        height: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+    .core-pulse {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(108,99,255,0.3) 0%, transparent 70%);
+        animation: pulseCore 4s infinite alternate ease-in-out;
+        position: absolute;
+    }
+    .core-ring {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        border: 1px dashed rgba(255,255,255,0.1);
+        position: absolute;
+        animation: spinRing 20s linear infinite;
+    }
+    .core-ring.secondary {
+        width: 200px;
+        height: 200px;
+        border: 1px solid rgba(0, 245, 212, 0.05);
+        animation: spinRingReverse 30s linear infinite;
+        border-style: dotted;
+    }
+    @keyframes pulseCore {
+        0% { transform: scale(0.8); opacity: 0.3; }
+        100% { transform: scale(1.5); opacity: 0.8; }
+    }
+    @keyframes spinRing { 100% { transform: rotate(360deg); } }
+    @keyframes spinRingReverse { 100% { transform: rotate(-360deg); } }
+    .core-logo {
+        position: relative;
+        z-index: 10;
+        font-family: 'Syne', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        letter-spacing: 8px;
+        text-transform: uppercase;
+        background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.2) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 40px rgba(255,255,255,0.1);
+    }
+
+    .sci-fi-divider {
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+        margin: 0;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .sci-fi-divider::after {
+        content: '';
+        width: 20px;
+        height: 2px;
+        background: var(--primary);
+        box-shadow: 0 0 10px var(--primary);
+        border-radius: 2px;
+    }
+
+    /* Workspace Selector */
+    .workspace-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        perspective: 1200px;
+    }
+
+    .workspace-btn {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        color: var(--text);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform-style: preserve-3d;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .workspace-btn:hover {
+        background: rgba(255, 255, 255, 0.04);
+        transform: translateY(-8px) rotateX(4deg) rotateY(4deg);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    /* ── Alien Silhouette Shapes ── */
+    .workspace-btn[data-shape="developer"] {
+        clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+        border-radius: 4px;
+    }
+    .workspace-btn[data-shape="media"] {
+        border-radius: 24px 8px 24px 8px;
+    }
+    .workspace-btn[data-shape="student"] {
+        border-radius: 20px;
+    }
+    .workspace-btn[data-shape="seo"] {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+        border-radius: 4px;
+    }
+    .workspace-btn[data-shape="viral"] {
+        clip-path: polygon(0 16px, 16px 0, 100% 0, 100% 100%, 0 100%);
+        border-radius: 6px;
+    }
+    .workspace-btn[data-shape="utility"] {
+        clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+        border-radius: 4px;
+    }
+
+    .workspace-btn::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 150px; height: 150px;
+        background: radial-gradient(circle at top right, var(--primary), transparent 70%);
+        opacity: 0.05;
+        transition: opacity 0.4s;
+    }
+
+
+    
+    .workspace-btn:hover::before { opacity: 0.2; }
+
+    .workspace-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        flex-shrink: 0;
+        transform: translateZ(20px);
+        box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .workspace-info h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; transform: translateZ(15px); }
+    .workspace-info p { font-size: 0.9rem; color: var(--muted); margin: 0; transform: translateZ(10px); }
+
+
+
+    .workflow-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .workflow-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .workflow-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.95rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .workflow-link:hover {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .workflows-container {
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 4rem;
+    }
+
+    @media (max-width: 768px) {
+        .hero-search h1 { font-size: 2.5rem; }
+        .os-shell { padding: 4rem 1.5rem; }
+        .workflows-container { grid-template-columns: 1fr; gap: 2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="os-shell">
+    <!-- Cinematic Initialization Core -->
+    <div class="system-core">
+        <div class="core-pulse"></div>
+        <div class="core-ring"></div>
+        <div class="core-ring secondary"></div>
+        <div class="core-logo">LAMGEN</div>
+    </div>
+
+    <!-- Workspaces -->
+    <section>
+        <div class="workspace-grid">
+            {% for cat in categories %}
+            <a href="{{ cat.get_absolute_url }}" class="workspace-btn" data-shape="{{ cat.slug }}">
+                <div class="workspace-icon" style="background: {{ cat.color_from }};">
+                    <i class="{{ cat.icon }}"></i>
+                </div>
+                <div class="workspace-info">
+                    <h3>{{ cat.name }}</h3>
+                    <p>{{ cat.tools.count }} operational nodes</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="sci-fi-divider"></div>
+
+    <div class="workflows-container">
+        <!-- Recent Workflows -->
+        {% if recent_tools %}
+        <section class="workflow-section">
+            <div class="workflow-nav">
+                {% for tool in recent_tools %}
+                <a href="{{ tool.get_absolute_url }}" class="workflow-link">
+                    <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }};"></i>
+                    {{ tool.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Trending Now -->
+        <section class="workflow-section">
+            <div class="workflow-nav">
+                {% for tool in trending %}
+                <a href="{{ tool.get_absolute_url }}" class="workflow-link">
+                    <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }};"></i>
+                    {{ tool.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <div class="sci-fi-divider"></div>
+
+    <!-- Quick Actions -->
+    <section class="workflow-section">
+        <div class="workflow-row">
+            <a href="/tools/developer/json-validator/" class="workflow-link"><i class="bi bi-braces"></i> Format JSON</a>
+            <a href="/tools/media/pdf-merge/" class="workflow-link"><i class="bi bi-file-pdf"></i> Merge PDF</a>
+            <a href="/tools/create/text-humanizer/" class="workflow-link"><i class="bi bi-magic"></i> Humanize AI</a>
+            <a href="/tools/utility/unit-converter/" class="workflow-link"><i class="bi bi-rulers"></i> Convert Units</a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const osSearch = document.getElementById('osSearch');
+    
+    // Redirect to command palette logic if needed or just focus it
+    osSearch.addEventListener('focus', () => {
+        // We can just use the global command palette logic here
+        // Or implement a dedicated UI for the home search
+    });
+
+    osSearch.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const q = osSearch.value.trim();
+            if (q) {
+                // Perform natural language search or jump to first result
+            }
+        }
+    });
+
+    // Auto-focus on slash key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            osSearch.focus();
+        }
+    });
+</script>
+{% endblock %}

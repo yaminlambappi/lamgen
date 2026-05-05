@@ -1,0 +1,116 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .editor-textarea { width: 100%; background: #0A0A0F; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 1.5rem; font-family: 'DM Sans', sans-serif; font-size: 1.1rem; line-height: 1.6; resize: vertical; min-height: 300px; outline: none; margin-bottom: 2rem; }
+    .editor-textarea:focus { border-color: var(--primary); }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+    .stat-val { font-size: 2.5rem; font-weight: 800; color: var(--text); font-family: 'Syne', sans-serif; margin-bottom: 0.5rem; z-index: 1; }
+    .stat-label { font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; z-index: 1; }
+    
+    .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent)); opacity: 0.5; transition: opacity 0.3s; }
+    .stat-card:hover::after { opacity: 1; }
+    
+    .secondary-stats { display: flex; flex-wrap: wrap; gap: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 1.5rem; }
+    .sec-stat { flex: 1; min-width: 150px; display: flex; justify-content: space-between; border-right: 1px solid var(--border); padding-right: 1.5rem; }
+    .sec-stat:last-child { border-right: none; padding-right: 0; }
+    .sec-label { color: var(--muted); font-size: 0.9rem; }
+    .sec-val { font-weight: bold; color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-val" id="st-words">0</div>
+        <div class="stat-label">Words</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" id="st-chars">0</div>
+        <div class="stat-label">Characters</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" id="st-chars-no-space">0</div>
+        <div class="stat-label">Chars (No Spaces)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" id="st-sentences">0</div>
+        <div class="stat-label">Sentences</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" id="st-paragraphs">0</div>
+        <div class="stat-label">Paragraphs</div>
+    </div>
+</div>
+
+<textarea id="text-input" class="editor-textarea" placeholder="Start typing or paste your document here..."></textarea>
+
+<div class="secondary-stats">
+    <div class="sec-stat">
+        <span class="sec-label">Reading Time:</span>
+        <span class="sec-val" id="st-read">0 min</span>
+    </div>
+    <div class="sec-stat">
+        <span class="sec-label">Speaking Time:</span>
+        <span class="sec-val" id="st-speak">0 min</span>
+    </div>
+    <div class="sec-stat">
+        <span class="sec-label">Longest Word:</span>
+        <span class="sec-val" id="st-longest">-</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('text-input');
+        
+        function updateStats() {
+            const text = input.value;
+            
+            // Characters
+            const chars = text.length;
+            const charsNoSpace = text.replace(/\s+/g, '').length;
+            
+            // Words
+            const wordMatches = text.match(/\b[-?(\w+)?]+\b/gi);
+            const words = wordMatches ? wordMatches.length : 0;
+            
+            // Sentences
+            const sentenceMatches = text.match(/[^.!?\s][^.!?]*(?:[.!?](?!['"]?\s|$)[^.!?]*)*[.!?]?['"]?(?=\s|$)/g);
+            const sentences = text.trim() ? (sentenceMatches ? sentenceMatches.length : 1) : 0;
+            
+            // Paragraphs
+            const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+            
+            // Times (238 wpm reading, 130 wpm speaking)
+            const readTime = Math.ceil(words / 238);
+            const speakTime = Math.ceil(words / 130);
+            
+            // Longest word
+            let longest = "-";
+            if (wordMatches) {
+                longest = wordMatches.reduce((a, b) => a.length >= b.length ? a : b, "");
+                if (longest.length > 20) longest = longest.substring(0, 20) + '...';
+            }
+            
+            document.getElementById('st-chars').textContent = chars;
+            document.getElementById('st-chars-no-space').textContent = charsNoSpace;
+            document.getElementById('st-words').textContent = words;
+            document.getElementById('st-sentences').textContent = sentences;
+            document.getElementById('st-paragraphs').textContent = paragraphs;
+            
+            document.getElementById('st-read').textContent = `~${readTime} min`;
+            document.getElementById('st-speak').textContent = `~${speakTime} min`;
+            document.getElementById('st-longest').textContent = longest;
+        }
+        
+        input.addEventListener('input', updateStats);
+        updateStats(); // init
+    });
+</script>
+{% endblock %}

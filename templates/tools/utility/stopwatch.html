@@ -1,0 +1,134 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .stopwatch-display { font-family: 'Fira Code', monospace; font-size: 6rem; font-weight: 700; color: var(--primary); text-align: center; margin: 3rem 0; text-shadow: 0 0 30px rgba(108,99,255,0.3); }
+    .ms-display { font-size: 3rem; color: var(--muted); }
+    
+    .controls { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 3rem; }
+    .btn-circle { width: 80px; height: 80px; border-radius: 50%; border: none; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .btn-circle:hover { transform: translateY(-4px); }
+    
+    #btn-play { background: linear-gradient(135deg, var(--accent), #00d2b6); color: #000; }
+    #btn-pause { background: linear-gradient(135deg, #FFC107, #FF9800); color: #000; display: none; }
+    #btn-lap { background: var(--surface); color: var(--text); border: 2px solid var(--border); }
+    #btn-reset { background: rgba(255,107,107,0.1); color: var(--danger); border: 2px solid rgba(255,107,107,0.3); }
+
+    .laps-container { background: rgba(0,0,0,0.3); border-radius: 16px; border: 1px solid var(--border); padding: 1.5rem; max-height: 300px; overflow-y: auto; }
+    .lap-item { display: flex; justify-content: space-between; padding: 0.8rem; border-bottom: 1px solid var(--border); font-family: monospace; font-size: 1.2rem; }
+    .lap-item:last-child { border-bottom: none; }
+    .lap-number { color: var(--muted); }
+    
+    @media (max-width: 768px) { .stopwatch-display { font-size: 4rem; } .ms-display { font-size: 2rem; } }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="stopwatch-display" id="display">
+    <span id="min">00</span>:<span id="sec">00</span><span class="ms-display">.<span id="ms">00</span></span>
+</div>
+
+<div class="controls">
+    <button class="btn-circle" id="btn-reset" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+    <button class="btn-circle" id="btn-play" title="Start"><i class="bi bi-play-fill" style="font-size: 2.5rem;"></i></button>
+    <button class="btn-circle" id="btn-pause" title="Pause"><i class="bi bi-pause-fill" style="font-size: 2.5rem;"></i></button>
+    <button class="btn-circle" id="btn-lap" title="Lap"><i class="bi bi-flag-fill"></i></button>
+</div>
+
+<div class="laps-container" id="laps" style="display: none;">
+    <!-- Laps inserted here -->
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let running = false;
+        let laps = [];
+
+        const eMin = document.getElementById('min');
+        const eSec = document.getElementById('sec');
+        const eMs = document.getElementById('ms');
+        
+        const btnPlay = document.getElementById('btn-play');
+        const btnPause = document.getElementById('btn-pause');
+        const btnReset = document.getElementById('btn-reset');
+        const btnLap = document.getElementById('btn-lap');
+        const lapsCont = document.getElementById('laps');
+
+        function formatTime(time) {
+            let ms = Math.floor((time % 1000) / 10);
+            let s = Math.floor((time / 1000) % 60);
+            let m = Math.floor((time / (1000 * 60)) % 60);
+
+            return {
+                min: m.toString().padStart(2, "0"),
+                sec: s.toString().padStart(2, "0"),
+                ms: ms.toString().padStart(2, "0")
+            };
+        }
+
+        function printTime() {
+            let t = formatTime(elapsedTime);
+            eMin.textContent = t.min;
+            eSec.textContent = t.sec;
+            eMs.textContent = t.ms;
+        }
+
+        function start() {
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(() => {
+                elapsedTime = Date.now() - startTime;
+                printTime();
+            }, 10);
+            running = true;
+            btnPlay.style.display = "none";
+            btnPause.style.display = "flex";
+        }
+
+        function pause() {
+            clearInterval(timerInterval);
+            running = false;
+            btnPause.style.display = "none";
+            btnPlay.style.display = "flex";
+        }
+
+        function reset() {
+            clearInterval(timerInterval);
+            elapsedTime = 0;
+            printTime();
+            running = false;
+            btnPause.style.display = "none";
+            btnPlay.style.display = "flex";
+            laps = [];
+            lapsCont.innerHTML = "";
+            lapsCont.style.display = "none";
+        }
+
+        function recordLap() {
+            if(!running && elapsedTime === 0) return;
+            let t = formatTime(elapsedTime);
+            laps.unshift(`${t.min}:${t.sec}.${t.ms}`);
+            renderLaps();
+        }
+
+        function renderLaps() {
+            lapsCont.style.display = "block";
+            lapsCont.innerHTML = laps.map((l, i) => `
+                <div class="lap-item">
+                    <span class="lap-number">Lap ${laps.length - i}</span>
+                    <span>${l}</span>
+                </div>
+            `).join('');
+        }
+
+        btnPlay.addEventListener('click', start);
+        btnPause.addEventListener('click', pause);
+        btnReset.addEventListener('click', reset);
+        btnLap.addEventListener('click', recordLap);
+    });
+</script>
+{% endblock %}

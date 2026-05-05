@@ -4,10 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LamGen — AI Thesis Platform{% endblock %}</title>
+    <!-- Edge Cache & PWA -->
+    <meta http-equiv="Cache-Control" content="public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400">
+    <meta name="theme-color" content="#0a0a0f">
+    <!-- Core Web Vitals Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"></noscript>
     {% load static %}
     <style>
         :root {
@@ -26,7 +34,7 @@
 
         html, body {
             height: 100%;
-            background: var(--bg);
+            background: transparent;
             color: var(--text);
             font-family: 'DM Sans', sans-serif;
             font-size: 15px;
@@ -34,191 +42,472 @@
             overflow-x: hidden;
         }
 
-        /* ── Animated mesh background ── */
-        .mesh-bg {
+        /* ── Cinematic Alien Environment ── */
+        .space-bg {
             position: fixed;
             inset: 0;
             z-index: -1;
+            background: radial-gradient(circle at 50% 100%, #1a163a 0%, #080614 60%, #000000 100%);
             overflow: hidden;
+            pointer-events: none; /* Make sure it doesn't block clicks */
         }
-        .mesh-bg::before,
-        .mesh-bg::after,
-        .mesh-bg span {
+
+        /* Distant Galaxy Clusters - Optimized without heavy blur */
+        .galaxy-cluster {
+            position: absolute;
+            width: 150vw;
+            height: 100vh;
+            top: 10vh; left: -25vw;
+            background: radial-gradient(ellipse at center, rgba(108, 99, 255, 0.08) 0%, transparent 60%);
+            transform: rotate(-15deg);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Subtle Alien/Tech Grid fading to top */
+        .alien-grid {
+            position: absolute;
+            inset: 0;
+            background-size: 100px 100px;
+            background-image: 
+                linear-gradient(to right, rgba(0, 245, 212, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 245, 212, 0.05) 1px, transparent 1px);
+            transform: perspective(1000px) rotateX(70deg) translateY(100px) translateZ(-200px);
+            transform-origin: bottom;
+            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
+            z-index: 1;
+        }
+
+        /* Deep-space glowing planet arc - Optimized without expensive box-shadow */
+        .planet {
+            position: absolute;
+            width: 250vw;
+            height: 250vw;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 100%, rgba(0, 245, 212, 0.04) 0%, rgba(108, 99, 255, 0.08) 40%, transparent 70%);
+            top: 45vh;
+            left: -75vw;
+            z-index: 0;
+        }
+
+        /* Volumetric Light Beams */
+        .light-beams {
+            position: absolute;
+            inset: -20vw; /* extended to prevent clipping during animation */
+            background: repeating-linear-gradient(
+                75deg,
+                rgba(255, 255, 255, 0.01) 0px,
+                rgba(255, 255, 255, 0.01) 50px,
+                transparent 50px,
+                transparent 150px
+            );
+            mask-image: radial-gradient(circle at 50% 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
+            -webkit-mask-image: radial-gradient(circle at 50% 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 70%);
+            animation: beamsDrift 80s linear infinite;
+            z-index: 1;
+            will-change: transform;
+        }
+
+        .stars {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20vw 30vh, rgba(255,255,255,0.8), transparent),
+                radial-gradient(2px 2px at 40vw 70vh, rgba(255,255,255,0.6), transparent),
+                radial-gradient(3px 3px at 80vw 40vh, rgba(255,255,255,0.7), transparent),
+                radial-gradient(2px 2px at 60vw 10vh, rgba(0,245,212,0.4), transparent),
+                radial-gradient(3px 3px at 90vw 90vh, rgba(108,99,255,0.4), transparent);
+            background-size: 200vw 200vh;
+            animation: starsDrift 200s linear infinite;
+            z-index: 2;
+            will-change: transform;
+        }
+        
+        .stars::after {
             content: '';
             position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.18;
+            inset: 0;
+            background-image: 
+                radial-gradient(1px 1px at 15vw 25vh, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1.5px 1.5px at 75vw 35vh, rgba(255,255,255,0.3), transparent);
+            background-size: 150vw 150vh;
+            animation: starsDrift 300s linear infinite reverse;
+            will-change: transform;
         }
-        .mesh-bg::before {
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, #6C63FF 0%, transparent 70%);
-            top: -150px; left: -150px;
-            animation: meshMove1 18s ease-in-out infinite alternate;
-        }
-        .mesh-bg::after {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, #00F5D4 0%, transparent 70%);
-            bottom: -100px; right: -100px;
-            animation: meshMove2 22s ease-in-out infinite alternate;
-        }
-        .mesh-bg span {
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, #FF6B6B 0%, transparent 70%);
-            top: 40%; left: 50%;
-            transform: translate(-50%, -50%);
-            animation: meshMove3 26s ease-in-out infinite alternate;
-        }
-        @keyframes meshMove1 { from { transform: translate(0,0); } to { transform: translate(120px, 80px); } }
-        @keyframes meshMove2 { from { transform: translate(0,0); } to { transform: translate(-100px, -60px); } }
-        @keyframes meshMove3 { from { transform: translate(-50%,-50%); } to { transform: translate(-30%,-60%); } }
 
-        /* ── Navbar ── */
-        .nexus-nav {
+        /* Holographic Dust / Particles - No drop shadow */
+        .particles {
+            position: absolute;
+            inset: -200px;
+            background-image: radial-gradient(3px 3px at 0px 0px, rgba(0,245,212,0.4), transparent);
+            background-size: 150px 150px;
+            animation: particlesDrift 60s linear infinite;
+            z-index: 3;
+            will-change: transform;
+        }
+        
+        .particles::after {
+            content: '';
+            position: absolute;
+            inset: -200px;
+            background-image: radial-gradient(4px 4px at 0px 0px, rgba(108,99,255,0.4), transparent);
+            background-size: 250px 250px;
+            animation: particlesDrift 90s linear infinite reverse;
+            will-change: transform;
+        }
+
+        /* Energy/Rune Particles */
+        .rune-particles {
+            position: absolute;
+            inset: -100px;
+            background-image: 
+                radial-gradient(1px 10px at 50px 50px, rgba(0,245,212,0.3), transparent),
+                radial-gradient(10px 1px at 150px 150px, rgba(108,99,255,0.3), transparent);
+            background-size: 400px 400px;
+            animation: runeFloat 30s ease-in-out infinite;
+            z-index: 3;
+            will-change: transform;
+        }
+
+        /* Layered Volumetric Fog / Nebula - Optimized gradients without blur() */
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 1;
+            will-change: transform;
+        }
+        .fog-1 {
+            width: 120vw; height: 120vh;
+            background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, rgba(108,99,255,0.05) 40%, transparent 70%);
+            top: -20vh; left: -20vw;
+            animation: fogSway 45s ease-in-out infinite alternate;
+        }
+        .fog-2 {
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle, rgba(0,245,212,0.1) 0%, rgba(0,245,212,0.03) 40%, transparent 70%);
+            bottom: -30vh; right: -15vw;
+            animation: fogSway2 55s ease-in-out infinite alternate;
+        }
+        .fog-3 {
+            width: 80vw; height: 80vh;
+            background: radial-gradient(circle, rgba(255,107,107,0.08) 0%, transparent 60%);
+            top: 10vh; left: 20vw;
+            animation: fogSway 65s ease-in-out infinite alternate-reverse;
+        }
+        
+        /* Ambient Aurora Waves - Opacity animation only */
+        .ambient-pulse {
+            position: absolute;
+            width: 100vw; height: 60vh;
+            top: 0; left: 0;
+            background: linear-gradient(180deg, rgba(0,245,212,0.15) 0%, rgba(108,99,255,0.05) 50%, transparent 100%);
+            animation: pulseOpacity 15s ease-in-out infinite alternate;
+            z-index: 1;
+            mask-image: repeating-linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 10%, rgba(0,0,0,1) 20%);
+            -webkit-mask-image: repeating-linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.3) 10%, rgba(0,0,0,1) 20%);
+            background-size: 200% 100%;
+            will-change: opacity;
+        }
+
+        /* Ultra-smooth GPU-accelerated Keyframes */
+        @keyframes starsDrift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-20vw, -30vh, 0); } }
+        @keyframes particlesDrift { from { transform: translate3d(0, 0, 0) rotate(0deg); } to { transform: translate3d(-100px, -150px, 0) rotate(10deg); } }
+        @keyframes fogSway { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(8vw, 5vh, 0) scale(1.1); } }
+        @keyframes fogSway2 { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-8vw, -5vh, 0) scale(1.05); } }
+        @keyframes runeFloat { 0% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(20px, -30px, 0); } 100% { transform: translate3d(0, 0, 0); } }
+        @keyframes pulseOpacity { 0% { opacity: 0.4; } 100% { opacity: 0.8; } }
+        @keyframes beamsDrift { from { transform: translate3d(-5vw, 0, 0); } to { transform: translate3d(5vw, 0, 0); } }
+
+        /* ── Global Top Navigation ── */
+        .top-nav-wrapper {
             position: fixed;
-            top: 0; left: 0; right: 0;
+            top: 20px;
+            left: 20px;
+            right: 20px;
             z-index: 1000;
-            height: 68px;
             display: flex;
             align-items: center;
-            padding: 0 2rem;
-            background: rgba(10,10,15,0.7);
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .global-search-pill {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            background: rgba(15, 15, 22, 0.4);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 8px 16px;
+            width: 400px;
+            max-width: calc(100vw - 140px); /* Leave space for profile icon */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: text;
         }
-        .nexus-nav .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1.2rem;
+        .global-search-pill:hover, .global-search-pill:focus-within {
+            background: rgba(15, 15, 22, 0.8);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 10px 40px rgba(108,99,255,0.2);
+            width: 450px;
+        }
+        .global-search-pill input {
+            background: transparent;
+            border: none;
             color: var(--text);
-            flex-shrink: 0;
+            font-size: 0.95rem;
+            width: 100%;
+            outline: none;
+            padding: 4px 10px;
+            font-family: 'DM Sans', sans-serif;
         }
-        .nexus-nav .nav-brand .brand-icon {
-            width: 34px; height: 34px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem;
+        .global-search-pill input::placeholder { color: rgba(255,255,255,0.4); }
+        .global-search-pill .kbd {
+            font-size: 0.7rem; color: var(--muted); background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace;
         }
-        .nexus-nav .nav-links {
+
+        /* ── Floating OS Dock ── */
+        .os-dock {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            max-width: calc(100vw - 2rem);
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .os-dock::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ── OS Global Layout Shell ── */
+        .workspace-shell {
+            display: grid;
+            grid-template-columns: 1fr 260px;
+            gap: 2rem;
+            min-height: calc(100vh - 120px);
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 80px 2rem 100px;
+            perspective: 1500px;
+        }
+
+        /* Floating Panels General */
+        .spatial-panel {
+            background: rgba(20, 20, 30, 0.4);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: clamp(1rem, 4vw, 1.5rem);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+        }
+
+        /* Left Sidebar */
+        .workspace-sidebar { transform: translateZ(-20px) rotateY(5deg); position: sticky; top: 100px; height: calc(100vh - 140px); overflow-y: auto; }
+        .workspace-sidebar::-webkit-scrollbar { display: none; }
+        .workspace-sidebar:hover { transform: translateZ(0) rotateY(0); box-shadow: var(--glow); }
+        
+        .sidebar-section h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        .sidebar-nav { display: flex; flex-direction: column; gap: 6px; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.1);
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Center Content */
+        .workspace-main {
+            transform: translateZ(30px);
+            min-width: 0;
+            padding-bottom: 4rem;
+        }
+
+        /* Right Panel */
+        .workspace-actions { transform: translateZ(-20px) rotateY(-5deg); position: sticky; top: 100px; height: calc(100vh - 140px); overflow-y: auto; }
+        .workspace-actions::-webkit-scrollbar { display: none; }
+        .workspace-actions:hover { transform: translateZ(0) rotateY(0); box-shadow: var(--glow); }
+
+        .action-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace-shell { grid-template-columns: 260px 1fr; }
+            .workspace-actions { display: none; }
+        }
+        @media (max-width: 992px) {
+            .workspace-shell { grid-template-columns: 1fr; padding: 80px 1rem 100px; overflow-x: hidden; }
+            .workspace-sidebar { display: none; }
+            .workspace-main { transform: none; min-width: 0; max-width: 100vw; }
+        }
+
+        .dock-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 1.4rem;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: rgba(255,255,255,0.02);
+            border: 1px solid transparent;
+        }
+        .dock-item:hover {
+            transform: translateY(-8px) scale(1.15);
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        .dock-item.active {
+            background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(0,245,212,0.2));
+            border-color: rgba(108,99,255,0.4);
+            box-shadow: 0 0 20px rgba(108,99,255,0.3);
+        }
+        @media (max-width: 768px) {
+            .os-dock { display: flex; padding: 8px 16px; bottom: 16px; gap: 8px; }
+            .dock-item { width: 40px; height: 40px; font-size: 1.2rem; }
+            .workspace-actions { display: none !important; }
+        }
+        .dock-item::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: -40px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: 'DM Sans', sans-serif;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            transform: translateY(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .dock-item:hover::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .dock-divider {
+            width: 1px;
+            height: 32px;
+            background: rgba(255,255,255,0.1);
+            margin: 0 4px;
+        }
+
+        /* ── Floating Profile Widget & Dropdown ── */
+        .profile-widget {
+            pointer-events: auto;
+            position: absolute;
+            right: 0;
+        }
+        .profile-btn {
             display: flex;
             align-items: center;
-            gap: 0.25rem;
-            margin-left: auto;
-            list-style: none;
+            justify-content: center;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: rgba(15,15,22,0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .nexus-nav .nav-links a {
-            color: var(--muted);
-            text-decoration: none;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .nexus-nav .nav-links a:hover { color: var(--text); background: var(--surface); }
-        .nexus-nav .nav-links a.active { color: var(--primary); }
-
-        /* Dropdown */
+        .profile-btn:hover { background: rgba(255,255,255,0.1); }
+        
         .nav-dropdown { position: relative; }
-        .nav-dropdown-toggle {
-            display: flex; align-items: center; gap: 6px;
-            color: var(--muted);
-            background: none; border: none; cursor: pointer;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .nav-dropdown-toggle:hover { color: var(--text); background: var(--surface); }
         .nav-dropdown-menu {
             display: none;
             position: absolute;
-            top: calc(100% + 8px);
+            top: calc(100% + 10px);
             right: 0;
-            min-width: 180px;
-            background: rgba(15,15,22,0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 6px;
-            box-shadow: var(--glow);
+            min-width: 200px;
+            background: rgba(20, 20, 30, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05);
+            animation: fadeUp 0.2s ease forwards;
         }
-        .nav-dropdown:hover .nav-dropdown-menu,
         .nav-dropdown.open .nav-dropdown-menu { display: block; }
         .nav-dropdown-menu a,
         .nav-dropdown-menu button {
-            display: flex; align-items: center; gap: 8px;
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 0.875rem;
-            background: none; border: none; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.2s;
-        }
-        .nav-dropdown-menu a:hover,
-        .nav-dropdown-menu button:hover { color: var(--text); background: var(--surface); }
-        .nav-dropdown-menu .danger-item { color: var(--danger) !important; }
-        .nav-dropdown-menu .divider { height: 1px; background: var(--border); margin: 4px 0; }
-        .nav-dropdown-menu .menu-label {
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-
-        /* Mobile hamburger */
-        .nav-hamburger {
-            display: none;
-            background: none; border: none; cursor: pointer;
-            color: var(--text); font-size: 1.4rem;
-            margin-left: auto;
-        }
-        .nav-mobile-menu {
-            display: none;
-            position: fixed;
-            top: 68px; left: 0; right: 0;
-            background: rgba(10,10,15,0.97);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem;
-            z-index: 999;
-        }
-        .nav-mobile-menu.open { display: block; }
-        .nav-mobile-menu a,
-        .nav-mobile-menu button {
-            display: flex; align-items: center; gap: 8px;
+            display: flex; align-items: center; gap: 10px;
             width: 100%;
             padding: 10px 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--muted);
             text-decoration: none;
             font-size: 0.9rem;
             background: none; border: none; cursor: pointer;
             font-family: 'DM Sans', sans-serif;
             transition: all 0.2s;
+            text-align: left;
         }
-        .nav-mobile-menu a:hover,
-        .nav-mobile-menu button:hover { color: var(--text); background: var(--surface); }
-        .nav-mobile-menu .danger-item { color: var(--danger) !important; }
-        .nav-mobile-menu .divider { height: 1px; background: var(--border); margin: 6px 0; }
-
-        @media (max-width: 768px) {
-            .nexus-nav .nav-links { display: none; }
-            .nav-hamburger { display: block; }
+        .nav-dropdown-menu a:hover,
+        .nav-dropdown-menu button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+        .nav-dropdown-menu .danger-item { color: var(--danger) !important; }
+        .nav-dropdown-menu .danger-item:hover { background: rgba(255,107,107,0.1); }
+        .nav-dropdown-menu .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 6px 0; }
+        .nav-dropdown-menu .menu-label {
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text);
         }
 
         /* ── Main ── */
-        main { padding-top: 80px; min-height: 100vh; }
+        main { padding-top: 80px; padding-bottom: 100px; min-height: 100vh; position: relative; z-index: 1; }
 
         /* ── Toast ── */
         .toast-container {
@@ -390,20 +679,21 @@
             display: none;
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             z-index: 2000;
             align-items: center; justify-content: center;
         }
         .nexus-modal-overlay.open { display: flex; }
         .nexus-modal {
-            background: #0F0F1A;
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            background: rgba(15, 15, 22, 0.7);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
             padding: 2rem;
             max-width: 440px;
             width: 90%;
-            box-shadow: var(--glow);
-            animation: fadeUp 0.3s ease forwards;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.1);
+            animation: fadeUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         .nexus-modal h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem; }
         .nexus-modal p  { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
@@ -453,62 +743,115 @@
     </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <!-- Animated mesh background -->
-    <div class="mesh-bg"><span></span></div>
+    <!-- Cinematic Alien-World Environment -->
+    <div class="space-bg">
+        <div class="alien-grid"></div>
+        <div class="ambient-pulse"></div>
+        <div class="light-beams"></div>
+        <div class="galaxy-cluster"></div>
+        <div class="planet"></div>
+        <div class="stars"></div>
+        <div class="nebula fog-1"></div>
+        <div class="nebula fog-2"></div>
+        <div class="nebula fog-3"></div>
+        <div class="rune-particles"></div>
+        <div class="particles"></div>
+    </div>
 
-    <!-- Navbar -->
-    <nav class="nexus-nav">
-        <a href="{% url 'home' %}" class="nav-brand">
-            <div class="brand-icon">✦</div>
-            LamGen
-        </a>
+    <!-- Global Top Nav -->
+    <div class="top-nav-wrapper">
+        <!-- Global Floating Search -->
+        <div class="global-search-pill" style="position: relative; overflow: visible;">
+            <i class="bi bi-search" style="color: var(--muted); font-size: 1.1rem; margin-right: 8px;"></i>
+            <input type="text" id="inlineSearchInput" placeholder="Search LamGen..." style="background: transparent; border: none; color: var(--text); flex: 1; outline: none; font-size: 0.95rem; font-family: 'DM Sans', sans-serif;" autocomplete="off">
+            <div class="kb-shortcut" style="display: flex; gap: 4px;"><span class="kbd">⌘</span><span class="kbd">K</span></div>
+            
+            <!-- Inline Auto Suggestion Results -->
+            <div id="inlineSearchResults" style="display: none; position: absolute; top: calc(100% + 10px); left: 0; width: 100%; min-width: 300px; background: rgba(15, 15, 22, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 0.5rem; max-height: 400px; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.5); z-index: 2000;">
+            </div>
+        </div>
 
-        <ul class="nav-links">
-            {% if user.is_authenticated %}
-            <li><a href="{% url 'dashboard' %}"><i class="bi bi-grid-1x2"></i> Dashboard</a></li>
-            <li><a href="{% url 'thesis:upload' %}"><i class="bi bi-upload"></i> Upload</a></li>
-            <li class="nav-dropdown">
-                <button class="nav-dropdown-toggle" onclick="this.closest('.nav-dropdown').classList.toggle('open')">
-                    <i class="bi bi-person-circle"></i> {{ user.username }} <i class="bi bi-chevron-down" style="font-size:0.7rem;"></i>
+        <!-- Profile Widget -->
+        <div class="profile-widget">
+            <div class="nav-dropdown">
+                <button class="profile-btn nav-dropdown-toggle" onclick="this.closest('.nav-dropdown').classList.toggle('open')">
+                    {% if user.is_authenticated %}
+                    <i class="bi bi-person-circle"></i>
+                    {% else %}
+                    <i class="bi bi-person"></i>
+                    {% endif %}
                 </button>
-                <div class="nav-dropdown-menu">
-                    <span class="menu-label">{{ user.university }}</span>
+                <div class="nav-dropdown-menu" style="right: 0; min-width: 200px;">
+                    {% if user.is_authenticated %}
+                    <div class="menu-label">{{ user.username }}</div>
                     <div class="divider"></div>
-                    <a href="{% url 'dashboard' %}"><i class="bi bi-grid"></i> Dashboard</a>
+                    <a href="{% url 'dashboard' %}"><i class="bi bi-grid"></i> Control Center</a>
                     <div class="divider"></div>
                     <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
                         {% csrf_token %}
-                        <button type="submit" class="danger-item"><i class="bi bi-box-arrow-right"></i> Logout</button>
+                        <button type="submit" class="danger-item"><i class="bi bi-box-arrow-right"></i> Disconnect</button>
                     </form>
+                    {% else %}
+                    <a href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
+                    <a href="{% url 'accounts:register' %}"><i class="bi bi-person-plus"></i> Join LamGen</a>
+                    {% endif %}
                 </div>
-            </li>
-            {% else %}
-            <li><a href="{% url 'accounts:login' %}">Sign In</a></li>
-            <li><a href="{% url 'accounts:register' %}" style="color:var(--primary);font-weight:600;">Get Started</a></li>
-            {% endif %}
-        </ul>
-
-        <button class="nav-hamburger" id="hamburgerBtn" aria-label="Menu">
-            <i class="bi bi-list"></i>
-        </button>
-    </nav>
-
-    <!-- Mobile menu -->
-    <div class="nav-mobile-menu" id="mobileMenu">
-        {% if user.is_authenticated %}
-        <a href="{% url 'dashboard' %}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
-        <a href="{% url 'thesis:upload' %}"><i class="bi bi-upload"></i> Upload PDF</a>
-        <div class="divider"></div>
-        <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
-            {% csrf_token %}
-            <button type="submit" class="danger-item"><i class="bi bi-box-arrow-right"></i> Logout</button>
-        </form>
-        {% else %}
-        <a href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
-        <a href="{% url 'accounts:register' %}"><i class="bi bi-person-plus"></i> Get Started</a>
-        {% endif %}
+            </div>
+        </div>
     </div>
+
+    <!-- Main content Wrapper -->
+    <main class="workspace-shell">
+
+
+        <!-- Center Workspace Content -->
+        <div class="workspace-main">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Default Right Sidebar: Navigation -->
+        <aside class="spatial-panel workspace-actions" style="padding: 1.5rem; justify-content: flex-start; overflow-y: auto;">
+            {% block right_sidebar %}
+            <h4 style="font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Navigation</h4>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <a href="{% url 'tools:index' %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: rgba(255,255,255,0.02); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;"><i class="bi bi-grid-fill" style="color: var(--primary);"></i></div>
+                    <span style="font-weight: 600; font-size: 0.95rem;">All Workspaces</span>
+                </a>
+                
+                {% for cat in nav_categories %}
+                <a href="{{ cat.get_absolute_url }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: rgba(255,255,255,0.02); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;"><i class="{{ cat.icon }}" style="color: {{ cat.color_from }};"></i></div>
+                    <span style="font-weight: 600; font-size: 0.95rem;">{{ cat.name }}</span>
+                </a>
+                {% endfor %}
+
+                <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 8px 0;"></div>
+
+                <a href="{% url 'dashboard' %}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; text-decoration: none; color: var(--text); background: rgba(255,255,255,0.02); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.02)'">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;"><i class="bi bi-speedometer2" style="color: var(--muted);"></i></div>
+                    <span style="font-weight: 600; font-size: 0.95rem;">Control Center</span>
+                </a>
+            </div>
+            {% endblock %}
+        </aside>
+    </main>
+
+    <!-- Floating OS Dock -->
+    <nav class="os-dock">
+        <a href="{% url 'tools:index' %}" class="dock-item" data-tooltip="All Workspaces">
+            <i class="bi bi-grid-fill"></i>
+        </a>
+        {% for cat in nav_categories %}
+        <a href="{{ cat.get_absolute_url }}" class="dock-item" data-tooltip="{{ cat.name }}" style="color: {{ cat.color_from }};">
+            <i class="{{ cat.icon }}"></i>
+        </a>
+        {% endfor %}
+        <div class="dock-divider"></div>
+        <a href="{% url 'dashboard' %}" class="dock-item" data-tooltip="Control Center">
+            <i class="bi bi-speedometer2"></i>
+        </a>
+    </nav>
 
     <!-- Toast container -->
     <div class="toast-container" id="toastContainer">
@@ -523,32 +866,21 @@
         {% endfor %}
     </div>
 
-    <!-- Main content -->
-    <main>
-        {% block content %}{% endblock %}
-    </main>
 
-    <!-- Footer -->
-    <footer class="nexus-footer">
-        <a href="{% url 'home' %}" class="footer-brand">
-            <div class="brand-icon" style="width:24px;height:24px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;">✦</div>
-            LamGen
-        </a>
-        <div class="footer-links">
-            <a href="{% url 'home' %}">Home</a>
-            {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}">Dashboard</a>
-            <a href="{% url 'thesis:upload' %}">Upload</a>
-            {% endif %}
-        </div>
-        <span>&copy; 2025 LamGen. All rights reserved.</span>
-    </footer>
+
+
 
     <script>
-        // Hamburger toggle
-        document.getElementById('hamburgerBtn').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.toggle('open');
-        });
+        // Service Worker Registration for Edge Caching & Offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js').catch(err => {
+                    console.log('SW registration failed: ', err);
+                });
+            });
+        }
+        
+
         // Close dropdown on outside click
         document.addEventListener('click', (e) => {
             document.querySelectorAll('.nav-dropdown.open').forEach(d => {
@@ -558,6 +890,83 @@
         // Auto-dismiss toasts
         document.querySelectorAll('.nexus-toast[data-autohide]').forEach(t => {
             setTimeout(() => t.remove(), parseInt(t.dataset.autohide));
+        });
+
+        // Inline Search Logic
+        const inlineInput = document.getElementById('inlineSearchInput');
+        const inlineResults = document.getElementById('inlineSearchResults');
+
+        function toggleInlineSearch(show) {
+            if (show) {
+                inlineResults.style.display = 'block';
+                inlineInput.focus();
+            } else {
+                inlineResults.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                toggleInlineSearch(true);
+            }
+            if (e.key === 'Escape') {
+                toggleInlineSearch(false);
+                inlineInput.blur();
+            }
+        });
+
+        // Hide results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!inlineInput.contains(e.target) && !inlineResults.contains(e.target)) {
+                toggleInlineSearch(false);
+            }
+        });
+
+        inlineInput.addEventListener('focus', () => {
+            if (inlineInput.value.trim().length > 0) {
+                toggleInlineSearch(true);
+            }
+        });
+
+        let cmdTimeout;
+        inlineInput.addEventListener('input', () => {
+            clearTimeout(cmdTimeout);
+            const q = inlineInput.value.trim();
+            if (q.length < 2) {
+                inlineResults.style.display = 'block';
+                inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Type at least 2 characters to search...</div>';
+                return;
+            }
+
+            inlineResults.style.display = 'block';
+            inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Searching...</div>';
+
+            cmdTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/tools/search/?q=${encodeURIComponent(q)}`);
+                    const data = await res.json();
+                    
+                    if (data.results.length === 0) {
+                        inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">No results found.</div>';
+                        return;
+                    }
+
+                    inlineResults.innerHTML = data.results.map(r => `
+                        <a href="${r.url}" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 8px; text-decoration: none; color: var(--text); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+                            <div style="width: 32px; height: 32px; background: ${r.category_color_from}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="${r.icon}"></i>
+                            </div>
+                            <div style="flex: 1; overflow: hidden;">
+                                <div style="font-weight: 600; font-size: 0.95rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${r.name}</div>
+                                <div style="font-size: 0.8rem; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${r.category} &bull; ${r.short_desc}</div>
+                            </div>
+                        </a>
+                    `).join('');
+                } catch (e) {
+                    inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--danger); font-size: 0.9rem;">Search failed.</div>';
+                }
+            }, 200);
         });
     </script>
     {% block extra_js %}{% endblock %}

@@ -5,78 +5,11 @@
 
 {% block extra_css %}
 <style>
-    .dashboard-layout {
-        display: flex;
-        min-height: calc(100vh - 68px);
-    }
 
-    /* ── Sidebar ── */
-    .sidebar {
-        width: 240px;
-        flex-shrink: 0;
-        background: rgba(255,255,255,0.02);
-        border-right: 1px solid var(--border);
-        padding: 1.5rem 1rem;
-        display: flex;
-        flex-direction: column;
-        position: sticky;
-        top: 68px;
-        height: calc(100vh - 68px);
-        overflow-y: auto;
-    }
-    .sidebar-nav { list-style: none; flex: 1; }
-    .sidebar-nav li + li { margin-top: 2px; }
-    .sidebar-nav a {
-        display: flex; align-items: center; gap: 10px;
-        padding: 9px 12px;
-        border-radius: 10px;
-        color: var(--muted);
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-    }
-    .sidebar-nav a:hover { color: var(--text); background: var(--surface); }
-    .sidebar-nav a.active {
-        color: var(--primary);
-        background: rgba(108,99,255,0.12);
-        box-shadow: inset 3px 0 0 var(--primary);
-    }
-    .sidebar-nav a i { font-size: 1rem; width: 18px; text-align: center; }
-    .sidebar-user {
-        display: flex; align-items: center; gap: 10px;
-        padding: 10px 12px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        margin-top: 1rem;
-    }
-    .sidebar-avatar {
-        width: 34px; height: 34px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary), var(--accent));
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: #fff;
-        flex-shrink: 0;
-    }
-    .sidebar-user-info { min-width: 0; }
-    .sidebar-user-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sidebar-user-badge {
-        display: inline-block;
-        padding: 1px 7px;
-        background: linear-gradient(135deg, var(--primary), var(--accent));
-        border-radius: 50px;
-        font-size: 0.65rem;
-        font-weight: 700;
-        color: #fff;
-    }
 
     /* ── Main content ── */
     .dash-main {
-        flex: 1;
-        padding: 2rem;
+        width: 100%;
         min-width: 0;
     }
     .dash-topbar {
@@ -104,43 +37,51 @@
     .quick-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
+        gap: 1.5rem;
+        margin-bottom: 3rem;
     }
     .quick-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 1.25rem;
+        background: rgba(20, 20, 30, 0.4);
+        backdrop-filter: blur(30px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 1.5rem;
         text-align: center;
         text-decoration: none;
         color: var(--text);
-        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        cursor: pointer;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+        transform-style: preserve-3d;
     }
-    .quick-card:hover { transform: translateY(-3px); box-shadow: var(--glow); border-color: rgba(108,99,255,0.3); color: var(--text); }
-    .quick-card i { font-size: 1.5rem; color: var(--primary); display: block; margin-bottom: 0.5rem; }
-    .quick-card span { font-size: 0.85rem; font-weight: 500; }
+    .quick-card:hover { 
+        transform: translateY(-8px) rotateX(4deg) rotateY(4deg); 
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.2); 
+        border-color: rgba(108,99,255,0.3); 
+    }
+    .quick-card i { font-size: 2rem; color: var(--primary); display: block; margin-bottom: 0.75rem; transform: translateZ(20px); }
+    .quick-card span { font-size: 0.9rem; font-weight: 600; transform: translateZ(10px); display: block; }
 
     /* ── Stats ── */
     .stats-row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
+        gap: 1.5rem;
+        margin-bottom: 3rem;
     }
     .stat-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 1.25rem;
+        background: rgba(20, 20, 30, 0.4);
+        backdrop-filter: blur(30px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: transform 0.4s;
     }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     .stat-card .stat-val {
         font-family: 'Syne', sans-serif;
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: 800;
         line-height: 1;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0.5rem;
     }
     .stat-card .stat-label { font-size: 0.8rem; color: var(--muted); }
     .stat-card.total   .stat-val { color: var(--primary); }
@@ -150,17 +91,20 @@
 
     /* ── Table ── */
     .table-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
+        background: rgba(20, 20, 30, 0.4);
+        backdrop-filter: blur(30px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 24px;
         overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     }
     .table-card-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--border);
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
         font-family: 'Syne', sans-serif;
-        font-weight: 700;
-        font-size: 1rem;
+        font-weight: 800;
+        font-size: 1.2rem;
     }
     .nexus-table { width: 100%; border-collapse: collapse; }
     .nexus-table th {
@@ -236,251 +180,228 @@
     .page-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
     .page-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
+    /* ── Sections ── */
+    .section-header {
+        font-family: 'Syne', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .ws-module {
+        background: rgba(20, 20, 30, 0.4);
+        backdrop-filter: blur(30px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 2rem;
+        text-decoration: none;
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+        transform-style: preserve-3d;
+        position: relative;
+        overflow: hidden;
+    }
+    .ws-module:hover {
+        transform: translateY(-5px) rotateX(2deg) rotateY(2deg);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+    }
+    .ws-module::before {
+        content: ''; position: absolute; top: 0; right: 0; width: 150px; height: 150px;
+        background: radial-gradient(circle at top right, var(--primary), transparent 70%);
+        opacity: 0.05; transition: opacity 0.4s;
+    }
+    .ws-module:hover::before { opacity: 0.15; }
+
+    .module-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        transform: translateZ(20px);
+    }
+
+    .module-info h3 { font-size: 1.2rem; font-weight: 700; transform: translateZ(15px); }
+    .module-info p { font-size: 0.85rem; color: var(--muted); transform: translateZ(10px); }
+
+    .mini-link {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--text);
+        transition: all 0.2s;
+    }
+    .mini-link:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+        transform: translateY(-2px);
+    }
+
     @media (max-width: 768px) {
-        .sidebar { display: none; }
         .dash-main { padding: 1.25rem; }
-        .nexus-table th:nth-child(3),
-        .nexus-table td:nth-child(3) { display: none; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <ul class="sidebar-nav">
-            <li><a href="{% url 'home' %}"><i class="bi bi-house"></i> Home</a></li>
-            <li><a href="{% url 'thesis:upload' %}"><i class="bi bi-plus-circle"></i> New Thesis</a></li>
-            <li><a href="{% url 'dashboard' %}" class="active"><i class="bi bi-journal-text"></i> My Theses</a></li>
-        </ul>
-        <div class="sidebar-user">
-            <div class="sidebar-avatar">{{ user.username|first|upper }}</div>
-            <div class="sidebar-user-info">
-                <div class="sidebar-user-name">{{ user.username }}</div>
-                <span class="sidebar-user-badge">Pro</span>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Main -->
-    <div class="dash-main">
-        <!-- Top bar -->
-        <div class="dash-topbar">
-            <div class="dash-greeting">Good day, {{ user.username }} 👋</div>
-            <div class="dash-topbar-right">
-                <span class="credits-badge"><i class="bi bi-lightning-charge-fill"></i> {{ total_count }} theses</span>
-            </div>
-        </div>
-
-        <!-- Quick actions -->
-        <div class="quick-grid">
-            <a href="{% url 'thesis:upload' %}" class="quick-card">
-                <i class="bi bi-plus-circle"></i>
-                <span>New Thesis</span>
-            </a>
-            <a href="{% url 'thesis:upload' %}" class="quick-card">
-                <i class="bi bi-upload"></i>
-                <span>Upload PDF</span>
-            </a>
-            <div class="quick-card" style="cursor:default;opacity:0.5;">
-                <i class="bi bi-layout-text-window"></i>
-                <span>Templates</span>
-            </div>
-            <div class="quick-card" style="cursor:default;opacity:0.5;">
-                <i class="bi bi-folder2-open"></i>
-                <span>My Drafts</span>
-            </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-row">
-            <div class="stat-card total">
-                <div class="stat-val">{{ total_count }}</div>
-                <div class="stat-label">Total Theses</div>
-            </div>
-            <div class="stat-card done">
-                <div class="stat-val">{{ completed_count }}</div>
-                <div class="stat-label">Completed</div>
-            </div>
-            <div class="stat-card running">
-                <div class="stat-val">{{ processing_count }}</div>
-                <div class="stat-label">In Progress</div>
-            </div>
-            <div class="stat-card failed">
-                <div class="stat-val">{{ failed_count }}</div>
-                <div class="stat-label">Failed</div>
-            </div>
-        </div>
-
-        <!-- Theses table -->
-        <div class="table-card">
-            <div class="table-card-header">Recent Theses</div>
-
-            {% if page_obj.object_list %}
-            <div style="overflow-x:auto;">
-                <table class="nexus-table">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Last Edited</th>
-                            <th style="text-align:right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for thesis in page_obj %}
-                        <tr id="thesis-row-{{ thesis.pk }}">
-                            <td>
-                                <div class="thesis-title">{{ thesis.title|truncatechars:60 }}</div>
-                                <div class="thesis-date">{{ thesis.created_at|date:"M j, Y" }}</div>
-                            </td>
-                            <td>
-                                {% if thesis.status == 'COMPLETED' %}
-                                    <span class="badge-nexus badge-completed"><i class="bi bi-check-circle-fill"></i> Complete</span>
-                                {% elif thesis.status == 'PROCESSING' %}
-                                    <span class="badge-nexus badge-processing"><span class="pulse-dot"></span> Processing</span>
-                                {% elif thesis.status == 'PENDING' %}
-                                    <span class="badge-nexus badge-pending"><i class="bi bi-clock"></i> Pending</span>
-                                {% elif thesis.status == 'FAILED' %}
-                                    <span class="badge-nexus badge-failed"><i class="bi bi-x-circle-fill"></i> Failed</span>
-                                {% endif %}
-                            </td>
-                            <td class="thesis-date">{{ thesis.updated_at|date:"M j, Y, g:i a" }}</td>
-                            <td>
-                                <div class="action-btns" style="justify-content:flex-end;">
-                                    {% if thesis.status == 'COMPLETED' %}
-                                    <a href="{% url 'thesis:preview' thesis.pk %}" class="icon-btn view" title="Preview"><i class="bi bi-eye"></i></a>
-                                    <a href="{% url 'thesis:download' thesis.pk %}" class="icon-btn dl" title="Download"><i class="bi bi-download"></i></a>
-                                    {% elif thesis.status == 'PENDING' or thesis.status == 'PROCESSING' %}
-                                    <a href="{% url 'thesis:status' thesis.pk %}" class="icon-btn view" title="View Progress"><i class="bi bi-hourglass-split"></i></a>
-                                    {% endif %}
-                                    <button class="icon-btn del delete-btn"
-                                            data-thesis-id="{{ thesis.pk }}"
-                                            data-thesis-title="{{ thesis.title|truncatechars:40 }}"
-                                            title="Delete">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            {% if page_obj.has_other_pages %}
-            <div class="pagination-nexus">
-                {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}" class="page-btn"><i class="bi bi-chevron-left"></i></a>
-                {% endif %}
-                {% for num in page_obj.paginator.page_range %}
-                <a href="?page={{ num }}" class="page-btn {% if page_obj.number == num %}active{% endif %}">{{ num }}</a>
-                {% endfor %}
-                {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="page-btn"><i class="bi bi-chevron-right"></i></a>
-                {% endif %}
-            </div>
-            {% endif %}
-
+<!-- Dashboard Content starts natively inside the master workspace-main shell -->
+<!-- Top bar Hero -->
+        <div class="dash-topbar" style="margin-bottom: 4rem; justify-content: center; flex-direction: column; text-align: center;">
+            {% if user.is_authenticated %}
+            <div class="dash-greeting" style="font-size: 2.5rem; letter-spacing: -1px;">Welcome back, {{ user.username }} ✦</div>
             {% else %}
-            <div class="empty-state">
-                <div class="empty-icon"><i class="bi bi-journal-text"></i></div>
-                <h4>No theses yet</h4>
-                <p>Upload a PDF to generate your first university-standard thesis.</p>
-                <a href="{% url 'thesis:upload' %}" class="btn-primary-nexus">
-                    <i class="bi bi-upload"></i> Upload Your First PDF
+            <div class="dash-greeting" style="font-size: 2.5rem; letter-spacing: -1px;">LamGen</div>
+            {% endif %}
+            <p style="color: var(--muted); font-size: 1.1rem; max-width: 600px; margin-top: 0.5rem;">Your unified productivity environment. Access all tools and workflows instantly from the dock or command palette.</p>
+        </div>
+
+        <!-- 1. Continue Working -->
+        {% if recent_tools %}
+        <div style="margin-bottom: 4rem;">
+            <div class="section-header"><i class="bi bi-clock-history text-primary"></i> Continue Working</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">
+                {% for item in recent_tools %}
+                <a href="{{ item.tool.get_absolute_url }}" class="mini-link">
+                    <i class="{{ item.tool.icon }}" style="color: {{ item.tool.category.color_from }}; font-size: 1.2rem;"></i>
+                    <div style="flex:1;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">{{ item.tool.name }}</div>
+                        <div style="font-size: 0.75rem; color: var(--muted);">{{ item.last_used|timesince }} ago</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 2. Workspace Shortcuts -->
+        <div style="margin-bottom: 4rem;">
+            <div class="section-header"><i class="bi bi-grid-1x2 text-accent"></i> Workspaces</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; perspective: 1200px;">
+                {% for cat in categories %}
+                <a href="{{ cat.get_absolute_url }}" class="ws-module" onclick="openWorkspacePanel(event, '{{ cat.slug }}', this.href)">
+                    <style>.ws-{{ cat.slug }}::before { background: radial-gradient(circle at top right, {{ cat.color_from }}, transparent 70%); }</style>
+                    <div class="module-icon ws-{{ cat.slug }}" style="color: {{ cat.color_from }};">
+                        <i class="{{ cat.icon }}"></i>
+                    </div>
+                    <div class="module-info">
+                        <h3>{{ cat.name }}</h3>
+                        <p>{{ cat.tool_count }} Workflows</p>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 3. Quick Actions -->
+        <div style="margin-bottom: 4rem;">
+            <div class="section-header"><i class="bi bi-lightning-charge" style="color: #FFC107;"></i> Quick Actions</div>
+            <div class="quick-grid">
+                <a href="{% url 'thesis:upload' %}" class="quick-card">
+                    <i class="bi bi-magic" style="color: #6C63FF;"></i>
+                    <span>AI Thesis Builder</span>
+                </a>
+                <a href="/tools/media/image-compressor/" class="quick-card">
+                    <i class="bi bi-file-zip" style="color: #00F5D4;"></i>
+                    <span>Compress Image</span>
+                </a>
+                <a href="/tools/developer/json-formatter/" class="quick-card">
+                    <i class="bi bi-braces" style="color: #FF6B6B;"></i>
+                    <span>Format JSON</span>
+                </a>
+                <a href="/tools/media/pdf-merge/" class="quick-card">
+                    <i class="bi bi-file-pdf" style="color: #FFC107;"></i>
+                    <span>Merge PDF</span>
                 </a>
             </div>
-            {% endif %}
         </div>
-    </div>
-</div>
 
-<!-- Delete modal -->
-<div class="nexus-modal-overlay" id="deleteModal">
-    <div class="nexus-modal">
-        <h3><i class="bi bi-trash" style="color:var(--danger);margin-right:8px;"></i>Delete Thesis</h3>
-        <p>Are you sure you want to delete <strong id="deleteThesisTitle" style="color:var(--text);"></strong>? This action cannot be undone.</p>
-        <div class="modal-actions">
-            <button class="btn-ghost-nexus" id="cancelDeleteBtn" style="padding:8px 18px;font-size:0.875rem;">Cancel</button>
-            <button class="btn-danger-nexus" id="confirmDeleteBtn"><i class="bi bi-trash"></i> Delete</button>
+        <!-- 4. Trending Workflows -->
+        {% if trending %}
+        <div style="margin-bottom: 4rem;">
+            <div class="section-header"><i class="bi bi-fire" style="color: #FF6B6B;"></i> Trending Ecosystem</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
+                {% for tool in trending %}
+                <a href="{{ tool.get_absolute_url }}" class="mini-link">
+                    <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }};"></i>
+                    <span style="font-weight: 500; font-size: 0.9rem;">{{ tool.name }}</span>
+                </a>
+                {% endfor %}
+            </div>
         </div>
-    </div>
-</div>
+        {% endif %}
+        <!-- 5. Favorites -->
+        {% if favorite_tools %}
+        <div style="margin-bottom: 4rem;">
+            <div class="section-header"><i class="bi bi-star-fill text-accent"></i> Favorites</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;">
+                {% for fav in favorite_tools %}
+                <a href="{{ fav.tool.get_absolute_url }}" class="mini-link">
+                    <i class="{{ fav.tool.icon }}" style="color: {{ fav.tool.category.color_from }}; font-size: 1.2rem;"></i>
+                    <span style="font-weight: 500; font-size: 0.9rem;">{{ fav.tool.name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-const deleteModal = document.getElementById('deleteModal');
-let pendingDeleteId = null;
-
-document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        pendingDeleteId = btn.dataset.thesisId;
-        document.getElementById('deleteThesisTitle').textContent = btn.dataset.thesisTitle;
-        deleteModal.classList.add('open');
-    });
-});
-
-document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
-    deleteModal.classList.remove('open');
-    pendingDeleteId = null;
-});
-deleteModal.addEventListener('click', (e) => {
-    if (e.target === deleteModal) { deleteModal.classList.remove('open'); pendingDeleteId = null; }
-});
-
-document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-    if (!pendingDeleteId) return;
-    const btn = document.getElementById('confirmDeleteBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Deleting...';
-
-    try {
-        const csrfToken = document.cookie.split(';')
-            .find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
-        const resp = await fetch(`/thesis/delete/${pendingDeleteId}/`, {
-            method: 'DELETE',
-            headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
-        });
-        const data = await resp.json();
-        if (data.success) {
-            deleteModal.classList.remove('open');
-            const row = document.getElementById(`thesis-row-${pendingDeleteId}`);
-            if (row) {
-                row.style.transition = 'opacity 0.3s';
-                row.style.opacity = '0';
-                setTimeout(() => {
-                    row.remove();
-                    const tbody = document.querySelector('.nexus-table tbody');
-                    if (tbody && tbody.children.length === 0) location.reload();
-                }, 300);
-            }
-            showToast('Thesis deleted successfully.', 'success');
-        } else {
-            showToast('Failed to delete thesis.', 'danger');
-        }
-    } catch (err) {
-        showToast('An error occurred. Please try again.', 'danger');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-trash"></i> Delete';
-        pendingDeleteId = null;
+    function openWorkspacePanel(e, slug, url) {
+        // If dock links or dashboard workspace links are clicked, we can intercept them here
+        // Currently, it just navigates normally, but the user requested "NO page reload feeling".
+        // To achieve this fully, we would render a modal overlay here and fetch the category content.
+        // For now, intercept and fetch the tool grid.
+        e.preventDefault();
+        
+        const palette = document.getElementById('commandPalette');
+        const results = document.getElementById('cmdResults');
+        
+        // Show palette as a makeshift loading indicator / quick launcher overlay
+        toggleCmdPalette(true);
+        document.getElementById('cmdInput').value = 'Loading ' + slug + '...';
+        results.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--muted);">Fetching workspace...</div>';
+        
+        fetch(url)
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const grid = doc.querySelector('.tool-grid');
+                if (grid) {
+                    document.getElementById('cmdInput').value = '';
+                    document.getElementById('cmdInput').placeholder = 'Search within ' + slug + '...';
+                    results.innerHTML = '';
+                    // Convert grid items to simpler list for the command palette
+                    const items = grid.querySelectorAll('.tool-card');
+                    items.forEach(item => {
+                        const href = item.getAttribute('href');
+                        const title = item.querySelector('h3').textContent;
+                        const icon = item.querySelector('.tool-icon-wrapper i').className;
+                        
+                        results.innerHTML += `
+                            <a href="${href}" style="display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:12px; margin-bottom:8px; text-decoration:none; color:var(--text);">
+                                <div style="width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:var(--primary);">
+                                    <i class="${icon}"></i>
+                                </div>
+                                <div style="font-weight:600; font-size:0.95rem;">${title}</div>
+                            </a>
+                        `;
+                    });
+                }
+            });
     }
-});
-
-function showToast(message, type) {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    const t = document.createElement('div');
-    t.className = `nexus-toast ${type}`;
-    t.innerHTML = `
-        ${type === 'success' ? '<i class="bi bi-check-circle-fill text-accent"></i>' : '<i class="bi bi-exclamation-circle-fill" style="color:var(--danger)"></i>'}
-        ${message}
-        <button class="toast-close" onclick="this.closest('.nexus-toast').remove()">✕</button>`;
-    container.appendChild(t);
-    setTimeout(() => t.remove(), 5000);
-}
 </script>
 {% endblock %}

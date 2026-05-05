@@ -1,0 +1,221 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .converter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: center;
+    }
+    .unit-selector {
+        width: 100%;
+        margin-bottom: 2rem;
+    }
+    .input-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .input-box label {
+        font-size: 0.9rem;
+        color: var(--muted);
+    }
+    .swap-btn {
+        justify-self: center;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .swap-btn:hover {
+        background: var(--primary);
+        color: #000;
+    }
+    @media (max-width: 768px) {
+        .converter-grid {
+            grid-template-columns: 1fr;
+        }
+        .swap-btn {
+            transform: rotate(90deg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="unit-selector">
+    <label>Category</label>
+    <select id="unit-category" class="input-nexus">
+        <option value="length">Length</option>
+        <option value="weight">Weight / Mass</option>
+        <option value="temp">Temperature</option>
+        <option value="volume">Volume</option>
+        <option value="area">Area</option>
+    </select>
+</div>
+
+<div class="converter-grid">
+    <div class="input-box">
+        <label id="label-from">From</label>
+        <input type="number" id="input-from" class="input-nexus" value="1">
+        <select id="select-from" class="input-nexus"></select>
+    </div>
+
+    <div class="swap-btn" id="swap-units">
+        <i class="bi bi-arrow-left-right"></i>
+    </div>
+
+    <div class="input-box">
+        <label id="label-to">To</label>
+        <input type="number" id="input-to" class="input-nexus">
+        <select id="select-to" class="input-nexus"></select>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    const units = {
+        length: {
+            meter: 1,
+            kilometer: 1000,
+            centimeter: 0.01,
+            millimeter: 0.001,
+            inch: 0.0254,
+            foot: 0.3048,
+            yard: 0.9144,
+            mile: 1609.34
+        },
+        weight: {
+            kilogram: 1,
+            gram: 0.001,
+            milligram: 0.000001,
+            pound: 0.453592,
+            ounce: 0.0283495
+        },
+        volume: {
+            liter: 1,
+            milliliter: 0.001,
+            cubic_meter: 1000,
+            gallon: 3.78541,
+            quart: 0.946353
+        },
+        area: {
+            square_meter: 1,
+            square_kilometer: 1000000,
+            square_foot: 0.092903,
+            acre: 4046.86,
+            hectare: 10000
+        }
+    };
+
+    const categorySelect = document.getElementById('unit-category');
+    const selectFrom = document.getElementById('select-from');
+    const selectTo = document.getElementById('select-to');
+    const inputFrom = document.getElementById('input-from');
+    const inputTo = document.getElementById('input-to');
+    const swapBtn = document.getElementById('swap-units');
+
+    function populateUnits() {
+        const cat = categorySelect.value;
+        selectFrom.innerHTML = '';
+        selectTo.innerHTML = '';
+        
+        if (cat === 'temp') {
+            const temps = ['Celsius', 'Fahrenheit', 'Kelvin'];
+            temps.forEach(t => {
+                selectFrom.add(new Option(t, t));
+                selectTo.add(new Option(t, t));
+            });
+            selectTo.selectedIndex = 1;
+        } else {
+            Object.keys(units[cat]).forEach(u => {
+                const label = u.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                selectFrom.add(new Option(label, u));
+                selectTo.add(new Option(label, u));
+            });
+            selectTo.selectedIndex = 1;
+        }
+        convert();
+    }
+
+    function convert() {
+        const cat = categorySelect.value;
+        const from = selectFrom.value;
+        const to = selectTo.value;
+        const val = parseFloat(inputFrom.value);
+
+        if (isNaN(val)) {
+            inputTo.value = '';
+            return;
+        }
+
+        if (cat === 'temp') {
+            let celsius;
+            if (from === 'Celsius') celsius = val;
+            else if (from === 'Fahrenheit') celsius = (val - 32) * 5 / 9;
+            else celsius = val - 273.15;
+
+            let result;
+            if (to === 'Celsius') result = celsius;
+            else if (to === 'Fahrenheit') result = (celsius * 9 / 5) + 32;
+            else result = celsius + 273.15;
+            inputTo.value = result.toFixed(4);
+        } else {
+            const baseVal = val * units[cat][from];
+            const result = baseVal / units[cat][to];
+            inputTo.value = result.toFixed(6).replace(/\.?0+$/, "");
+        }
+    }
+
+    categorySelect.addEventListener('change', populateUnits);
+    selectFrom.addEventListener('change', convert);
+    selectTo.addEventListener('change', convert);
+    inputFrom.addEventListener('input', convert);
+    
+    inputTo.addEventListener('input', () => {
+        const cat = categorySelect.value;
+        const from = selectFrom.value;
+        const to = selectTo.value;
+        const val = parseFloat(inputTo.value);
+
+        if (isNaN(val)) {
+            inputFrom.value = '';
+            return;
+        }
+
+        if (cat === 'temp') {
+            let celsius;
+            if (to === 'Celsius') celsius = val;
+            else if (to === 'Fahrenheit') celsius = (val - 32) * 5 / 9;
+            else celsius = val - 273.15;
+
+            let result;
+            if (from === 'Celsius') result = celsius;
+            else if (from === 'Fahrenheit') result = (celsius * 9 / 5) + 32;
+            else result = celsius + 273.15;
+            inputFrom.value = result.toFixed(4);
+        } else {
+            const baseVal = val * units[cat][to];
+            const result = baseVal / units[cat][from];
+            inputFrom.value = result.toFixed(6).replace(/\.?0+$/, "");
+        }
+    });
+
+    swapBtn.addEventListener('click', () => {
+        const temp = selectFrom.value;
+        selectFrom.value = selectTo.value;
+        selectTo.value = temp;
+        convert();
+    });
+
+    populateUnits();
+</script>
+{% endblock %}

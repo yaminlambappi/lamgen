@@ -1,0 +1,140 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .meta-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .input-grp { margin-bottom: 1.5rem; }
+    .input-grp label { display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text); font-weight: 500; }
+    .input-field { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.8rem; border-radius: 8px; outline: none; transition: border-color 0.2s; }
+    .input-field:focus { border-color: var(--primary); }
+    
+    .char-count { font-size: 0.8rem; color: var(--muted); }
+    .char-count.warn { color: var(--warning); }
+    .char-count.danger { color: var(--danger); }
+    
+    .preview-box { background: #fff; border-radius: 12px; padding: 1.5rem; color: #3c4043; font-family: arial, sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    .preview-url { color: #202124; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .preview-title { color: #1a0dab; font-size: 20px; font-weight: 400; line-height: 1.3; margin-bottom: 4px; cursor: pointer; }
+    .preview-title:hover { text-decoration: underline; }
+    .preview-desc { color: #4d5156; font-size: 14px; line-height: 1.58; word-wrap: break-word; }
+    
+    .code-output { background: #0A0A0F; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: relative; }
+    .code-output pre { margin: 0; color: var(--accent); font-family: monospace; font-size: 0.9rem; white-space: pre-wrap; word-break: break-all; }
+    
+    @media (max-width: 768px) { .meta-container { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="meta-container">
+    <div>
+        <div class="input-grp">
+            <label>Site Name</label>
+            <input type="text" id="site-name" class="input-field" placeholder="e.g. LamGen Tools">
+        </div>
+        
+        <div class="input-grp">
+            <label>Page Title <span class="char-count" id="cc-title">0/60</span></label>
+            <input type="text" id="page-title" class="input-field" placeholder="e.g. Free Online Meta Tag Generator">
+        </div>
+        
+        <div class="input-grp">
+            <label>Meta Description <span class="char-count" id="cc-desc">0/160</span></label>
+            <textarea id="page-desc" class="input-field" rows="4" placeholder="e.g. Generate and preview your Google search results with our free meta tag builder tool."></textarea>
+        </div>
+        
+        <div class="input-grp">
+            <label>Image URL (OpenGraph / Twitter Card)</label>
+            <input type="text" id="page-img" class="input-field" placeholder="e.g. https://lamgen.tools/og-image.jpg">
+        </div>
+    </div>
+    
+    <div>
+        <h4 style="margin-bottom: 1rem; color: var(--muted); font-size: 0.9rem; text-transform: uppercase;">Google SERP Preview</h4>
+        <div class="preview-box">
+            <div class="preview-url"><img src="https://www.google.com/s2/favicons?sz=64&domain=example.com" style="width:16px;height:16px;border-radius:50%;"> <span id="prev-url">example.com</span></div>
+            <div class="preview-title" id="prev-title">Your Page Title Will Appear Here</div>
+            <div class="preview-desc" id="prev-desc">This is where your meta description will show up. Google typically truncates this around 155-160 characters on desktop devices. Make it compelling!</div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="color: var(--text); margin: 0;">Generated HTML Tags</h4>
+            <button class="btn-ghost-nexus" id="btn-copy" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="bi bi-clipboard"></i> Copy HTML</button>
+        </div>
+        
+        <div class="code-output">
+            <pre id="html-out">&lt;!-- Tags will generate automatically --&gt;</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const siteIn = document.getElementById('site-name');
+        const titleIn = document.getElementById('page-title');
+        const descIn = document.getElementById('page-desc');
+        const imgIn = document.getElementById('page-img');
+        
+        const ccTitle = document.getElementById('cc-title');
+        const ccDesc = document.getElementById('cc-desc');
+        
+        const pTitle = document.getElementById('prev-title');
+        const pDesc = document.getElementById('prev-desc');
+        const out = document.getElementById('html-out');
+
+        function update() {
+            let title = titleIn.value;
+            let site = siteIn.value;
+            let desc = descIn.value;
+            let img = imgIn.value;
+            
+            let fullTitle = title;
+            if(title && site) fullTitle = `${title} - ${site}`;
+            else if(site) fullTitle = site;
+            
+            // Update counts
+            ccTitle.textContent = `${fullTitle.length}/60`;
+            if(fullTitle.length > 60) ccTitle.className = 'char-count danger';
+            else if(fullTitle.length > 50) ccTitle.className = 'char-count warn';
+            else ccTitle.className = 'char-count';
+            
+            ccDesc.textContent = `${desc.length}/160`;
+            if(desc.length > 160) ccDesc.className = 'char-count danger';
+            else if(desc.length > 140) ccDesc.className = 'char-count warn';
+            else ccDesc.className = 'char-count';
+            
+            // Update preview
+            pTitle.textContent = fullTitle || 'Your Page Title Will Appear Here';
+            let truncDesc = desc;
+            if(truncDesc.length > 160) truncDesc = truncDesc.substring(0, 157) + '...';
+            pDesc.textContent = truncDesc || 'This is where your meta description will show up. Google typically truncates this around 155-160 characters on desktop devices. Make it compelling!';
+            
+            // Generate HTML
+            let html = `<!-- Primary Meta Tags -->\n<title>${fullTitle || 'Title'}</title>\n<meta name="title" content="${fullTitle || 'Title'}">\n<meta name="description" content="${desc || ''}">\n\n`;
+            
+            html += `<!-- Open Graph / Facebook -->\n<meta property="og:type" content="website">\n<meta property="og:url" content="https://example.com">\n<meta property="og:title" content="${fullTitle || 'Title'}">\n<meta property="og:description" content="${desc || ''}">\n<meta property="og:image" content="${img || ''}">\n\n`;
+            
+            html += `<!-- Twitter -->\n<meta property="twitter:card" content="summary_large_image">\n<meta property="twitter:url" content="https://example.com">\n<meta property="twitter:title" content="${fullTitle || 'Title'}">\n<meta property="twitter:description" content="${desc || ''}">\n<meta property="twitter:image" content="${img || ''}">`;
+            
+            // Escape HTML for display
+            out.textContent = html;
+        }
+
+        siteIn.addEventListener('input', update);
+        titleIn.addEventListener('input', update);
+        descIn.addEventListener('input', update);
+        imgIn.addEventListener('input', update);
+
+        document.getElementById('btn-copy').addEventListener('click', async () => {
+            await navigator.clipboard.writeText(out.textContent);
+            const btn = document.getElementById('btn-copy');
+            btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+            setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy HTML', 2000);
+        });
+        
+        update();
+    });
+</script>
+{% endblock %}

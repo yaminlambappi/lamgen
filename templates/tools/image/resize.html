@@ -1,0 +1,143 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .upload-area { border: 2px dashed var(--border); border-radius: 16px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02); margin-bottom: 2rem; }
+    .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+    .upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
+    
+    .settings-panel { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: none; }
+    
+    .dim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .input-grp label { display: block; margin-bottom: 0.5rem; color: var(--muted); font-size: 0.9rem; }
+    .input-field { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.8rem; border-radius: 8px; outline: none; }
+    .input-field:focus { border-color: var(--primary); }
+    
+    .preview-container { display: flex; flex-direction: column; align-items: center; display: none; border: 1px solid var(--border); padding: 2rem; border-radius: 12px; background: #0A0A0F; }
+    .preview-container img { max-width: 100%; border-radius: 8px; margin-bottom: 1rem; }
+    
+    .btn-download { display: inline-block; width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; text-decoration: none; border-radius: 8px; font-weight: bold; text-align: center; transition: transform 0.2s; cursor: pointer; border: none; }
+    .btn-download:hover { transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="upload-area" id="drop-zone">
+    <i class="bi bi-aspect-ratio upload-icon"></i>
+    <h3 style="margin-bottom: 0.5rem;">Click or Drag Image Here</h3>
+    <p style="color: var(--muted); font-size: 0.9rem;">Supports JPG, PNG, WebP<br>Processed entirely in your browser.</p>
+    <input type="file" id="file-input" accept="image/*" style="display: none;">
+</div>
+
+<div class="settings-panel" id="settings">
+    <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">Dimensions</h3>
+    
+    <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer;">
+        <input type="checkbox" id="keep-ratio" checked style="accent-color: var(--primary); width: 18px; height: 18px;">
+        <span style="color: var(--text);">Maintain aspect ratio</span>
+    </label>
+    
+    <div class="dim-grid">
+        <div class="input-grp">
+            <label>Width (px)</label>
+            <input type="number" id="width-in" class="input-field" value="0">
+        </div>
+        <div class="input-grp">
+            <label>Height (px)</label>
+            <input type="number" id="height-in" class="input-field" value="0">
+        </div>
+    </div>
+    
+    <button id="btn-resize" class="btn-download" style="margin-top: 1rem;">Resize Image</button>
+</div>
+
+<div class="preview-container" id="preview-area">
+    <img id="img-preview" src="" alt="Resized Preview">
+    <div style="color: var(--muted); margin-bottom: 1rem;">New Size: <span id="new-dim" style="color: var(--text); font-weight: bold;"></span></div>
+    <a id="btn-download-img" class="btn-download" download="resized.png" style="width: auto; padding: 0.8rem 3rem;"><i class="bi bi-download"></i> Download Image</a>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const settings = document.getElementById('settings');
+        const previewArea = document.getElementById('preview-area');
+        
+        const widthIn = document.getElementById('width-in');
+        const heightIn = document.getElementById('height-in');
+        const keepRatio = document.getElementById('keep-ratio');
+        
+        let originalImg = new Image();
+        let currentRatio = 1;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => {
+            if(e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if(!file.type.match(/image.*/)) { alert("Please upload an image file."); return; }
+            
+            const reader = new FileReader();
+            reader.onload = e => {
+                originalImg.src = e.target.result;
+                originalImg.onload = () => {
+                    settings.style.display = 'block';
+                    widthIn.value = originalImg.width;
+                    heightIn.value = originalImg.height;
+                    currentRatio = originalImg.width / originalImg.height;
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
+        widthIn.addEventListener('input', () => {
+            if (keepRatio.checked && widthIn.value > 0) {
+                heightIn.value = Math.round(widthIn.value / currentRatio);
+            }
+        });
+
+        heightIn.addEventListener('input', () => {
+            if (keepRatio.checked && heightIn.value > 0) {
+                widthIn.value = Math.round(heightIn.value * currentRatio);
+            }
+        });
+
+        document.getElementById('btn-resize').addEventListener('click', () => {
+            const w = parseInt(widthIn.value);
+            const h = parseInt(heightIn.value);
+            if(w <= 0 || h <= 0) return;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            
+            // simple smooth scaling
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(originalImg, 0, 0, w, h);
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            document.getElementById('img-preview').src = dataUrl;
+            document.getElementById('new-dim').textContent = `${w} x ${h} px`;
+            
+            const btn = document.getElementById('btn-download-img');
+            btn.href = dataUrl;
+            btn.download = `resized_${w}x${h}.png`;
+            
+            previewArea.style.display = 'flex';
+            previewArea.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+</script>
+{% endblock %}

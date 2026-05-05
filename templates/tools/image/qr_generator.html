@@ -1,0 +1,114 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .qr-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .input-grp { margin-bottom: 1rem; }
+    .input-grp label { display: block; margin-bottom: 0.5rem; color: var(--muted); font-size: 0.9rem; }
+    .input-field { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 0.8rem; border-radius: 8px; outline: none; }
+    .input-field:focus { border-color: var(--primary); }
+    
+    .color-picker { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .color-grp { display: flex; flex-direction: column; gap: 0.5rem; }
+    .color-input { width: 50px; height: 50px; padding: 0; border: none; border-radius: 8px; cursor: pointer; background: transparent; }
+    
+    .qr-preview { background: #fff; padding: 2rem; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; }
+    #qrcode { margin-bottom: 1.5rem; }
+    #qrcode img { display: block; margin: 0 auto; }
+    
+    @media (max-width: 768px) { .qr-container { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="qr-container">
+    <div>
+        <div class="input-grp">
+            <label>Content (URL, text, etc)</label>
+            <textarea id="qr-text" class="input-field" rows="4" placeholder="https://example.com">https://lamgen.tools</textarea>
+        </div>
+        
+        <div class="input-grp">
+            <label>Size</label>
+            <input type="range" id="qr-size" min="100" max="500" value="250" style="width: 100%; accent-color: var(--primary);">
+            <div style="text-align: right; font-size: 0.8rem; color: var(--muted);" id="size-val">250x250 px</div>
+        </div>
+        
+        <div class="color-picker">
+            <div class="color-grp">
+                <label>Foreground</label>
+                <input type="color" id="qr-color-dark" class="color-input" value="#000000">
+            </div>
+            <div class="color-grp">
+                <label>Background</label>
+                <input type="color" id="qr-color-light" class="color-input" value="#ffffff">
+            </div>
+        </div>
+    </div>
+    
+    <div class="qr-preview">
+        <div id="qrcode"></div>
+        <button class="btn-primary-nexus" id="btn-download" style="width: 100%; max-width: 250px; justify-content: center;">
+            <i class="bi bi-download"></i> Download PNG
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<!-- Using a CDN for QR Code generation (standard lightweight library) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const textIn = document.getElementById('qr-text');
+        const sizeIn = document.getElementById('qr-size');
+        const colorDark = document.getElementById('qr-color-dark');
+        const colorLight = document.getElementById('qr-color-light');
+        const qrContainer = document.getElementById('qrcode');
+        
+        let qrcode = null;
+
+        function generateQR() {
+            qrContainer.innerHTML = '';
+            const size = parseInt(sizeIn.value);
+            const text = textIn.value || ' ';
+            
+            qrcode = new QRCode(qrContainer, {
+                text: text,
+                width: size,
+                height: size,
+                colorDark : colorDark.value,
+                colorLight : colorLight.value,
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        textIn.addEventListener('input', generateQR);
+        colorDark.addEventListener('input', generateQR);
+        colorLight.addEventListener('input', generateQR);
+        
+        sizeIn.addEventListener('input', () => {
+            document.getElementById('size-val').textContent = sizeIn.value + 'x' + sizeIn.value + ' px';
+            generateQR();
+        });
+
+        document.getElementById('btn-download').addEventListener('click', () => {
+            const img = qrContainer.querySelector('img');
+            const canvas = qrContainer.querySelector('canvas');
+            let dataUrl;
+            
+            if (img && img.src) dataUrl = img.src;
+            else if (canvas) dataUrl = canvas.toDataURL("image/png");
+            
+            if (dataUrl) {
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = 'qrcode.png';
+                a.click();
+            }
+        });
+
+        generateQR();
+    });
+</script>
+{% endblock %}

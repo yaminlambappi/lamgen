@@ -1,0 +1,87 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .editor-pane { border: 1px solid var(--border); border-radius: 12px; background: #0A0A0F; padding: 1rem; margin-bottom: 2rem; }
+    .editor-content { width: 100%; height: 150px; background: transparent; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1.2rem; line-height: 1.6; resize: none; outline: none; }
+    
+    .results-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .fancy-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: all 0.2s; }
+    .fancy-item:hover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+    .fancy-text-disp { font-size: 1.5rem; color: var(--text); flex-grow: 1; word-break: break-all; margin-right: 1rem; }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="editor-pane">
+    <textarea id="text-input" class="editor-content" placeholder="Type your text here to convert it..."></textarea>
+</div>
+
+<div class="results-grid" id="results">
+    <!-- Results populated here -->
+    <div style="text-align: center; color: var(--muted); padding: 2rem;">Type something above to see fancy fonts!</div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('text-input');
+        const results = document.getElementById('results');
+
+        const alphabets = {
+            normal: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+            mathBold: "𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟓𝟗",
+            mathItalic: "𝑎𝑏𝑐𝑑𝑒𝑓𝑔𝑕𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍0123456789",
+            script: "𝒶𝒷𝒸𝒹𝑒𝒻𝑔𝒽𝒾𝒿𝓀𝓁𝓂𝓃𝑜𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏𝒜𝐵𝒞𝒟𝐸𝐹𝒢𝐻𝐼𝒥𝒦𝐿𝑀𝒩𝒪𝒫𝒬𝑅𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵0123456789",
+            gothic: "𝔞𝔟𝔠𝔡𝔢𝔣𝔤𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷𝔄𝔅𝔆𝔇𝔈𝔉𝔊𝔋𝔌𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜𝔷0123456789",
+            doubleStruck: "𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ𝟘𝟙𝟚𝟛𝟜𝟝𝟞𝟟𝟠𝟡",
+            circled: "ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ⓪①②③④⑤⑥⑦⑧⑨",
+            squared: "🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉🄰🄱🄲🄳🄴🄵🄶🄷🄸🄹🄺🄻🄼🄽🄾🄿🅀🅁🅂🅃🅄🅅🅆🅇🅈🅉0123456789",
+            upsideDown: "ɐqɔpǝɟƃɥıɾʞlɯuodbɹsʇnʌʍxʎz∀𐐒ƆᗡƎℲ⅁HIſʞ˥WNOԀὉᴚS⊥∩ΛMX⅄Z0ƖᄅƐㄣϛ9ㄥ86"
+        };
+
+        function translate(text, targetAlphabet) {
+            let res = '';
+            for(let i=0; i<text.length; i++) {
+                let char = text[i];
+                let index = alphabets.normal.indexOf(char);
+                if (index !== -1 && index < targetAlphabet.length) {
+                    res += Array.from(targetAlphabet)[index];
+                } else {
+                    res += char;
+                }
+            }
+            return res;
+        }
+
+        input.addEventListener('input', () => {
+            const txt = input.value;
+            if(!txt) {
+                results.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 2rem;">Type something above to see fancy fonts!</div>';
+                return;
+            }
+
+            let html = '';
+            for(const [style, chars] of Object.entries(alphabets)) {
+                if (style === 'normal') continue;
+                let fancyText = style === 'upsideDown' ? translate(txt.split('').reverse().join(''), chars) : translate(txt, chars);
+                html += `
+                <div class="fancy-item">
+                    <div class="fancy-text-disp">${fancyText}</div>
+                    <button class="btn-ghost-nexus btn-copy" data-text="${fancyText}"><i class="bi bi-clipboard"></i> Copy</button>
+                </div>`;
+            }
+            results.innerHTML = html;
+
+            document.querySelectorAll('.btn-copy').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    await navigator.clipboard.writeText(btn.dataset.text);
+                    btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+                    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 2000);
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

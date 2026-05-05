@@ -1,0 +1,70 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_workspace %}
+<div class="flex flex-col gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-muted mb-2">Paragraphs</label>
+            <input type="number" id="lorem-paragraphs" class="input-nexus" value="3" min="1" max="20">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-muted mb-2">Length</label>
+            <select id="lorem-length" class="input-nexus">
+                <option value="short">Short</option>
+                <option value="medium" selected>Medium</option>
+                <option value="long">Long</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button id="generate-btn" class="btn-nexus w-full">Generate</button>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label class="block text-sm font-medium text-muted mb-2">Output</label>
+        <div id="lorem-output" class="input-nexus min-h-[300px] whitespace-pre-wrap p-4 overflow-y-auto" style="background: rgba(0,0,0,0.2);"></div>
+    </div>
+    
+    <button id="copy-btn" class="btn-nexus-secondary">Copy to Clipboard</button>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    const output = document.getElementById('lorem-output');
+    const generateBtn = document.getElementById('generate-btn');
+    const copyBtn = document.getElementById('copy-btn');
+
+    const words = [
+        "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua", "ut", "enim", "ad", "minim", "veniam", "quis", "nostrud", "exercitation", "ullamco", "laboris", "nisi", "ut", "aliquip", "ex", "ea", "commodo", "consequat"
+    ];
+
+    function generateParagraph(length) {
+        let count = length === 'short' ? 20 : (length === 'medium' ? 50 : 100);
+        let p = "";
+        for (let i = 0; i < count; i++) {
+            p += words[Math.floor(Math.random() * words.length)] + " ";
+        }
+        return p.charAt(0).toUpperCase() + p.slice(1).trim() + ".";
+    }
+
+    generateBtn.addEventListener('click', () => {
+        const count = parseInt(document.getElementById('lorem-paragraphs').value);
+        const length = document.getElementById('lorem-length').value;
+        let result = "";
+        for (let i = 0; i < count; i++) {
+            result += generateParagraph(length) + "\n\n";
+        }
+        output.textContent = result.trim();
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const text = output.textContent;
+        navigator.clipboard.writeText(text);
+        nexusToast.success('Copied!');
+    });
+
+    // Initial generate
+    generateBtn.click();
+</script>
+{% endblock %}

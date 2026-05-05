@@ -1,0 +1,75 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .uuid-result { font-family: 'Fira Code', monospace; font-size: 2rem; color: var(--accent); text-align: center; margin: 2rem 0; letter-spacing: 2px; }
+    .generate-btn { display: block; margin: 0 auto; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; padding: 1rem 3rem; font-size: 1.2rem; font-weight: bold; border-radius: 50px; border: none; cursor: pointer; transition: transform 0.2s; box-shadow: 0 0 20px rgba(108,99,255,0.4); }
+    .generate-btn:hover { transform: scale(1.05); }
+    .bulk-area { width: 100%; height: 200px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; color: var(--text); font-family: monospace; resize: none; margin-top: 2rem; outline: none; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+    .input-num { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 0.5rem; border-radius: 8px; width: 100px; text-align: center; }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="uuid-result" id="single-uuid">00000000-0000-0000-0000-000000000000</div>
+<button class="generate-btn" id="btn-gen-single">Generate New UUID (v4)</button>
+
+<div style="margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 2rem;">
+    <h3 style="font-family: 'Syne'; margin-bottom: 1rem;">Bulk Generator</h3>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <span>Generate</span>
+        <input type="number" id="bulk-count" class="input-num" value="5" min="1" max="5000">
+        <span>UUIDs</span>
+        <button class="btn-ghost-nexus" id="btn-gen-bulk">Generate Bulk</button>
+    </div>
+    
+    <textarea class="bulk-area" id="bulk-output" readonly placeholder="Bulk output will appear here..."></textarea>
+    
+    <div class="flex-between">
+        <span style="font-size: 0.8rem; color: var(--muted);" id="bulk-stats"></span>
+        <button class="btn-ghost-nexus" id="btn-copy-bulk"><i class="bi bi-clipboard"></i> Copy All</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        function uuidv4() {
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        const singleEl = document.getElementById('single-uuid');
+        
+        document.getElementById('btn-gen-single').addEventListener('click', () => {
+            singleEl.textContent = uuidv4();
+            singleEl.style.animation = 'none';
+            singleEl.offsetHeight; /* trigger reflow */
+            singleEl.style.animation = 'fadeUp 0.3s ease';
+        });
+
+        document.getElementById('btn-gen-bulk').addEventListener('click', () => {
+            const count = Math.min(5000, Math.max(1, parseInt(document.getElementById('bulk-count').value) || 1));
+            const uuids = Array.from({length: count}, () => uuidv4());
+            document.getElementById('bulk-output').value = uuids.join('\n');
+            document.getElementById('bulk-stats').textContent = `Generated ${count} UUIDs`;
+        });
+
+        document.getElementById('btn-copy-bulk').addEventListener('click', async () => {
+            const val = document.getElementById('bulk-output').value;
+            if(!val) return;
+            await navigator.clipboard.writeText(val);
+            const btn = document.getElementById('btn-copy-bulk');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+            setTimeout(() => btn.innerHTML = orig, 2000);
+        });
+
+        // Gen first one
+        singleEl.textContent = uuidv4();
+    });
+</script>
+{% endblock %}

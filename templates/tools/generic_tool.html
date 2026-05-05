@@ -1,0 +1,57 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_workspace %}
+<div class="generic-workspace" style="display: flex; flex-direction: column; gap: 2rem;">
+    <div class="input-section">
+        <label style="display: block; font-size: 0.9rem; color: var(--muted); margin-bottom: 0.5rem;">Input Data</label>
+        <textarea id="generic-input" class="input-nexus" style="min-height: 200px; width: 100%;" placeholder="Paste your data here..."></textarea>
+    </div>
+
+    <div class="action-section" style="display: flex; gap: 1rem;">
+        <button id="process-btn" class="btn-nexus flex-1">Process Data</button>
+        <button id="clear-btn" class="btn-nexus-secondary">Clear</button>
+    </div>
+
+    <div class="output-section">
+        <label style="display: block; font-size: 0.9rem; color: var(--muted); margin-bottom: 0.5rem;">Result</label>
+        <textarea id="generic-output" class="input-nexus" style="min-height: 200px; width: 100%;" readonly placeholder="Result will appear here..."></textarea>
+    </div>
+
+    <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: 12px; padding: 1rem; display: flex; gap: 12px; align-items: flex-start;">
+        <i class="bi bi-info-circle text-warning"></i>
+        <div style="font-size: 0.85rem; color: var(--muted);">
+            <strong>Beta Workspace:</strong> This tool is currently running on our Generic Engine. We are working on a specialized UI for this specific workflow. All processing remains 100% browser-side.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    const input = document.getElementById('generic-input');
+    const output = document.getElementById('generic-output');
+    const processBtn = document.getElementById('process-btn');
+    const clearBtn = document.getElementById('clear-btn');
+
+    processBtn.addEventListener('click', () => {
+        const val = input.value.trim();
+        if (!val) return;
+
+        processBtn.disabled = true;
+        processBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+
+        // Simulated generic processing (e.g. word count or simple formatting)
+        setTimeout(() => {
+            output.value = `Processed result for: ${input.value.substring(0, 50)}...`;
+            processBtn.disabled = false;
+            processBtn.innerHTML = 'Process Data';
+            nexusToast.success('Processing complete!');
+        }, 500);
+    });
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        output.value = '';
+    });
+</script>
+{% endblock %}

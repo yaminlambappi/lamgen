@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+
+{% block tool_css %}{% endblock %}
+{% endblock %}
+
+
+
+{% block content %}
+    <main class="spatial-panel workspace-main" style="transform:none; height:100%;">
+        <header class="tool-header">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1rem;">
+                <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.05); border: 1px solid {{ category.color_from }}; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: {{ category.color_from }}; box-shadow: inset 0 0 20px {{ category.color_from }};">
+                    <i class="{{ tool.icon }}"></i>
+                </div>
+                <nav style="font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">
+                    <a href="/tools/" style="color: inherit; text-decoration: none;">Hub</a> / 
+                    <a href="{{ category.get_absolute_url }}" style="color: inherit; text-decoration: none;">{{ category.name }}</a>
+                </nav>
+            </div>
+            <h1 style="font-family: 'Syne', sans-serif; font-size: clamp(2rem, 10vw, 3rem); font-weight: 800; margin-bottom: 0.5rem; background: linear-gradient(135deg, #fff 0%, var(--muted) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 40px rgba(255,255,255,0.2); word-break: break-word; overflow-wrap: anywhere; hyphens: auto; line-height: 1.1;">{{ tool.name }}</h1>
+            <p style="color: var(--muted); max-width: 600px; font-size: 1.1rem;">{{ tool.description }}</p>
+        </header>
+
+        <section class="workspace-card" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: clamp(1rem, 5vw, 2rem); box-shadow: inset 0 0 30px rgba(0,0,0,0.5); overflow: hidden;">
+            {% block tool_workspace %}{% endblock %}
+        </section>
+
+        <!-- SEO Content Area (Programmatic) -->
+        <section class="seo-info mt-5" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
+            <h3 style="font-family: 'Syne'; margin-bottom: 1rem;">System Logs: {{ tool.name }}</h3>
+            <div style="color: var(--muted); line-height: 1.6;">
+                {{ tool.short_desc }} Local execution active. 0ms latency. No external server requests required.
+            </div>
+        </section>
+    </main>
+{% endblock %}
+
+
+
+{% block extra_js %}
+<script>
+    // Tool UI Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        switch(e.key.toLowerCase()) {
+            case 'r': window.location.reload(); break;
+            case 'f': document.getElementById('btn-favorite')?.click(); break;
+            case 's': 
+                navigator.clipboard.writeText(window.location.href);
+                // show toast
+                break;
+        }
+    });
+
+    // Favorite toggle
+    document.getElementById('btn-favorite')?.addEventListener('click', async function() {
+        const slug = this.dataset.slug;
+        const res = await fetch('/tools/bookmark/toggle/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ tool_slug: slug })
+        });
+        const data = await res.json();
+        if (data.bookmarked) {
+            this.innerHTML = '<i class="bi bi-bookmark-fill text-accent"></i> Saved <span class="kb-hint">F</span>';
+        } else {
+            this.innerHTML = '<i class="bi bi-bookmark"></i> Save Tool <span class="kb-hint">F</span>';
+        }
+    });
+</script>
+{% block tool_js %}{% endblock %}
+{% endblock %}

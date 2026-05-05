@@ -1,0 +1,120 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    .editor-box { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; }
+    .editor-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .editor-textarea { width: 100%; flex-grow: 1; background: #0A0A0F; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 1rem; font-family: monospace; font-size: 0.95rem; resize: vertical; min-height: 250px; outline: none; }
+    .editor-textarea:focus { border-color: var(--primary); }
+    .preview-box { background: #0F0F1A; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 1.5rem; overflow-y: auto; height: 100%; min-height: 250px; font-family: monospace; white-space: pre-wrap; word-break: break-all; }
+    
+    .invalid-token { border-color: var(--danger) !important; box-shadow: 0 0 0 2px rgba(255,107,107,0.2); }
+    
+    .part-header { color: var(--danger); font-weight: bold; }
+    .part-payload { color: var(--primary); font-weight: bold; }
+    .part-signature { color: var(--accent); font-weight: bold; }
+
+    @media (max-width: 768px) {
+        .split-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div style="background: rgba(108,99,255,0.05); border: 1px solid rgba(108,99,255,0.2); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+    <i class="bi bi-shield-check" style="font-size: 1.5rem; color: var(--primary);"></i>
+    <div>
+        <div style="font-weight: 600; color: var(--text);">100% Secure & Offline</div>
+        <div style="font-size: 0.85rem; color: var(--muted);">Tokens are decoded entirely in your browser. No data is sent to our servers.</div>
+    </div>
+</div>
+
+<div class="split-grid">
+    <div class="editor-box">
+        <div class="editor-label">
+            <span>Encoded JWT Token</span>
+            <button class="btn-ghost-nexus btn-sm" id="btn-paste"><i class="bi bi-clipboard"></i> Paste</button>
+        </div>
+        <textarea id="jwt-input" class="editor-textarea" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+    </div>
+    
+    <div class="editor-box">
+        <div class="editor-label">
+            <span>Decoded Payload</span>
+            <button class="btn-ghost-nexus btn-sm" id="btn-copy"><i class="bi bi-clipboard-check"></i> Copy</button>
+        </div>
+        <div id="jwt-output" class="preview-box">
+            <span style="color: var(--muted);">Decoded header and payload will appear here...</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('jwt-input');
+        const output = document.getElementById('jwt-output');
+        
+        function decodeJWT(token) {
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) throw new Error("Invalid JWT format. Must contain 3 parts.");
+                
+                const headerRaw = parts[0].replace(/-/g, '+').replace(/_/g, '/');
+                const payloadRaw = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                
+                const header = JSON.parse(decodeURIComponent(escape(window.atob(headerRaw))));
+                const payload = JSON.parse(decodeURIComponent(escape(window.atob(payloadRaw))));
+                
+                return { header, payload, valid: true };
+            } catch (e) {
+                return { valid: false, error: e.message };
+            }
+        }
+        
+        input.addEventListener('input', () => {
+            const val = input.value.trim();
+            if (!val) {
+                input.classList.remove('invalid-token');
+                output.innerHTML = '<span style="color: var(--muted);">Decoded header and payload will appear here...</span>';
+                return;
+            }
+            
+            const decoded = decodeJWT(val);
+            if (!decoded.valid) {
+                input.classList.add('invalid-token');
+                output.innerHTML = `<span style="color: var(--danger);"><i class="bi bi-exclamation-triangle"></i> Failed to decode: ${decoded.error}</span>`;
+            } else {
+                input.classList.remove('invalid-token');
+                
+                let html = `<div class="part-header">HEADER:</div><div>${JSON.stringify(decoded.header, null, 2)}</div><br>`;
+                html += `<div class="part-payload">PAYLOAD:</div><div>${JSON.stringify(decoded.payload, null, 2)}</div>`;
+                
+                output.innerHTML = html;
+            }
+        });
+        
+        document.getElementById('btn-paste').addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                input.value = text;
+                input.dispatchEvent(new Event('input'));
+            } catch(err) {
+                alert('Failed to read clipboard');
+            }
+        });
+        
+        document.getElementById('btn-copy').addEventListener('click', () => {
+            if (output.innerText && !output.innerText.includes('will appear here')) {
+                navigator.clipboard.writeText(output.innerText);
+                const btn = document.getElementById('btn-copy');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2"></i> Copied';
+                setTimeout(() => btn.innerHTML = orig, 2000);
+            }
+        });
+    });
+</script>
+{% endblock %}

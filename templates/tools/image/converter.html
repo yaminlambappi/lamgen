@@ -1,0 +1,156 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .upload-zone {
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        padding: 4rem 2rem;
+        text-align: center;
+        transition: 0.3s;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: var(--primary);
+        background: rgba(108, 99, 255, 0.05);
+    }
+    .upload-zone i {
+        font-size: 3rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+    .preview-list {
+        margin-top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .preview-item {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    .preview-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .preview-info {
+        flex: 1;
+    }
+    .preview-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="tool-container">
+    <div class="upload-zone" id="drop-zone">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <h3>Click or Drag & Drop Images</h3>
+        <p class="text-muted">Supports PNG, JPG, WEBP. Max 20MB.</p>
+        <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+    </div>
+
+    <div id="previews" class="preview-list"></div>
+</div>
+
+<canvas id="conversion-canvas" style="display: none;"></canvas>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const previews = document.getElementById('previews');
+    const canvas = document.getElementById('conversion-canvas');
+    const ctx = canvas.getContext('2d');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+            createPreview(file);
+        });
+    }
+
+    function createPreview(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const id = Math.random().toString(36).substr(2, 9);
+            const item = document.createElement('div');
+            item.className = 'preview-item';
+            item.id = `item-${id}`;
+            item.innerHTML = `
+                <img src="${e.target.result}" class="preview-img">
+                <div class="preview-info">
+                    <div style="font-weight: 600;">${file.name}</div>
+                    <div style="font-size: 0.85rem; color: var(--muted);">${(file.size / 1024).toFixed(1)} KB</div>
+                </div>
+                <div class="preview-actions">
+                    <select class="input-nexus" id="format-${id}" style="width: 100px;">
+                        <option value="image/png">PNG</option>
+                        <option value="image/jpeg">JPG</option>
+                        <option value="image/webp">WEBP</option>
+                    </select>
+                    <button class="btn-nexus" onclick="convertAndDownload('${id}', '${file.name}', '${e.target.result}')">
+                        <i class="bi bi-download"></i>
+                    </button>
+                    <button class="btn-nexus-secondary" onclick="document.getElementById('item-${id}').remove()">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            previews.appendChild(item);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    window.convertAndDownload = function(id, originalName, dataUrl) {
+        const format = document.getElementById(`format-${id}`).value;
+        const img = new Image();
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            
+            const mimeType = format;
+            const extension = mimeType.split('/')[1].replace('jpeg', 'jpg');
+            const newName = originalName.split('.')[0] + '.' + extension;
+            
+            const convertedDataUrl = canvas.toDataURL(mimeType, 0.9);
+            const link = document.createElement('a');
+            link.download = newName;
+            link.href = convertedDataUrl;
+            link.click();
+        };
+        img.src = dataUrl;
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .age-container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; }
+    .input-grp { margin-bottom: 1.5rem; }
+    .input-grp label { display: block; margin-bottom: 0.5rem; color: var(--muted); }
+    .input-field { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.8rem; border-radius: 8px; outline: none; font-size: 1.1rem; }
+    .input-field:focus { border-color: var(--primary); }
+    
+    .btn-calc { width: 100%; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: bold; font-size: 1.1rem; padding: 1rem; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.2s; margin-top: 1rem; }
+    .btn-calc:hover { transform: translateY(-2px); }
+    
+    .result-box { margin-top: 2rem; display: none; }
+    .main-age { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 700; color: var(--primary); text-align: center; margin-bottom: 2rem; line-height: 1.2; }
+    .main-age span { font-size: 1.2rem; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: normal; }
+    
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .stat-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+    .stat-val { font-size: 1.5rem; font-weight: bold; color: var(--accent); }
+    .stat-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="age-container">
+    <div class="input-grp">
+        <label>Date of Birth</label>
+        <input type="date" id="dob" class="input-field" max="">
+    </div>
+    <div class="input-grp">
+        <label>Calculate age at the date of</label>
+        <input type="date" id="target-date" class="input-field">
+    </div>
+    
+    <button class="btn-calc" id="btn-calc">Calculate Age</button>
+    
+    <div class="result-box" id="result-box">
+        <div class="main-age" id="main-age">
+            <!-- 25 years 4 months 12 days -->
+        </div>
+        
+        <h4 style="margin-bottom: 1rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">Alternative Formats</h4>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-val" id="res-months">0</div>
+                <div class="stat-label">Total Months</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="res-weeks">0</div>
+                <div class="stat-label">Total Weeks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="res-days">0</div>
+                <div class="stat-label">Total Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" id="res-hours">0</div>
+                <div class="stat-label">Total Hours</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('dob').max = today;
+        document.getElementById('target-date').value = today;
+        
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const dobVal = document.getElementById('dob').value;
+            const targetVal = document.getElementById('target-date').value;
+            
+            if(!dobVal || !targetVal) return;
+            
+            const dob = new Date(dobVal);
+            const target = new Date(targetVal);
+            
+            if (dob > target) {
+                alert('Date of birth cannot be after the target date.');
+                return;
+            }
+            
+            let years = target.getFullYear() - dob.getFullYear();
+            let months = target.getMonth() - dob.getMonth();
+            let days = target.getDate() - dob.getDate();
+            
+            if (days < 0) {
+                months--;
+                const temp = new Date(target.getFullYear(), target.getMonth(), 0);
+                days += temp.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            
+            document.getElementById('main-age').innerHTML = `
+                ${years} <br><span>years</span><br>
+                <div style="font-size: 1.5rem; margin-top: 1rem; color: var(--text);">
+                    ${months} months, ${days} days
+                </div>
+            `;
+            
+            const diffTime = Math.abs(target - dob);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            let totalMonths = (years * 12) + months;
+            
+            document.getElementById('res-months').textContent = totalMonths;
+            document.getElementById('res-weeks').textContent = Math.floor(diffDays / 7);
+            document.getElementById('res-days').textContent = diffDays.toLocaleString();
+            document.getElementById('res-hours').textContent = (diffDays * 24).toLocaleString();
+            
+            document.getElementById('result-box').style.display = 'block';
+            document.getElementById('result-box').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+</script>
+{% endblock %}

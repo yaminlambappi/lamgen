@@ -1,0 +1,163 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .upload-area { border: 2px dashed var(--border); border-radius: 16px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02); margin-bottom: 2rem; }
+    .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+    .upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
+    
+    .settings-panel { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: none; }
+    .slider-grp { margin-bottom: 1rem; }
+    .slider-grp label { display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text); }
+    .quality-slider { width: 100%; accent-color: var(--primary); }
+    
+    .preview-container { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; display: none; }
+    .preview-box { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; background: #0A0A0F; text-align: center; }
+    .preview-box img { max-width: 100%; max-height: 300px; border-radius: 8px; margin-bottom: 1rem; object-fit: contain; }
+    .preview-stats { font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem; }
+    .preview-stats span { color: var(--text); font-weight: bold; }
+    
+    .btn-download { display: inline-block; width: 100%; padding: 0.8rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; text-decoration: none; border-radius: 8px; font-weight: bold; transition: transform 0.2s; }
+    .btn-download:hover { transform: translateY(-2px); color: #000; }
+    
+    @media (max-width: 768px) { .preview-container { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div class="upload-area" id="drop-zone">
+    <i class="bi bi-cloud-arrow-up upload-icon"></i>
+    <h3 style="margin-bottom: 0.5rem;">Click or Drag Image Here</h3>
+    <p style="color: var(--muted); font-size: 0.9rem;">Supports JPG, PNG, WebP (Max 10MB)<br>Processed 100% locally in your browser.</p>
+    <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" style="display: none;">
+</div>
+
+<div class="settings-panel" id="settings">
+    <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem;">Compression Settings</h3>
+    <div class="slider-grp">
+        <label>
+            <span>Quality</span>
+            <span id="q-val" style="color: var(--primary); font-weight: bold;">80%</span>
+        </label>
+        <input type="range" id="q-slider" class="quality-slider" min="10" max="100" value="80">
+    </div>
+    <div style="margin-top: 1rem;">
+        <label style="color: var(--text); font-size: 0.9rem; margin-right: 1rem;">Output Format:</label>
+        <select id="format-select" style="background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 0.4rem; border-radius: 6px;">
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/webp">WebP (Best Compression)</option>
+            <option value="image/png">PNG</option>
+        </select>
+    </div>
+</div>
+
+<div class="preview-container" id="preview-area">
+    <div class="preview-box">
+        <h4 style="margin-bottom: 1rem; color: var(--muted);">Original</h4>
+        <img id="img-orig" src="" alt="Original">
+        <div class="preview-stats">Size: <span id="size-orig">0 KB</span></div>
+    </div>
+    <div class="preview-box" style="border-color: var(--primary);">
+        <h4 style="margin-bottom: 1rem; color: var(--primary);">Compressed</h4>
+        <img id="img-comp" src="" alt="Compressed">
+        <div class="preview-stats">Size: <span id="size-comp">0 KB</span> (<span id="size-saved" style="color: var(--accent);">0% saved</span>)</div>
+        <a id="btn-download" class="btn-download" download="compressed.jpg"><i class="bi bi-download"></i> Download</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const settings = document.getElementById('settings');
+        const previewArea = document.getElementById('preview-area');
+        const qSlider = document.getElementById('q-slider');
+        const qVal = document.getElementById('q-val');
+        const formatSelect = document.getElementById('format-select');
+        
+        let originalFile = null;
+        let originalImg = new Image();
+
+        // UI Events
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => {
+            if(e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        qSlider.addEventListener('input', () => {
+            qVal.textContent = qSlider.value + '%';
+            if(originalFile) compressImage();
+        });
+        
+        formatSelect.addEventListener('change', () => {
+            if(originalFile) compressImage();
+        });
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function handleFile(file) {
+            if(!file.type.match(/image.*/)) { alert("Please upload an image file."); return; }
+            originalFile = file;
+            
+            document.getElementById('size-orig').textContent = formatBytes(file.size);
+            
+            const reader = new FileReader();
+            reader.onload = e => {
+                originalImg.src = e.target.result;
+                document.getElementById('img-orig').src = e.target.result;
+                settings.style.display = 'block';
+                previewArea.style.display = 'grid';
+                
+                originalImg.onload = () => compressImage();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function compressImage() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = originalImg.width;
+            canvas.height = originalImg.height;
+            ctx.drawImage(originalImg, 0, 0, canvas.width, canvas.height);
+
+            const format = formatSelect.value;
+            const quality = parseInt(qSlider.value) / 100;
+            const dataUrl = canvas.toDataURL(format, quality);
+            
+            document.getElementById('img-comp').src = dataUrl;
+            
+            // Calculate size
+            const head = 'data:' + format + ';base64,';
+            const compSize = Math.round((dataUrl.length - head.length) * 3 / 4);
+            document.getElementById('size-comp').textContent = formatBytes(compSize);
+            
+            let saved = 0;
+            if(compSize < originalFile.size) {
+                saved = Math.round((1 - compSize / originalFile.size) * 100);
+            }
+            document.getElementById('size-saved').textContent = saved + '% saved';
+            
+            const btnDl = document.getElementById('btn-download');
+            btnDl.href = dataUrl;
+            
+            const ext = format === 'image/jpeg' ? 'jpg' : format.split('/')[1];
+            btnDl.download = originalFile.name.replace(/\.[^/.]+$/, "") + "-compressed." + ext;
+        }
+    });
+</script>
+{% endblock %}

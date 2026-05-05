@@ -1,0 +1,97 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .editor-textarea { width: 100%; background: #0A0A0F; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 1rem; font-family: monospace; font-size: 0.95rem; resize: vertical; min-height: 150px; outline: none; margin-bottom: 1.5rem; }
+    .editor-textarea:focus { border-color: var(--primary); }
+    
+    .hash-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .hash-row { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .hash-label { font-weight: 600; color: var(--primary); font-size: 0.9rem; }
+    .hash-value { background: #0A0A0F; padding: 0.8rem; border-radius: 6px; font-family: monospace; word-break: break-all; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+    .btn-copy { background: transparent; border: none; color: var(--muted); cursor: pointer; transition: color 0.2s; }
+    .btn-copy:hover { color: var(--accent); }
+</style>
+{% endblock %}
+
+{% block tool_workspace %}
+<div style="background: rgba(108,99,255,0.05); border: 1px solid rgba(108,99,255,0.2); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+    <i class="bi bi-shield-lock" style="font-size: 1.5rem; color: var(--primary);"></i>
+    <div>
+        <div style="font-weight: 600; color: var(--text);">Secure Offline Hashing</div>
+        <div style="font-size: 0.85rem; color: var(--muted);">Everything is computed in your browser. No strings are sent to our servers.</div>
+    </div>
+</div>
+
+<textarea id="text-input" class="editor-textarea" placeholder="Type or paste your text here to generate hashes..."></textarea>
+
+<div class="hash-grid">
+    <div class="hash-row">
+        <div class="hash-label">MD5</div>
+        <div class="hash-value">
+            <span id="out-md5">-</span>
+            <button class="btn-copy" data-target="out-md5" title="Copy"><i class="bi bi-clipboard"></i></button>
+        </div>
+    </div>
+    <div class="hash-row">
+        <div class="hash-label">SHA-1</div>
+        <div class="hash-value">
+            <span id="out-sha1">-</span>
+            <button class="btn-copy" data-target="out-sha1" title="Copy"><i class="bi bi-clipboard"></i></button>
+        </div>
+    </div>
+    <div class="hash-row">
+        <div class="hash-label">SHA-256</div>
+        <div class="hash-value">
+            <span id="out-sha256">-</span>
+            <button class="btn-copy" data-target="out-sha256" title="Copy"><i class="bi bi-clipboard"></i></button>
+        </div>
+    </div>
+    <div class="hash-row">
+        <div class="hash-label">SHA-512</div>
+        <div class="hash-value">
+            <span id="out-sha512">-</span>
+            <button class="btn-copy" data-target="out-sha512" title="Copy"><i class="bi bi-clipboard"></i></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('text-input');
+        
+        function updateHashes() {
+            const text = input.value;
+            if (!text) {
+                ['md5', 'sha1', 'sha256', 'sha512'].forEach(alg => {
+                    document.getElementById(`out-${alg}`).textContent = '-';
+                });
+                return;
+            }
+            
+            document.getElementById('out-md5').textContent = CryptoJS.MD5(text).toString();
+            document.getElementById('out-sha1').textContent = CryptoJS.SHA1(text).toString();
+            document.getElementById('out-sha256').textContent = CryptoJS.SHA256(text).toString();
+            document.getElementById('out-sha512').textContent = CryptoJS.SHA512(text).toString();
+        }
+
+        input.addEventListener('input', updateHashes);
+
+        document.querySelectorAll('.btn-copy').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetId = e.currentTarget.dataset.target;
+                const text = document.getElementById(targetId).textContent;
+                if (text && text !== '-') {
+                    navigator.clipboard.writeText(text);
+                    const icon = e.currentTarget.querySelector('i');
+                    icon.className = 'bi bi-check2 text-accent';
+                    setTimeout(() => icon.className = 'bi bi-clipboard', 2000);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
