@@ -862,17 +862,59 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     transform: translateX(-50%);
     z-index: 1000;
     align-items: center;
-    gap: 12px;
-    padding: 10px 20px;
-    background: rgba(10, 10, 28, 0.8);
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(10, 10, 28, 0.85);
     backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid var(--lg-border);
     border-radius: 24px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    isolation: isolate;
 }
 
 @media (max-width: 768px) {
     .os-dock { display: flex; }
+}
+
+/* Dock Energy Border — Match Sidebar */
+.os-dock::before {
+    content: '';
+    position: absolute;
+    inset: -1.2px;
+    padding: 1.2px;
+    background: conic-gradient(
+        from var(--border-angle, 0deg),
+        transparent 280deg,
+        rgba(255, 184, 0, 0.4) 320deg,
+        rgba(255, 215, 0, 1) 360deg
+    );
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
+    animation: borderRotate 4s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.os-dock::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: conic-gradient(
+        from var(--border-angle, 0deg),
+        transparent 300deg,
+        rgba(255, 184, 0, 0.15) 340deg,
+        transparent 360deg
+    );
+    border-radius: inherit;
+    filter: blur(8px);
+    animation: borderRotate 4s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.5;
 }
 
 

@@ -193,7 +193,7 @@
     <!-- Floating OS Dock -->
     <nav class="os-dock">
         <a href="{% url 'home' %}" class="dock-item {% if request.path == '/' %}active{% endif %}" data-tooltip="Home">
-            <i class="bi bi-cpu-fill" style="color: {% if request.path == '/' %}#fff{% else %}var(--primary){% endif %};"></i>
+            <i class="bi bi-house-door-fill"></i>
         </a>
         <a href="{% url 'tools:index' %}" class="dock-item {% if request.path == '/tools/' %}active{% endif %}" data-tooltip="All Tools">
             <i class="bi bi-grid-fill"></i>
@@ -201,14 +201,8 @@
         <a href="javascript:void(0)" class="dock-item" data-tooltip="Search (⌘K)" onclick="toggleInlineSearch(true)">
             <i class="bi bi-search"></i>
         </a>
-        {% for cat in nav_categories %}
-        <a href="{{ cat.get_absolute_url }}" class="dock-item cat-dock-link {% if request.path == cat.get_absolute_url %}active{% endif %}" data-tooltip="{{ cat.name }}" style="color: {{ cat.color_from }};">
-            <i class="{{ cat.icon }}"></i>
-        </a>
-        {% endfor %}
-        <div class="dock-divider"></div>
         {% if user.is_authenticated %}
-        <a href="{% url 'home' %}" class="dock-item {% if request.path == '/' %}active{% endif %}" data-tooltip="User Account">
+        <a href="{% url 'home' %}" class="dock-item" data-tooltip="User Account">
             <i class="bi bi-person-fill"></i>
         </a>
         {% else %}
