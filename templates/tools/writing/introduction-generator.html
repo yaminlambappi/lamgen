@@ -1,0 +1,130 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.intro-item{padding:16px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:12px}
+.intro-type{font-size:.72rem;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.intro-text{font-size:.9rem;color:var(--text);line-height:1.7}
+.intro-actions{margin-top:10px;display:flex;gap:6px}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-3">
+    <div>
+      <div class="tool-label">Topic</div>
+      <input type="text" class="text-input" id="topic" placeholder="e.g. climate change, AI, nutrition">
+    </div>
+    <div>
+      <div class="tool-label">Audience</div>
+      <input type="text" class="text-input" id="audience" placeholder="e.g. students, professionals">
+    </div>
+    <div>
+      <div class="tool-label">Tone</div>
+      <select class="select-input" id="tone">
+        <option value="formal">Formal</option>
+        <option value="casual">Casual</option>
+        <option value="academic">Academic</option>
+        <option value="persuasive">Persuasive</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generateIntros()"><i class="bi bi-magic"></i> Generate Introductions</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="intros-list" style="display:flex;flex-direction:column;gap:12px"></div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+function generateIntros() {
+  const topic = document.getElementById('topic').value.trim();
+  const audience = document.getElementById('audience').value.trim() || 'readers';
+  const tone = document.getElementById('tone').value;
+  if (!topic) { showErr('status', 'Please enter a topic'); return; }
+
+  const T = topic;
+  const A = audience;
+
+  const intros = [
+    {
+      type: 'Hook + Context + Thesis',
+      text: `In today's rapidly evolving world, ${T} has emerged as one of the most critical topics for ${A} to understand. As we navigate an increasingly complex landscape, the importance of ${T} cannot be overstated. This piece explores the key dimensions of ${T} and why it matters now more than ever.`
+    },
+    {
+      type: 'Question + Answer',
+      text: `What do you really know about ${T}? For many ${A}, the answer might be less than expected. ${T} is a multifaceted subject that touches nearly every aspect of modern life. By the end of this discussion, you will have a clear and comprehensive understanding of what ${T} means and why it deserves your attention.`
+    },
+    {
+      type: 'Statistic + Insight',
+      text: `Studies show that awareness of ${T} has grown significantly in recent years, yet many ${A} still lack a deep understanding of its implications. The data is clear: ${T} is reshaping how we think, work, and interact. This analysis breaks down the most important aspects of ${T} and what they mean for you.`
+    },
+    {
+      type: 'Anecdote Template',
+      text: `Imagine encountering ${T} for the first time — the questions it raises, the possibilities it opens, and the challenges it presents. This is the reality for countless ${A} today. Through careful examination of ${T}, we can begin to appreciate both its complexity and its profound significance in our daily lives.`
+    },
+    {
+      type: 'Definition + Importance',
+      text: `At its core, ${T} refers to a set of principles, practices, and ideas that have fundamentally changed how ${A} approach key challenges. Understanding ${T} is no longer optional — it is essential. This exploration provides a thorough grounding in ${T}, equipping ${A} with the knowledge needed to engage with it confidently.`
+    },
+  ];
+
+  const container = document.getElementById('intros-list');
+  container.innerHTML = intros.map(intro => `
+    <div class="intro-item">
+      <div class="intro-type">${intro.type}</div>
+      <div class="intro-text">${intro.text}</div>
+      <div class="intro-actions">
+        <button class="btn-sm" style="padding:5px 10px;font-size:.78rem" onclick="copyText(${JSON.stringify(intro.text)},this)"><i class="bi bi-clipboard"></i> Copy</button>
+      </div>
+    </div>
+  `).join('');
+  showOk('status', '5 introductions generated');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateIntros();
+});
+</script>
+{% endblock %}

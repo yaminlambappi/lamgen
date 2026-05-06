@@ -1,0 +1,244 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.warn{display:flex;background:rgba(255,193,7,.08);color:#FFC107;border:1px solid rgba(255,193,7,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.25rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.regex-input-wrap{display:flex;align-items:center;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.regex-input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.regex-slash{padding:0 10px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:1.1rem;user-select:none}
+.regex-input{flex:1;padding:12px 0;background:transparent;border:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.9rem;outline:none}
+.regex-flags{display:flex;gap:2px;padding:0 10px}
+.flag-btn{padding:4px 8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .15s}
+.flag-btn.active{background:rgba(108,99,255,.2);border-color:var(--primary);color:var(--primary)}
+.test-area{position:relative}
+.test-input{width:100%;min-height:140px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.test-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.test-input::placeholder{color:rgba(255,255,255,.2)}
+.highlight-overlay{position:absolute;top:0;left:0;width:100%;min-height:140px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;pointer-events:none;white-space:pre-wrap;word-wrap:break-word;color:transparent;border:1px solid transparent;border-radius:12px;box-sizing:border-box;overflow:hidden}
+.highlight-overlay mark{background:rgba(255,213,0,.35);color:transparent;border-radius:2px}
+.highlight-overlay mark.group-1{background:rgba(0,245,212,.25)}
+.highlight-overlay mark.group-2{background:rgba(108,99,255,.3)}
+.match-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.match-table th{text-align:left;padding:8px 12px;background:rgba(255,255,255,.04);color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid rgba(255,255,255,.08)}
+.match-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05);font-family:'JetBrains Mono',monospace;color:var(--text);word-break:break-all}
+.match-table tr:hover td{background:rgba(255,255,255,.02)}
+.match-panel{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;max-height:300px;overflow-y:auto}
+.match-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(0,245,212,.1);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.no-match-badge{background:rgba(255,107,107,.1);color:#FF6B6B;border-color:rgba(255,107,107,.2)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div>
+    <div class="tool-label">Regular Expression</div>
+    <div class="regex-input-wrap">
+      <span class="regex-slash">/</span>
+      <input type="text" class="regex-input" id="regexIn" placeholder="[a-z]+\d{2,4}" oninput="liveTest()">
+      <span class="regex-slash">/</span>
+      <div class="regex-flags">
+        <button class="flag-btn active" data-flag="g" onclick="toggleFlag(this)" title="Global">g</button>
+        <button class="flag-btn" data-flag="i" onclick="toggleFlag(this)" title="Case insensitive">i</button>
+        <button class="flag-btn" data-flag="m" onclick="toggleFlag(this)" title="Multiline">m</button>
+        <button class="flag-btn" data-flag="s" onclick="toggleFlag(this)" title="Dot matches newline">s</button>
+      </div>
+    </div>
+    <div class="chips" style="margin-top:.5rem">
+      <span class="chip" onclick="loadEx('email')">Email</span>
+      <span class="chip" onclick="loadEx('url')">URL</span>
+      <span class="chip" onclick="loadEx('ip')">IP Address</span>
+      <span class="chip" onclick="loadEx('date')">Date</span>
+      <span class="chip" onclick="loadEx('hex')">Hex Color</span>
+      <span class="chip" onclick="loadEx('phone')">Phone</span>
+    </div>
+  </div>
+
+  <div class="test-area">
+    <div class="tool-label">Test String</div>
+    <div style="position:relative">
+      <div class="highlight-overlay" id="overlay" aria-hidden="true"></div>
+      <textarea class="test-input" id="testIn" placeholder="Enter test string here..." oninput="liveTest()"></textarea>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <div class="status" id="st"></div>
+    <div id="matchBadge"></div>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+  </div>
+
+  <div id="matchSection" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Matches</div>
+      <span id="matchCount" style="font-size:.75rem;color:var(--muted)"></span>
+    </div>
+    <div class="match-panel">
+      <table class="match-table">
+        <thead><tr><th>#</th><th>Match</th><th>Index</th><th>Groups</th></tr></thead>
+        <tbody id="matchBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const EXAMPLES = {
+  email: { regex: '[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}', flags: 'gi', test: 'Contact us at support@example.com or sales@company.org. Invalid: not-an-email, @missing.com' },
+  url: { regex: 'https?:\\/\\/[\\w\\-]+(\\.[\\w\\-]+)+([\\w\\-\\._~:/?#[\\]@!$&\'()*+,;=%]*)?', flags: 'gi', test: 'Visit https://example.com or http://sub.domain.org/path?q=1&r=2 for more info. Not a URL: ftp://old.com' },
+  ip: { regex: '\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b', flags: 'g', test: 'Server IPs: 192.168.1.1, 10.0.0.255, 172.16.254.1. Invalid: 999.1.1.1, 256.0.0.1' },
+  date: { regex: '(\\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])', flags: 'g', test: 'Events on 2024-01-15, 2024-12-31, and 2023-06-01. Invalid: 2024-13-01, 2024-00-15' },
+  hex: { regex: '#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\\b', flags: 'gi', test: 'Colors: #FF5733, #abc, #6C63FF, #00F5D4. Invalid: #GGGGGG, #12345' },
+  phone: { regex: '(\\+?1[\\s.-]?)?\\(?([0-9]{3})\\)?[\\s.-]?([0-9]{3})[\\s.-]?([0-9]{4})', flags: 'g', test: 'Call (555) 123-4567 or +1-800-555-0199. Also: 555.867.5309, 5551234567' }
+};
+
+function loadEx(k) {
+  const ex = EXAMPLES[k];
+  document.getElementById('regexIn').value = ex.regex;
+  document.getElementById('testIn').value = ex.test;
+  // Set flags
+  document.querySelectorAll('.flag-btn').forEach(btn => {
+    btn.classList.toggle('active', ex.flags.includes(btn.dataset.flag));
+  });
+  liveTest();
+}
+
+function getFlags() {
+  return Array.from(document.querySelectorAll('.flag-btn.active')).map(b => b.dataset.flag).join('');
+}
+
+function toggleFlag(btn) {
+  btn.classList.toggle('active');
+  liveTest();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function liveTest() {
+  const pattern = document.getElementById('regexIn').value;
+  const testStr = document.getElementById('testIn').value;
+  const flags = getFlags();
+
+  // Sync overlay scroll
+  const ta = document.getElementById('testIn');
+  const overlay = document.getElementById('overlay');
+  overlay.style.height = ta.offsetHeight + 'px';
+
+  if (!pattern) {
+    overlay.innerHTML = escHtml(testStr);
+    document.getElementById('matchSection').style.display = 'none';
+    document.getElementById('matchBadge').innerHTML = '';
+    hideStatus('st');
+    return;
+  }
+
+  let regex;
+  try {
+    regex = new RegExp(pattern, flags);
+    hideStatus('st');
+  } catch(e) {
+    showErr('st', 'Invalid regex: ' + e.message);
+    overlay.innerHTML = escHtml(testStr);
+    document.getElementById('matchSection').style.display = 'none';
+    document.getElementById('matchBadge').innerHTML = '';
+    return;
+  }
+
+  if (!testStr) {
+    overlay.innerHTML = '';
+    document.getElementById('matchSection').style.display = 'none';
+    document.getElementById('matchBadge').innerHTML = '';
+    return;
+  }
+
+  // Find all matches
+  const matches = [];
+  let m;
+  const globalRegex = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g');
+  globalRegex.lastIndex = 0;
+  while ((m = globalRegex.exec(testStr)) !== null) {
+    matches.push({
+      index: m.index,
+      end: m.index + m[0].length,
+      value: m[0],
+      groups: m.slice(1)
+    });
+    if (!flags.includes('g')) break;
+    if (m[0].length === 0) globalRegex.lastIndex++;
+  }
+
+  // Build highlighted overlay
+  let html = '';
+  let pos = 0;
+  for (const match of matches) {
+    html += escHtml(testStr.slice(pos, match.index));
+    html += `<mark>${escHtml(match.value)}</mark>`;
+    pos = match.end;
+  }
+  html += escHtml(testStr.slice(pos));
+  overlay.innerHTML = html;
+
+  // Badge
+  if (matches.length > 0) {
+    document.getElementById('matchBadge').innerHTML = `<span class="match-badge"><i class="bi bi-check-circle-fill"></i> ${matches.length} match${matches.length > 1 ? 'es' : ''}</span>`;
+  } else {
+    document.getElementById('matchBadge').innerHTML = `<span class="match-badge no-match-badge"><i class="bi bi-x-circle-fill"></i> No matches</span>`;
+  }
+
+  // Match table
+  if (matches.length > 0) {
+    document.getElementById('matchCount').textContent = `${matches.length} match${matches.length > 1 ? 'es' : ''}`;
+    document.getElementById('matchBody').innerHTML = matches.slice(0,50).map((m, i) => `
+      <tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td>${escHtml(m.value)}</td>
+        <td>${m.index}–${m.end}</td>
+        <td>${m.groups.length ? m.groups.map((g,gi) => g !== undefined ? `<span style="color:var(--accent)">$${gi+1}</span>: ${escHtml(g)}` : '').filter(Boolean).join(', ') : '<span style="color:var(--muted)">—</span>'}</td>
+      </tr>
+    `).join('');
+    document.getElementById('matchSection').style.display = '';
+  } else {
+    document.getElementById('matchSection').style.display = 'none';
+  }
+}
+
+function clearAll() {
+  document.getElementById('regexIn').value = '';
+  document.getElementById('testIn').value = '';
+  document.getElementById('overlay').innerHTML = '';
+  document.getElementById('matchSection').style.display = 'none';
+  document.getElementById('matchBadge').innerHTML = '';
+  hideStatus('st');
+}
+
+// Sync overlay scroll with textarea
+document.getElementById('testIn').addEventListener('scroll', function() {
+  document.getElementById('overlay').scrollTop = this.scrollTop;
+  document.getElementById('overlay').scrollLeft = this.scrollLeft;
+});
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+</script>
+{% endblock %}

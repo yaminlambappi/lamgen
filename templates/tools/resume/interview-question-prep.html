@@ -1,0 +1,266 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.select-input{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;cursor:pointer;box-sizing:border-box}
+.select-input:focus{border-color:var(--primary)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.filter-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.filter-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.filter-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.q-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.1rem;transition:border-color .2s}
+.q-card:hover{border-color:rgba(108,99,255,.25)}
+.q-cat{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:.4rem}
+.q-cat.behavioral{color:#FFB347}
+.q-cat.technical{color:var(--primary)}
+.q-cat.situational{color:var(--accent)}
+.q-cat.culture{color:#FF6B6B}
+.q-text{font-size:.92rem;font-weight:600;margin-bottom:.5rem;line-height:1.4}
+.q-hint{font-size:.82rem;color:var(--muted);line-height:1.5;background:rgba(0,0,0,.2);border-radius:8px;padding:.6rem .8rem;border-left:3px solid rgba(108,99,255,.3)}
+.q-num{font-size:.75rem;color:var(--muted);margin-top:.4rem}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Job Role</div>
+      <input class="tool-input" id="role" placeholder="e.g. Software Engineer, Product Manager" />
+    </div>
+    <div>
+      <div class="tool-label">Experience Level</div>
+      <select class="select-input" id="level">
+        <option value="entry">Entry Level</option>
+        <option value="mid" selected>Mid Level</option>
+        <option value="senior">Senior Level</option>
+        <option value="lead">Lead / Manager</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generateQuestions()"><i class="bi bi-question-circle-fill"></i> Generate Questions</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="results" style="display:none;flex-direction:column;gap:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+      <div class="filter-tabs" id="filterTabs">
+        <button class="filter-tab active" data-cat="all" onclick="filterCat(this,'all')">All (20)</button>
+        <button class="filter-tab" data-cat="behavioral" onclick="filterCat(this,'behavioral')">Behavioral</button>
+        <button class="filter-tab" data-cat="technical" onclick="filterCat(this,'technical')">Technical</button>
+        <button class="filter-tab" data-cat="situational" onclick="filterCat(this,'situational')">Situational</button>
+        <button class="filter-tab" data-cat="culture" onclick="filterCat(this,'culture')">Culture Fit</button>
+      </div>
+      <button class="btn-sm" onclick="copyAll()"><i class="bi bi-clipboard"></i> Copy All</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.75rem" id="questionList"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let allQuestions = [];
+
+const QUESTIONS = {
+  behavioral: {
+    entry: [
+      { q: "Tell me about a time you had to learn something new quickly.", hint: "STAR: Describe the skill, how you learned it, and the outcome." },
+      { q: "Describe a situation where you had to work as part of a team.", hint: "STAR: Focus on your specific contribution and what the team achieved." },
+      { q: "Tell me about a challenge you faced and how you overcame it.", hint: "STAR: Be specific about the obstacle and your problem-solving approach." },
+      { q: "Give an example of a time you received constructive feedback.", hint: "STAR: Show self-awareness and how you acted on the feedback." },
+      { q: "Describe a project you're most proud of.", hint: "STAR: Highlight your role, the impact, and what you learned." }
+    ],
+    mid: [
+      { q: "Tell me about a time you had to manage competing priorities.", hint: "STAR: Explain your prioritization framework and the outcome." },
+      { q: "Describe a situation where you disagreed with a colleague. How did you handle it?", hint: "STAR: Show emotional intelligence and constructive conflict resolution." },
+      { q: "Give an example of when you took initiative beyond your role.", hint: "STAR: Highlight ownership and the positive impact of your initiative." },
+      { q: "Tell me about a time a project didn't go as planned.", hint: "STAR: Focus on what you learned and how you adapted." },
+      { q: "Describe a time you had to influence someone without direct authority.", hint: "STAR: Show persuasion skills and stakeholder management." }
+    ],
+    senior: [
+      { q: "Tell me about a time you led a team through a significant challenge.", hint: "STAR: Emphasize leadership, decision-making, and team outcomes." },
+      { q: "Describe a situation where you had to make a difficult decision with incomplete information.", hint: "STAR: Show analytical thinking and risk management." },
+      { q: "Give an example of how you've mentored or developed someone on your team.", hint: "STAR: Highlight coaching approach and the mentee's growth." },
+      { q: "Tell me about a time you drove a major organizational change.", hint: "STAR: Focus on change management, stakeholder buy-in, and results." },
+      { q: "Describe a time you failed and what you learned from it.", hint: "STAR: Show accountability, reflection, and how you applied the lesson." }
+    ],
+    lead: [
+      { q: "How have you built and scaled a high-performing team?", hint: "STAR: Discuss hiring, culture, processes, and measurable team outcomes." },
+      { q: "Tell me about a time you had to align multiple stakeholders with conflicting priorities.", hint: "STAR: Show executive communication and negotiation skills." },
+      { q: "Describe how you've handled underperformance on your team.", hint: "STAR: Show empathy, clear expectations, and fair process." },
+      { q: "Give an example of a strategic decision that had long-term impact.", hint: "STAR: Highlight strategic thinking, data use, and business outcomes." },
+      { q: "Tell me about a time you had to pivot strategy mid-execution.", hint: "STAR: Show adaptability, communication, and leadership under pressure." }
+    ]
+  },
+  technical: {
+    entry: [
+      { q: "What programming languages or tools are you most comfortable with?", hint: "Be specific, give examples of projects where you used them." },
+      { q: "How do you approach debugging a problem you've never seen before?", hint: "Walk through your systematic debugging process step by step." },
+      { q: "Explain a technical concept you recently learned.", hint: "Show your ability to learn and communicate technical ideas clearly." },
+      { q: "What's the difference between a list and a dictionary in Python (or relevant language)?", hint: "Demonstrate foundational knowledge with a practical example." },
+      { q: "How do you ensure your code is readable and maintainable?", hint: "Mention naming conventions, comments, code reviews, and documentation." }
+    ],
+    mid: [
+      { q: "How do you approach system design for a new feature?", hint: "Discuss requirements gathering, architecture decisions, and trade-offs." },
+      { q: "Describe your experience with databases. How do you optimize slow queries?", hint: "Mention indexing, query analysis, and specific optimization techniques." },
+      { q: "How do you handle technical debt in a fast-moving codebase?", hint: "Show balance between velocity and code quality with concrete strategies." },
+      { q: "Walk me through how you'd design a REST API.", hint: "Cover endpoints, authentication, error handling, versioning, and documentation." },
+      { q: "How do you approach testing your code?", hint: "Discuss unit, integration, and end-to-end testing with examples." }
+    ],
+    senior: [
+      { q: "How do you design systems for scalability and reliability?", hint: "Discuss load balancing, caching, database sharding, and fault tolerance." },
+      { q: "How do you evaluate and introduce new technologies to your team?", hint: "Show a structured evaluation process: POC, risk assessment, team buy-in." },
+      { q: "Describe your approach to code review and raising the team's technical bar.", hint: "Discuss standards, constructive feedback, and knowledge sharing." },
+      { q: "How do you balance technical excellence with business deadlines?", hint: "Show pragmatism: when to ship vs. when to refactor." },
+      { q: "Walk me through a complex architectural decision you made.", hint: "Cover the problem, options considered, trade-offs, and outcome." }
+    ],
+    lead: [
+      { q: "How do you set technical direction for your team?", hint: "Discuss roadmaps, architecture reviews, and aligning tech with business goals." },
+      { q: "How do you ensure engineering quality at scale?", hint: "Cover processes, tooling, culture, and metrics." },
+      { q: "How do you handle technical disagreements within your team?", hint: "Show facilitation skills and how you reach consensus." },
+      { q: "How do you measure engineering team productivity?", hint: "Discuss DORA metrics, cycle time, and qualitative signals." },
+      { q: "How do you stay current with technology trends and apply them strategically?", hint: "Show continuous learning and a framework for evaluating new tech." }
+    ]
+  },
+  situational: {
+    entry: [
+      { q: "If you were given a task with unclear requirements, what would you do?", hint: "Show proactive communication: ask clarifying questions, confirm understanding." },
+      { q: "How would you handle a situation where you're stuck on a problem for hours?", hint: "Describe your escalation process and when to ask for help." },
+      { q: "If a deadline is approaching and you realize you won't finish, what do you do?", hint: "Show transparency, prioritization, and proactive communication." },
+      { q: "How would you handle a disagreement with your manager?", hint: "Show respect, data-driven reasoning, and willingness to align." },
+      { q: "If you were assigned to a project outside your expertise, how would you approach it?", hint: "Show learning agility, resourcefulness, and asking for support." }
+    ],
+    mid: [
+      { q: "If a critical bug is found in production, how do you respond?", hint: "Walk through triage, communication, fix, and post-mortem process." },
+      { q: "How would you handle a situation where a key team member leaves mid-project?", hint: "Show risk management, knowledge transfer, and team resilience." },
+      { q: "If stakeholders keep changing requirements, how do you manage that?", hint: "Discuss scope management, change control, and stakeholder alignment." },
+      { q: "How would you approach onboarding a new team member?", hint: "Show structured onboarding, documentation, and mentorship." },
+      { q: "If you had to cut scope to meet a deadline, how would you decide what to cut?", hint: "Show prioritization frameworks: MoSCoW, impact vs. effort." }
+    ],
+    senior: [
+      { q: "If you inherited a legacy codebase with no documentation, how would you proceed?", hint: "Show systematic exploration, documentation, and incremental improvement." },
+      { q: "How would you handle a situation where your team is consistently missing deadlines?", hint: "Diagnose root causes, address systemic issues, and improve processes." },
+      { q: "If leadership asks you to implement something you believe is technically wrong, what do you do?", hint: "Show how to present alternatives with data while respecting decisions." },
+      { q: "How would you handle a security vulnerability discovered in your system?", hint: "Cover immediate response, communication, fix, and prevention." },
+      { q: "If two senior engineers on your team have a fundamental technical disagreement, how do you resolve it?", hint: "Show facilitation, data-driven decision making, and team alignment." }
+    ],
+    lead: [
+      { q: "If your team's morale is low, how do you identify the root cause and address it?", hint: "Show empathy, 1:1s, team surveys, and systemic fixes." },
+      { q: "How would you handle a situation where business goals conflict with engineering best practices?", hint: "Show how to negotiate, find middle ground, and document trade-offs." },
+      { q: "If you need to reduce your team's headcount, how do you approach it?", hint: "Show fairness, transparency, and support for affected team members." },
+      { q: "How would you handle a high-profile project that's at risk of failure?", hint: "Show crisis management, stakeholder communication, and recovery planning." },
+      { q: "If you're asked to deliver a project in half the estimated time, what do you do?", hint: "Show scope negotiation, resource planning, and risk communication." }
+    ]
+  },
+  culture: {
+    entry: [
+      { q: "Why do you want to work here?", hint: "Research the company's mission, products, and culture. Be specific." },
+      { q: "What kind of work environment do you thrive in?", hint: "Be honest and align with what you know about the company culture." },
+      { q: "How do you handle feedback and criticism?", hint: "Show growth mindset and specific examples of acting on feedback." },
+      { q: "What motivates you in your work?", hint: "Connect your motivations to the role and company mission." },
+      { q: "Where do you see yourself in 3-5 years?", hint: "Show ambition aligned with the company's growth opportunities." }
+    ],
+    mid: [
+      { q: "How do you contribute to a positive team culture?", hint: "Give specific examples of behaviors that build psychological safety." },
+      { q: "What does work-life balance mean to you?", hint: "Be honest while showing commitment and reliability." },
+      { q: "How do you stay motivated during repetitive or less exciting work?", hint: "Show professionalism and intrinsic motivation." },
+      { q: "What's your approach to continuous learning and professional development?", hint: "Mention specific resources, habits, and recent things you've learned." },
+      { q: "How do you handle ambiguity and uncertainty?", hint: "Show comfort with change and a structured approach to unclear situations." }
+    ],
+    senior: [
+      { q: "How do you build trust with your team and stakeholders?", hint: "Discuss consistency, transparency, follow-through, and vulnerability." },
+      { q: "What's your leadership philosophy?", hint: "Be authentic and give examples of how your philosophy plays out in practice." },
+      { q: "How do you foster diversity and inclusion on your team?", hint: "Show concrete actions, not just values." },
+      { q: "What do you look for when hiring?", hint: "Show a thoughtful, structured approach beyond just technical skills." },
+      { q: "How do you handle burnout — in yourself and your team?", hint: "Show self-awareness, prevention strategies, and empathy." }
+    ],
+    lead: [
+      { q: "How do you define and communicate your team's vision?", hint: "Show how you connect day-to-day work to the bigger picture." },
+      { q: "How do you create a culture of accountability without micromanaging?", hint: "Discuss clear expectations, autonomy, and feedback loops." },
+      { q: "What's your approach to cross-functional collaboration?", hint: "Show how you build relationships and align across departments." },
+      { q: "How do you handle a team member who is technically strong but culturally misaligned?", hint: "Show how you address behavior while respecting the individual." },
+      { q: "What legacy do you want to leave at this company?", hint: "Show long-term thinking and alignment with company values." }
+    ]
+  }
+};
+
+function generateQuestions() {
+  const role = document.getElementById('role').value.trim();
+  const level = document.getElementById('level').value;
+  if (!role) { showErr('st','Please enter a job role'); return; }
+  hideStatus('st');
+
+  allQuestions = [];
+  ['behavioral','technical','situational','culture'].forEach(cat => {
+    const qs = QUESTIONS[cat][level] || QUESTIONS[cat]['mid'];
+    qs.forEach(q => allQuestions.push({ ...q, cat, role }));
+  });
+
+  renderQuestions('all');
+  document.getElementById('results').style.display = 'flex';
+  showOk('st', `20 questions generated for ${role}`);
+}
+
+function renderQuestions(filter) {
+  const list = document.getElementById('questionList');
+  list.innerHTML = '';
+  const filtered = filter === 'all' ? allQuestions : allQuestions.filter(q => q.cat === filter);
+  filtered.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.dataset.cat = q.cat;
+    card.innerHTML = `
+      <div class="q-cat ${q.cat}">${q.cat.charAt(0).toUpperCase()+q.cat.slice(1)}${q.cat==='behavioral'?' (STAR Method)':''}</div>
+      <div class="q-text">${escHtml(q.q)}</div>
+      <div class="q-hint"><strong>Framework:</strong> ${escHtml(q.hint)}</div>
+      <div class="q-num">Q${i+1}</div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function filterCat(btn, cat) {
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderQuestions(cat);
+}
+
+function copyAll() {
+  const text = allQuestions.map((q,i) => `${i+1}. [${q.cat.toUpperCase()}] ${q.q}\n   Hint: ${q.hint}`).join('\n\n');
+  navigator.clipboard.writeText(text);
+}
+
+function clearAll() {
+  document.getElementById('role').value = '';
+  document.getElementById('results').style.display = 'none';
+  allQuestions = [];
+  hideStatus('st');
+}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generateQuestions(); }
+});
+</script>
+{% endblock %}

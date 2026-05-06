@@ -1,0 +1,194 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.65rem 0.9rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.rule-block { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 0.8rem; }
+.rule-block:hover { border-color: rgba(108,99,255,0.3); }
+.rule-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+.rule-agent { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
+.path-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.4rem; }
+.path-type { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+.path-type.allow { border-color: rgba(0,200,100,0.4); color: #00c864; }
+.path-type.disallow { border-color: rgba(255,107,107,0.4); color: var(--danger); }
+.btn-remove { background: rgba(255,107,107,0.1); color: var(--danger); border: 1px solid rgba(255,107,107,0.3); width: 26px; height: 26px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+.output-area { background: #0A0A0F; border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; position: relative; }
+.output-code { font-family: 'JetBrains Mono', monospace; color: var(--accent); white-space: pre-wrap; word-break: break-all; font-size: 0.85rem; min-height: 200px; }
+.preset-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.chip { padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.chip:hover { border-color: var(--primary); color: var(--primary); }
+@media (max-width: 768px) { .dev-tool-wrap { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div style="margin-bottom:1rem;">
+      <span class="tool-label">Quick Presets</span>
+      <div class="preset-chips">
+        <span class="chip" onclick="applyPreset('allow-all')">✓ Allow All</span>
+        <span class="chip" onclick="applyPreset('block-all')">✗ Block All</span>
+        <span class="chip" onclick="applyPreset('block-admin')">🔒 Block Admin</span>
+        <span class="chip" onclick="applyPreset('block-bots')">🤖 Block Bad Bots</span>
+        <span class="chip" onclick="applyPreset('wordpress')">WordPress</span>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+      <span class="tool-label" style="margin:0;">User-Agent Rules</span>
+      <button class="btn-sm" id="btn-add-agent"><i class="bi bi-plus-lg"></i> Add Agent</button>
+    </div>
+    <div id="rules-list"></div>
+
+    <div style="margin-bottom:1rem;">
+      <span class="tool-label">Sitemap URL (optional)</span>
+      <input type="url" id="in-sitemap" class="num-input" placeholder="https://example.com/sitemap.xml">
+    </div>
+    <div style="margin-bottom:1.5rem;">
+      <span class="tool-label">Crawl-delay (optional, seconds)</span>
+      <input type="number" id="in-crawldelay" class="num-input" placeholder="10" min="0">
+    </div>
+    <button class="btn-go" id="btn-generate">⚡ Generate robots.txt</button>
+  </div>
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+      <span class="tool-label" style="margin:0;">Live Preview</span>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="btn-sm" id="btn-copy"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" id="btn-download"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <div class="output-area">
+      <div class="output-code" id="output-code"># robots.txt will appear here</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let rules = [
+    { agent: '*', paths: [{ type: 'Disallow', path: '' }], crawlDelay: '' }
+  ];
+
+  const presets = {
+    'allow-all': [{ agent: '*', paths: [{ type: 'Allow', path: '/' }], crawlDelay: '' }],
+    'block-all': [{ agent: '*', paths: [{ type: 'Disallow', path: '/' }], crawlDelay: '' }],
+    'block-admin': [
+      { agent: '*', paths: [{ type: 'Disallow', path: '/admin/' }, { type: 'Disallow', path: '/wp-admin/' }, { type: 'Allow', path: '/' }], crawlDelay: '' }
+    ],
+    'block-bots': [
+      { agent: '*', paths: [{ type: 'Allow', path: '/' }], crawlDelay: '' },
+      { agent: 'AhrefsBot', paths: [{ type: 'Disallow', path: '/' }], crawlDelay: '' },
+      { agent: 'SemrushBot', paths: [{ type: 'Disallow', path: '/' }], crawlDelay: '' },
+      { agent: 'MJ12bot', paths: [{ type: 'Disallow', path: '/' }], crawlDelay: '' },
+      { agent: 'DotBot', paths: [{ type: 'Disallow', path: '/' }], crawlDelay: '' },
+    ],
+    'wordpress': [
+      { agent: '*', paths: [
+        { type: 'Disallow', path: '/wp-admin/' },
+        { type: 'Allow', path: '/wp-admin/admin-ajax.php' },
+        { type: 'Disallow', path: '/wp-includes/' },
+        { type: 'Disallow', path: '/wp-content/plugins/' },
+        { type: 'Disallow', path: '/wp-content/themes/' },
+        { type: 'Allow', path: '/' },
+      ], crawlDelay: '' }
+    ],
+  };
+
+  window.applyPreset = (name) => {
+    rules = JSON.parse(JSON.stringify(presets[name]));
+    render();
+    buildOutput();
+  };
+
+  function render() {
+    document.getElementById('rules-list').innerHTML = rules.map((rule, ri) => `
+      <div class="rule-block">
+        <div class="rule-header">
+          <div style="display:flex;align-items:center;gap:0.5rem;flex:1;">
+            <span style="color:var(--muted);font-size:0.8rem;">User-agent:</span>
+            <input type="text" class="num-input r-agent" data-ri="${ri}" value="${rule.agent.replace(/"/g,'&quot;')}" placeholder="*" style="max-width:180px;">
+          </div>
+          ${rules.length > 1 ? `<button class="btn-remove" onclick="removeRule(${ri})"><i class="bi bi-trash"></i></button>` : ''}
+        </div>
+        <div id="paths-${ri}">
+          ${rule.paths.map((p, pi) => `
+            <div class="path-row">
+              <button class="path-type ${p.type.toLowerCase()}" onclick="toggleType(${ri},${pi})">${p.type}</button>
+              <input type="text" class="num-input r-path" data-ri="${ri}" data-pi="${pi}" value="${p.path.replace(/"/g,'&quot;')}" placeholder="/path/">
+              ${rule.paths.length > 1 ? `<button class="btn-remove" onclick="removePath(${ri},${pi})"><i class="bi bi-dash"></i></button>` : ''}
+            </div>`).join('')}
+        </div>
+        <button class="btn-sm" onclick="addPath(${ri})" style="margin-top:0.5rem;font-size:0.75rem;"><i class="bi bi-plus"></i> Add Path</button>
+      </div>`).join('');
+
+    document.querySelectorAll('.r-agent').forEach(el => {
+      el.addEventListener('input', e => { rules[e.target.dataset.ri].agent = e.target.value; buildOutput(); });
+    });
+    document.querySelectorAll('.r-path').forEach(el => {
+      el.addEventListener('input', e => { rules[e.target.dataset.ri].paths[e.target.dataset.pi].path = e.target.value; buildOutput(); });
+    });
+  }
+
+  window.removeRule = (ri) => { rules.splice(ri, 1); render(); buildOutput(); };
+  window.removePath = (ri, pi) => { rules[ri].paths.splice(pi, 1); render(); buildOutput(); };
+  window.addPath = (ri) => { rules[ri].paths.push({ type: 'Disallow', path: '' }); render(); buildOutput(); };
+  window.toggleType = (ri, pi) => {
+    rules[ri].paths[pi].type = rules[ri].paths[pi].type === 'Disallow' ? 'Allow' : 'Disallow';
+    render(); buildOutput();
+  };
+
+  document.getElementById('btn-add-agent').addEventListener('click', () => {
+    rules.push({ agent: '*', paths: [{ type: 'Disallow', path: '' }], crawlDelay: '' });
+    render(); buildOutput();
+  });
+
+  function buildOutput() {
+    const sitemap = document.getElementById('in-sitemap').value.trim();
+    const crawlDelay = document.getElementById('in-crawldelay').value.trim();
+    let lines = ['# Generated by LamGen robots.txt Builder', ''];
+    rules.forEach(rule => {
+      lines.push(`User-agent: ${rule.agent || '*'}`);
+      if (crawlDelay) lines.push(`Crawl-delay: ${crawlDelay}`);
+      rule.paths.forEach(p => { lines.push(`${p.type}: ${p.path}`); });
+      lines.push('');
+    });
+    if (sitemap) lines.push(`Sitemap: ${sitemap}`);
+    document.getElementById('output-code').textContent = lines.join('\n').trim();
+  }
+
+  document.getElementById('btn-generate').addEventListener('click', buildOutput);
+  document.getElementById('in-sitemap').addEventListener('input', buildOutput);
+  document.getElementById('in-crawldelay').addEventListener('input', buildOutput);
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(document.getElementById('output-code').textContent);
+    const btn = document.getElementById('btn-copy');
+    btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 1500);
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const blob = new Blob([document.getElementById('output-code').textContent], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'robots.txt';
+    a.click();
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') buildOutput(); });
+  render();
+  buildOutput();
+});
+</script>
+{% endblock %}

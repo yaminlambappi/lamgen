@@ -1,0 +1,345 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-label{font-size:.75rem;color:var(--muted);font-weight:600}
+.text-input,.select-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.text-input:focus,.select-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.results-list{display:flex;flex-direction:column;gap:.6rem}
+.result-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;transition:all .2s}
+.result-item:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
+.result-text{flex:1;font-size:.92rem;line-height:1.5;color:var(--text)}
+.result-type{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--primary);background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;padding:2px 8px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.copy-btn{padding:4px 10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:.72rem;cursor:pointer;color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif;flex-shrink:0}
+.copy-btn:hover{background:rgba(108,99,255,.15);color:var(--primary);border-color:var(--primary)}
+.type-filter{display:flex;gap:6px;flex-wrap:wrap}
+.type-chip{padding:4px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:50px;font-size:.75rem;cursor:pointer;color:var(--muted);transition:all .15s}
+.type-chip.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div class="grid-2">
+    <div class="input-group">
+      <label class="input-label">Topic / Keyword *</label>
+      <input type="text" class="text-input" id="topic" placeholder="e.g. productivity, remote work, AI tools">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Target Audience</label>
+      <input type="text" class="text-input" id="audience" placeholder="e.g. entrepreneurs, students, developers">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Platform / Style</label>
+      <select class="select-input" id="platform">
+        <option value="blog">Blog / Article</option>
+        <option value="linkedin">LinkedIn</option>
+        <option value="twitter">Twitter / X</option>
+        <option value="instagram">Instagram</option>
+        <option value="tiktok">TikTok</option>
+        <option value="viral">Viral / Clickbait</option>
+        <option value="academic">Academic / Formal</option>
+        <option value="email">Email Newsletter</option>
+        <option value="youtube">YouTube</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Count</label>
+      <select class="select-input" id="count">
+        <option value="10">10 headlines</option>
+        <option value="15">15 headlines</option>
+        <option value="20" selected>20 headlines</option>
+        <option value="30">30 headlines</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <div class="input-label" style="margin-bottom:.4rem">Filter by type</div>
+    <div class="type-filter" id="typeFilter">
+      <span class="type-chip active" data-type="all">All</span>
+      <span class="type-chip" data-type="howto">How-to</span>
+      <span class="type-chip" data-type="listicle">Listicle</span>
+      <span class="type-chip" data-type="question">Question</span>
+      <span class="type-chip" data-type="curiosity">Curiosity</span>
+      <span class="type-chip" data-type="benefit">Benefit</span>
+      <span class="type-chip" data-type="urgency">Urgency</span>
+      <span class="type-chip" data-type="data">Data-driven</span>
+      <span class="type-chip" data-type="negative">Negative</span>
+      <span class="type-chip" data-type="story">Story</span>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-lightning-charge-fill"></i> Generate Headlines</button>
+    <button class="btn-sm" onclick="copyAll()"><i class="bi bi-clipboard"></i> Copy All</button>
+    <button class="btn-sm" onclick="regenerate()"><i class="bi bi-arrow-clockwise"></i> Regenerate</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+      <div class="tool-label" style="margin-bottom:0">Generated Headlines</div>
+      <span id="resultCount" style="font-size:.75rem;color:var(--muted)"></span>
+    </div>
+    <div class="results-list" id="resultsList"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+// Wait for GenEngine to be available
+function waitForEngine(cb) {
+  if (window.GenEngine) { cb(); return; }
+  setTimeout(() => waitForEngine(cb), 50);
+}
+
+waitForEngine(() => {
+const G = window.GenEngine;
+let allResults = [];
+let activeType = 'all';
+
+// Expose to global scope for onclick handlers
+window.generate = generate;
+window.copyAll = copyAll;
+window.regenerate = regenerate;
+window.copyOne = copyOne;
+
+// Type filter
+document.querySelectorAll('.type-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeType = chip.dataset.type;
+    renderFiltered();
+  });
+});
+
+function getCtx() {
+  const topic = document.getElementById('topic').value.trim() || 'your topic';
+  const audience = document.getElementById('audience').value.trim() || 'your audience';
+  const platform = document.getElementById('platform').value;
+  return { topic, audience, platform,
+    verb: G.powerVerb(), adj: G.powerAdj(), n: G.number(),
+    emotion: G.emotion() };
+}
+
+// Generator functions — each returns a {text, type} object
+function makeGenerators(ctx) {
+  const { topic, audience, platform, verb, adj, n } = ctx;
+  const T = topic, A = audience || 'everyone';
+
+  // Platform-specific tone modifiers
+  const isViral = ['viral','tiktok','instagram'].includes(platform);
+  const isFormal = ['academic','linkedin'].includes(platform);
+  const isShort = ['twitter','tiktok'].includes(platform);
+
+  const howto = [
+    () => ({ text: `How to ${G.synonym('improve')} Your ${G.applyCase(T,'title')} in ${G.pick(['7','14','30'])} Days`, type:'howto' }),
+    () => ({ text: `How to ${G.powerVerb()} ${G.applyCase(T,'title')} Without ${G.pick(['Burning Out','Spending a Fortune','Years of Trial and Error','Losing Sleep'])}`, type:'howto' }),
+    () => ({ text: `How ${G.pick(['I','We','This Team'])} ${G.synonym('build')}ed a ${G.powerAdj()} ${G.applyCase(T,'title')} System`, type:'howto' }),
+    () => ({ text: `How to ${G.powerVerb()} ${G.applyCase(T,'title')} (Even If You're a Complete Beginner)`, type:'howto' }),
+    () => ({ text: `The ${G.pick(['Right','Smart','Fastest','Easiest'])} Way to ${G.synonym('improve')} ${G.applyCase(T,'title')}`, type:'howto' }),
+    () => ({ text: `How to ${G.powerVerb()} ${G.applyCase(T,'title')} Like a ${G.pick(['Pro','Expert','Veteran','Top Performer'])}`, type:'howto' }),
+  ];
+
+  const listicle = [
+    () => ({ text: `${G.number()} ${G.powerAdj()} Ways to ${G.synonym('improve')} ${G.applyCase(T,'title')}`, type:'listicle' }),
+    () => ({ text: `${G.number()} Things ${G.pick(['Nobody','Most People','Everyone'])} Gets Wrong About ${G.applyCase(T,'title')}`, type:'listicle' }),
+    () => ({ text: `${G.number()} ${G.applyCase(T,'title')} ${G.pick(['Hacks','Tips','Strategies','Secrets','Lessons'])} That Actually Work`, type:'listicle' }),
+    () => ({ text: `${G.number()} Reasons Why ${G.applyCase(T,'title')} ${G.pick(['Is Changing Everything','Matters More Than Ever','Will Define the Next Decade'])}`, type:'listicle' }),
+    () => ({ text: `${G.number()} ${G.powerAdj()} ${G.applyCase(T,'title')} ${G.pick(['Tools','Resources','Frameworks','Approaches'])} You Need Right Now`, type:'listicle' }),
+    () => ({ text: `${G.number()} Signs You're ${G.pick(['Ready for','Missing Out on','Underestimating','Overthinking'])} ${G.applyCase(T,'title')}`, type:'listicle' }),
+  ];
+
+  const question = [
+    () => ({ text: `Is ${G.applyCase(T,'title')} ${G.pick(['Really Worth It','Overrated','the Future','Dead'])}?`, type:'question' }),
+    () => ({ text: `What ${G.pick(['Nobody','Most Experts','Your Competition'])} Tells You About ${G.applyCase(T,'title')}`, type:'question' }),
+    () => ({ text: `Why Are ${G.pick(['So Many People','Top Performers','Smart Founders'])} Obsessed With ${G.applyCase(T,'title')}?`, type:'question' }),
+    () => ({ text: `Are You ${G.pick(['Making These','Falling for These','Ignoring These'])} ${G.applyCase(T,'title')} Mistakes?`, type:'question' }),
+    () => ({ text: `What Would Happen If You ${G.powerVerb()}ed ${G.applyCase(T,'title')} Every Day?`, type:'question' }),
+  ];
+
+  const curiosity = [
+    () => ({ text: `The ${G.pick(['Surprising','Uncomfortable','Counterintuitive','Hidden'])} Truth About ${G.applyCase(T,'title')}`, type:'curiosity' }),
+    () => ({ text: `Nobody Talks About This ${G.applyCase(T,'title')} ${G.pick(['Strategy','Mistake','Secret','Shortcut'])}`, type:'curiosity' }),
+    () => ({ text: `I ${G.pick(['Tried','Tested','Spent 30 Days With','Studied'])} ${G.applyCase(T,'title')} — Here's What Happened`, type:'curiosity' }),
+    () => ({ text: `The ${G.applyCase(T,'title')} ${G.pick(['Myth','Lie','Trap','Mistake'])} That's ${G.pick(['Costing You','Holding You Back','Slowing You Down'])}`, type:'curiosity' }),
+    () => ({ text: `What ${G.pick(['I Wish I Knew','They Don\'t Teach You','Most People Miss'])} About ${G.applyCase(T,'title')}`, type:'curiosity' }),
+    () => ({ text: `This ${G.applyCase(T,'title')} ${G.pick(['Trick','Approach','Framework','Mindset'])} Changed Everything`, type:'curiosity' }),
+  ];
+
+  const benefit = [
+    () => ({ text: `${G.powerVerb().charAt(0).toUpperCase() + G.powerVerb().slice(1)} Your ${G.applyCase(T,'title')} Results in ${G.pick(['30 Days','One Week','90 Days','Record Time'])}`, type:'benefit' }),
+    () => ({ text: `${G.pick(['Finally','At Last','Now You Can'])} ${G.synonym('improve')} ${G.applyCase(T,'title')} Without ${G.pick(['the Guesswork','Wasting Time','Expensive Mistakes'])}`, type:'benefit' }),
+    () => ({ text: `The ${G.powerAdj()} ${G.applyCase(T,'title')} ${G.pick(['Blueprint','Playbook','System','Framework'])} for ${G.pick(['Beginners','Busy Professionals','Ambitious Teams'])}`, type:'benefit' }),
+    () => ({ text: `${G.synonym('grow')} Your ${G.applyCase(T,'title')} ${G.pick(['10x','Faster','Smarter','Without Burnout'])}`, type:'benefit' }),
+    () => ({ text: `The Only ${G.applyCase(T,'title')} ${G.pick(['Guide','Resource','System'])} You'll Ever Need`, type:'benefit' }),
+  ];
+
+  const urgency = [
+    () => ({ text: `Stop ${G.pick(['Ignoring','Underestimating','Overthinking','Avoiding'])} ${G.applyCase(T,'title')} — Here's Why`, type:'urgency' }),
+    () => ({ text: `${G.applyCase(T,'title')} Is ${G.pick(['Changing Fast','Evolving','Exploding'])} — Are You Ready?`, type:'urgency' }),
+    () => ({ text: `Don't ${G.pick(['Miss','Ignore','Overlook'])} This ${G.applyCase(T,'title')} ${G.pick(['Opportunity','Shift','Trend'])}`, type:'urgency' }),
+    () => ({ text: `Why You Need to ${G.synonym('improve')} Your ${G.applyCase(T,'title')} ${G.pick(['Now','Today','This Year','Immediately'])}`, type:'urgency' }),
+    () => ({ text: `The ${G.applyCase(T,'title')} ${G.pick(['Window','Opportunity','Moment'])} Is Closing — Here's What to Do`, type:'urgency' }),
+  ];
+
+  const data = [
+    () => ({ text: `${G.pick(['Study','Research','Data','Survey'])} Shows: ${G.number()}% of ${G.pick(['People','Professionals','Teams','Companies'])} Struggle With ${G.applyCase(T,'title')}`, type:'data' }),
+    () => ({ text: `${G.number()} ${G.applyCase(T,'title')} Statistics That Will ${G.pick(['Surprise','Shock','Change How You Think About'])} You`, type:'data' }),
+    () => ({ text: `We Analyzed ${G.number()}${G.pick(['00','K','M'])} ${G.applyCase(T,'title')} ${G.pick(['Cases','Examples','Profiles'])} — Here's What We Found`, type:'data' }),
+    () => ({ text: `The ${G.applyCase(T,'title')} Numbers Don't Lie: ${G.number()} Key Insights for ${new Date().getFullYear()}`, type:'data' }),
+  ];
+
+  const negative = [
+    () => ({ text: `Why ${G.pick(['Most','Many','The Average'])} ${G.pick(['People','Professionals','Beginners'])} Fail at ${G.applyCase(T,'title')}`, type:'negative' }),
+    () => ({ text: `${G.number()} ${G.applyCase(T,'title')} Mistakes That Are ${G.pick(['Killing Your Results','Costing You','Holding You Back'])}`, type:'negative' }),
+    () => ({ text: `The Worst ${G.applyCase(T,'title')} ${G.pick(['Advice','Mistakes','Habits'])} You Need to ${G.pick(['Stop','Avoid','Unlearn'])} Now`, type:'negative' }),
+    () => ({ text: `Why Your ${G.applyCase(T,'title')} ${G.pick(['Strategy','Approach','System'])} Isn't Working (And How to Fix It)`, type:'negative' }),
+  ];
+
+  const story = [
+    () => ({ text: `I ${G.pick(['Spent','Wasted','Invested'])} ${G.pick(['6 Months','a Year','3 Years','$10K'])} on ${G.applyCase(T,'title')} — Here's What I Learned`, type:'story' }),
+    () => ({ text: `From ${G.pick(['Zero','Scratch','Nothing','Failure'])} to ${G.pick(['Success','Expert','Results'])} With ${G.applyCase(T,'title')}: My Story`, type:'story' }),
+    () => ({ text: `The ${G.applyCase(T,'title')} ${G.pick(['Lesson','Moment','Realization'])} That ${G.pick(['Changed Everything','Transformed My Approach','Made All the Difference'])}`, type:'story' }),
+    () => ({ text: `What ${G.pick(['3 Years','5 Years','a Decade'])} of ${G.applyCase(T,'title')} Taught Me`, type:'story' }),
+  ];
+
+  return { howto, listicle, question, curiosity, benefit, urgency, data, negative, story };
+}
+
+function generate() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { showErr('st','Enter a topic first'); return; }
+  hideStatus('st');
+
+  const ctx = getCtx();
+  const count = parseInt(document.getElementById('count').value);
+  const gens = makeGenerators(ctx);
+
+  // Flatten all generators with type info
+  const all = Object.values(gens).flat();
+
+  // Generate with dedup
+  const results = [];
+  const seen = new Set();
+  const shuffled = G.shuffle(all);
+
+  for (const gen of shuffled) {
+    if (results.length >= count) break;
+    try {
+      const item = gen();
+      if (!item || !item.text) continue;
+      const norm = item.text.toLowerCase().slice(0, 60);
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      results.push(item);
+    } catch(e) {}
+  }
+
+  // Fill remaining with re-runs + mutation
+  let attempts = 0;
+  while (results.length < count && attempts < count * 4) {
+    attempts++;
+    try {
+      const ctx2 = { ...ctx, verb: G.powerVerb(), adj: G.powerAdj(), n: G.number() };
+      const gens2 = makeGenerators(ctx2);
+      const all2 = Object.values(gens2).flat();
+      const item = G.pick(all2)();
+      if (!item || !item.text) continue;
+      const norm = item.text.toLowerCase().slice(0, 60);
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      results.push(item);
+    } catch(e) {}
+  }
+
+  allResults = results;
+  renderFiltered();
+  showOk('st', `${results.length} headlines generated`);
+}
+
+function renderFiltered() {
+  const filtered = activeType === 'all'
+    ? allResults
+    : allResults.filter(r => r.type === activeType);
+
+  if (!filtered.length) {
+    document.getElementById('resultsWrap').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('resultCount').textContent = `${filtered.length} headline${filtered.length !== 1 ? 's' : ''}`;
+  document.getElementById('resultsList').innerHTML = filtered.map((item, i) => `
+    <div class="result-item">
+      <span class="result-type">${item.type}</span>
+      <span class="result-text">${escHtml(item.text)}</span>
+      <button class="copy-btn" onclick="copyOne(${i}, this)"><i class="bi bi-clipboard"></i></button>
+    </div>
+  `).join('');
+  document.getElementById('resultsWrap').style.display = '';
+}
+
+function copyOne(idx, btn) {
+  const filtered = activeType === 'all' ? allResults : allResults.filter(r => r.type === activeType);
+  const text = filtered[idx]?.text;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+function copyAll() {
+  if (!allResults.length) return;
+  const text = allResults.map(r => r.text).join('\n');
+  navigator.clipboard.writeText(text).then(() => showOk('st', 'All headlines copied'));
+}
+
+function regenerate() {
+  generate();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generate(); }
+});
+
+}); // end waitForEngine
+</script>
+{% endblock %}

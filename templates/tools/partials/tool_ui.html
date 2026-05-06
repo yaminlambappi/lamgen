@@ -1,0 +1,55 @@
+{# Shared tool UI shell — include inside tool_base tool_content block #}
+{# Provides: input panel, action bar, output panel, copy/download, error/success states #}
+{# Usage: {% include "tools/partials/tool_ui.html" with input_placeholder="..." %} #}
+
+<style>
+.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 768px) { .tool-grid { grid-template-columns: 1fr; } }
+.tool-panel { display: flex; flex-direction: column; gap: 0.75rem; }
+.panel-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
+.tool-textarea {
+  width: 100%; min-height: 220px; padding: 14px 16px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px; color: var(--text); font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85rem; line-height: 1.6; resize: vertical; outline: none;
+  transition: border-color 0.2s;
+}
+.tool-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,99,255,0.12); }
+.tool-textarea::placeholder { color: rgba(255,255,255,0.2); }
+.tool-textarea.output { background: rgba(0,0,0,0.25); cursor: default; }
+.action-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn-run {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px; background: linear-gradient(135deg, var(--primary), #8B85FF);
+  color: #fff; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+  font-weight: 600; font-size: 0.9rem; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 4px 14px rgba(108,99,255,0.25);
+}
+.btn-run:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(108,99,255,0.4); }
+.btn-run:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 16px; background: rgba(255,255,255,0.05);
+  color: var(--text); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem; cursor: pointer; transition: all 0.2s;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.1); }
+.status-bar {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+  border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+  animation: fadeUp 0.25s ease;
+}
+.status-bar.error { background: rgba(255,107,107,0.12); color: #FF6B6B; border: 1px solid rgba(255,107,107,0.25); }
+.status-bar.success { background: rgba(0,245,212,0.1); color: var(--accent); border: 1px solid rgba(0,245,212,0.2); }
+.status-bar.hidden { display: none; }
+.example-strip {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.5rem;
+}
+.example-chip {
+  padding: 4px 12px; background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.2);
+  border-radius: 50px; font-size: 0.78rem; color: var(--primary); cursor: pointer;
+  transition: all 0.15s;
+}
+.example-chip:hover { background: rgba(108,99,255,0.2); }
+</style>

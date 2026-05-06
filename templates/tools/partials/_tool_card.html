@@ -1,0 +1,30 @@
+{% load tool_tags %}
+<a href="{{ tool.get_absolute_url }}" class="tool-card">
+    {% if tool.is_featured %}
+        <span class="badge-featured">Featured</span>
+    {% endif %}
+    {% if tool.is_new %}
+        <span class="badge-featured" style="background: var(--surface); color: var(--text); border: 1px solid var(--border);">New</span>
+    {% endif %}
+    
+    <div class="tool-icon-wrapper" style="{% tool_icon_bg tool.category %}">
+        <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }}"></i>
+    </div>
+    
+    <div class="tool-card-content">
+        <h3>{{ tool.name }}</h3>
+        <p>{{ tool.short_desc }}</p>
+    </div>
+    
+    <div class="tool-card-footer">
+        <span style="font-size: 0.8rem; color: var(--muted);"><i class="bi bi-eye"></i> {{ tool.view_count }}</span>
+        
+        <button class="bookmark-btn {% if tool.slug|is_bookmarked:bookmarked_slugs %}active{% endif %}" data-slug="{{ tool.slug }}" title="Bookmark this tool">
+            {% if tool.slug|is_bookmarked:bookmarked_slugs %}
+                <i class="bi bi-bookmark-fill"></i>
+            {% else %}
+                <i class="bi bi-bookmark"></i>
+            {% endif %}
+        </button>
+    </div>
+</a>

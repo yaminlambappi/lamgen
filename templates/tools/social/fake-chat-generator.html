@@ -1,0 +1,137 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 2rem; }
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 0.9rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+.input-grp { margin-bottom: 1rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; width: 100%; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.msg-row { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; margin-bottom: 0.5rem; display: flex; gap: 0.5rem; align-items: flex-start; }
+.msg-row:hover { border-color: rgba(108,99,255,0.3); }
+.btn-remove { background: rgba(255,107,107,0.1); color: var(--danger); border: 1px solid rgba(255,107,107,0.3); width: 24px; height: 24px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; margin-top: 2px; }
+/* iMessage preview */
+.imessage-wrap { background: #f2f2f7; border-radius: 20px; overflow: hidden; max-width: 380px; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
+.imessage-header { background: #f2f2f7; padding: 0.8rem 1rem; display: flex; align-items: center; gap: 0.6rem; border-bottom: 1px solid #d1d1d6; }
+.imessage-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 0.9rem; }
+.imessage-contact { font-size: 0.9rem; font-weight: 600; color: #000; }
+.imessage-body { padding: 1rem; min-height: 200px; max-height: 450px; overflow-y: auto; background: #fff; }
+.bubble-wrap { display: flex; margin-bottom: 0.5rem; }
+.bubble-wrap.me { justify-content: flex-end; }
+.bubble-wrap.them { justify-content: flex-start; }
+.bubble { max-width: 75%; padding: 0.6rem 0.9rem; border-radius: 18px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; }
+.bubble.me { background: #007aff; color: #fff; border-bottom-right-radius: 4px; }
+.bubble.them { background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }
+.bubble-time { font-size: 0.65rem; color: #8e8e93; margin-top: 0.2rem; text-align: center; }
+@media (max-width: 768px) { .dev-tool-wrap { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+      <div class="input-grp">
+        <span class="tool-label">Contact Name</span>
+        <input type="text" id="in-contact" class="num-input" value="Alex">
+      </div>
+      <div class="input-grp">
+        <span class="tool-label">Avatar Color</span>
+        <input type="color" id="in-color" value="#34c759" style="width:60px;height:40px;border:none;border-radius:8px;cursor:pointer;background:transparent;">
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+      <span class="tool-label" style="margin:0;">Messages</span>
+      <button class="btn-sm" id="btn-add-msg"><i class="bi bi-plus-lg"></i> Add Message</button>
+    </div>
+    <div id="msg-list"></div>
+
+    <button class="btn-go" id="btn-download" style="margin-top:1rem;"><i class="bi bi-camera"></i> Download as PNG</button>
+  </div>
+  <div>
+    <span class="tool-label">iMessage Preview</span>
+    <div class="imessage-wrap" id="chat-preview">
+      <div class="imessage-header">
+        <div class="imessage-avatar" id="prev-avatar" style="background:#34c759;">A</div>
+        <div class="imessage-contact" id="prev-contact">Alex</div>
+      </div>
+      <div class="imessage-body" id="chat-body"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let messages = [
+    { sender: 'them', text: 'Hey! Did you see the new LamGen tools?', time: '10:30 AM' },
+    { sender: 'me', text: 'Yes! The fake chat generator is amazing 😂', time: '10:31 AM' },
+    { sender: 'them', text: 'I know right! So realistic 🔥', time: '10:31 AM' },
+  ];
+
+  function renderMsgList() {
+    document.getElementById('msg-list').innerHTML = messages.map((m, i) => `
+      <div class="msg-row">
+        <select class="num-input" data-i="${i}" onchange="updateMsg(${i},'sender',this.value)" style="max-width:80px;padding:0.4rem;">
+          <option value="me" ${m.sender==='me'?'selected':''}>Me</option>
+          <option value="them" ${m.sender==='them'?'selected':''}>Them</option>
+        </select>
+        <input type="text" class="num-input" value="${m.text.replace(/"/g,'&quot;')}" placeholder="Message text" oninput="updateMsg(${i},'text',this.value)" style="flex:1;">
+        <input type="text" class="num-input" value="${m.time}" placeholder="10:30 AM" oninput="updateMsg(${i},'time',this.value)" style="max-width:90px;">
+        ${messages.length > 1 ? `<button class="btn-remove" onclick="removeMsg(${i})"><i class="bi bi-trash"></i></button>` : ''}
+      </div>`).join('');
+    renderPreview();
+  }
+
+  window.updateMsg = (i, key, val) => { messages[i][key] = val; renderPreview(); };
+  window.removeMsg = (i) => { messages.splice(i, 1); renderMsgList(); };
+
+  function renderPreview() {
+    const contact = document.getElementById('in-contact').value || 'Contact';
+    const color = document.getElementById('in-color').value;
+    document.getElementById('prev-contact').textContent = contact;
+    document.getElementById('prev-avatar').textContent = contact.charAt(0).toUpperCase();
+    document.getElementById('prev-avatar').style.background = color;
+
+    let lastTime = '';
+    document.getElementById('chat-body').innerHTML = messages.map(m => {
+      let timeHtml = '';
+      if (m.time && m.time !== lastTime) {
+        timeHtml = `<div class="bubble-time">${m.time}</div>`;
+        lastTime = m.time;
+      }
+      return `${timeHtml}<div class="bubble-wrap ${m.sender}"><div class="bubble ${m.sender}">${m.text || '...'}</div></div>`;
+    }).join('');
+  }
+
+  document.getElementById('btn-add-msg').addEventListener('click', () => {
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    messages.push({ sender: 'me', text: '', time });
+    renderMsgList();
+  });
+
+  document.getElementById('in-contact').addEventListener('input', renderPreview);
+  document.getElementById('in-color').addEventListener('input', renderPreview);
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    html2canvas(document.getElementById('chat-preview'), { backgroundColor: null, scale: 2, useCORS: true }).then(canvas => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = 'fake-chat.png';
+      a.click();
+    });
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') renderPreview(); });
+  renderMsgList();
+});
+</script>
+{% endblock %}

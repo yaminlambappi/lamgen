@@ -1,0 +1,15 @@
+{% load static %}
+<nav aria-label="Breadcrumb" style="margin-bottom:1.5rem;">
+  <ol style="display:flex; align-items:center; gap:6px; list-style:none; padding:0; margin:0; font-size:0.82rem; color:var(--muted); flex-wrap:wrap;">
+    {% for crumb in crumbs %}
+      <li style="display:flex; align-items:center; gap:6px;">
+        {% if not forloop.last and crumb.url %}
+          <a href="{{ crumb.url }}" style="color:var(--muted); text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">{{ crumb.label }}</a>
+          <i class="bi bi-chevron-right" style="font-size:0.65rem; opacity:0.4;"></i>
+        {% else %}
+          <span style="color:var(--text); font-weight:600;" aria-current="page">{{ crumb.label }}</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</nav>

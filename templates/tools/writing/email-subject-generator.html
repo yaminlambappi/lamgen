@@ -1,0 +1,198 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-label{font-size:.75rem;color:var(--muted);font-weight:600}
+.text-input,.select-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.text-input:focus,.select-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.result-item{display:flex;align-items:center;gap:10px;padding:11px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:11px;margin-bottom:.5rem;transition:all .2s}
+.result-item:hover{background:rgba(255,255,255,.06)}
+.result-text{flex:1;font-size:.9rem;color:var(--text)}
+.char-badge{font-size:.68rem;padding:2px 8px;border-radius:50px;font-weight:700;flex-shrink:0}
+.char-ok{background:rgba(0,245,212,.1);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.char-warn{background:rgba(255,193,7,.1);color:#FFC107;border:1px solid rgba(255,193,7,.2)}
+.char-bad{background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.2)}
+.type-badge{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:50px;padding:2px 8px;flex-shrink:0}
+.copy-btn{padding:4px 10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:.72rem;cursor:pointer;color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif;flex-shrink:0}
+.copy-btn:hover{background:rgba(108,99,255,.15);color:var(--primary);border-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div class="input-group">
+      <label class="input-label">Email Purpose / Topic *</label>
+      <input type="text" class="text-input" id="topic" placeholder="e.g. product launch, weekly newsletter, sale announcement">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Key Benefit / Offer</label>
+      <input type="text" class="text-input" id="benefit" placeholder="e.g. 50% off, free guide, exclusive access">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Target Audience</label>
+      <input type="text" class="text-input" id="audience" placeholder="e.g. subscribers, customers, developers">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Email Type</label>
+      <select class="select-input" id="emailType">
+        <option value="marketing">Marketing / Promotional</option>
+        <option value="newsletter">Newsletter</option>
+        <option value="transactional">Transactional / Update</option>
+        <option value="cold">Cold Outreach</option>
+        <option value="reengagement">Re-engagement</option>
+        <option value="announcement">Announcement</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-envelope"></i> Generate Subject Lines</button>
+    <button class="btn-sm" onclick="generate()"><i class="bi bi-arrow-clockwise"></i> Regenerate</button>
+    <button class="btn-sm" onclick="copyAll()"><i class="bi bi-clipboard"></i> Copy All</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div class="tool-label">Subject Lines <span style="font-weight:400;color:var(--muted)">(green ≤50 chars, yellow ≤60, red >60)</span></div>
+    <div id="resultsList"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function waitForEngine(cb) {
+  if (window.GenEngine) { cb(); return; }
+  setTimeout(() => waitForEngine(cb), 50);
+}
+waitForEngine(() => {
+const G = window.GenEngine;
+
+// Expose to global scope for onclick handlers
+window.generate = generate;
+window.copyOne = copyOne;
+window.copyAll = copyAll;
+
+function generate() {
+  const topic    = document.getElementById('topic').value.trim();
+  if (!topic) { showErr('st','Enter a topic first'); return; }
+  hideStatus('st');
+
+  const benefit   = document.getElementById('benefit').value.trim();
+  const audience  = document.getElementById('audience').value.trim();
+  const emailType = document.getElementById('emailType').value;
+
+  const T = topic, B = benefit || G.powerAdj() + ' offer', A = audience || 'you';
+
+  // 18 structurally distinct generator functions, each with a type label
+  const generators = [
+    // Curiosity
+    { type:'curiosity', fn: () => `${G.pick(['Wait','Hold on','Heads up'])} — ${T} just changed` },
+    { type:'curiosity', fn: () => `The ${T} ${G.pick(['secret','truth','thing'])} nobody talks about` },
+    { type:'curiosity', fn: () => `I wasn't going to share this about ${T}...` },
+    { type:'curiosity', fn: () => `${G.pick(['This','Something'])} about ${T} surprised me` },
+    // Urgency
+    { type:'urgency', fn: () => `${G.pick(['Last chance','Ending soon','Don\'t miss this'])}: ${B}` },
+    { type:'urgency', fn: () => `${G.pick(['Only','Just'])} ${G.pick(['24 hours','48 hours','a few days'])} left — ${T}` },
+    { type:'urgency', fn: () => `${T} — ${G.pick(['act now','today only','limited time'])}` },
+    // Benefit
+    { type:'benefit', fn: () => `${G.synonym('grow')} your ${T} with ${B}` },
+    { type:'benefit', fn: () => `${G.pick(['Get','Unlock','Access','Claim'])} ${B} for ${T}` },
+    { type:'benefit', fn: () => `How to ${G.synonym('improve')} ${T} — ${B} inside` },
+    // Question
+    { type:'question', fn: () => `Are you ${G.pick(['making this','missing this','ignoring this'])} ${T} mistake?` },
+    { type:'question', fn: () => `What if ${T} could ${G.synonym('grow')} your ${G.synonym('results')}?` },
+    { type:'question', fn: () => `Is your ${T} ${G.pick(['strategy','approach','system'])} working?` },
+    // Personalization
+    { type:'personal', fn: () => `${A}, here's your ${T} ${G.pick(['update','guide','resource','tip'])}` },
+    { type:'personal', fn: () => `We thought you'd love this ${T} ${G.pick(['insight','resource','update'])}` },
+    // Number
+    { type:'number', fn: () => `${G.number()} ${T} ${G.pick(['tips','hacks','strategies','ideas'])} that actually work` },
+    { type:'number', fn: () => `${G.number()} ways to ${G.synonym('improve')} ${T} this ${G.pick(['week','month','quarter'])}` },
+    // How-to
+    { type:'howto', fn: () => `How to ${G.synonym('improve')} ${T} in ${G.pick(['7','14','30'])} days` },
+    { type:'howto', fn: () => `The ${G.powerAdj()} way to ${G.synonym('grow')} with ${T}` },
+    // Re-engagement
+    { type:'reengagement', fn: () => `${A}, we miss you — here's ${B}` },
+    { type:'reengagement', fn: () => `It's been a while — ${T} has changed` },
+    // Announcement
+    { type:'announcement', fn: () => `Introducing: ${T} — ${B}` },
+    { type:'announcement', fn: () => `${G.pick(['Big news','Exciting update','New release'])}: ${T}` },
+  ];
+
+  const seen = new Set();
+  const results = [];
+  const shuffled = G.shuffle(generators);
+
+  for (const g of shuffled) {
+    if (results.length >= 15) break;
+    try {
+      const text = g.fn().trim();
+      const norm = text.toLowerCase().slice(0, 50);
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      results.push({ text, type: g.type });
+    } catch(e) {}
+  }
+
+  document.getElementById('resultsList').innerHTML = results.map((r, i) => {
+    const len = r.text.length;
+    const badgeCls = len <= 50 ? 'char-ok' : len <= 60 ? 'char-warn' : 'char-bad';
+    return `
+      <div class="result-item">
+        <span class="type-badge">${r.type}</span>
+        <span class="result-text">${escHtml(r.text)}</span>
+        <span class="char-badge ${badgeCls}">${len}</span>
+        <button class="copy-btn" onclick="copyOne(${i},this)"><i class="bi bi-clipboard"></i></button>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('resultsWrap').style.display = '';
+  showOk('st', `${results.length} subject lines generated`);
+}
+
+function copyOne(idx, btn) {
+  const items = document.querySelectorAll('.result-text');
+  const text = items[idx]?.textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+function copyAll() {
+  const items = [...document.querySelectorAll('.result-text')].map(el => el.textContent);
+  if (!items.length) return;
+  navigator.clipboard.writeText(items.join('\n')).then(() => showOk('st', 'All subject lines copied'));
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showErr(id, msg) { const el=document.getElementById(id); el.className='status err'; el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg; }
+function showOk(id, msg) { const el=document.getElementById(id); el.className='status ok'; el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg; }
+function hideStatus(id) { document.getElementById(id).className='status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generate(); }
+});
+}); // end waitForEngine
+</script>
+{% endblock %}

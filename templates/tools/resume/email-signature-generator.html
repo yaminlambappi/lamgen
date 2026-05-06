@@ -1,0 +1,201 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:10px 13px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.template-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tmpl-tab{padding:7px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.tmpl-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.preview-box{background:#fff;border-radius:12px;padding:1.5rem;min-height:100px}
+.code-box{width:100%;min-height:120px;padding:12px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div><div class="tool-label">Full Name</div><input class="tool-input" id="sigName" placeholder="Jane Smith" oninput="livePreview()" /></div>
+    <div><div class="tool-label">Job Title</div><input class="tool-input" id="sigTitle" placeholder="Senior Product Designer" oninput="livePreview()" /></div>
+    <div><div class="tool-label">Company</div><input class="tool-input" id="sigCompany" placeholder="Acme Corp" oninput="livePreview()" /></div>
+    <div><div class="tool-label">Email</div><input class="tool-input" id="sigEmail" type="email" placeholder="jane@acme.com" oninput="livePreview()" /></div>
+    <div><div class="tool-label">Phone</div><input class="tool-input" id="sigPhone" placeholder="+1 (555) 000-0000" oninput="livePreview()" /></div>
+    <div><div class="tool-label">Website</div><input class="tool-input" id="sigWebsite" placeholder="https://janesmith.com" oninput="livePreview()" /></div>
+    <div><div class="tool-label">LinkedIn URL</div><input class="tool-input" id="sigLinkedIn" placeholder="https://linkedin.com/in/janesmith" oninput="livePreview()" /></div>
+    <div><div class="tool-label">Twitter / X Handle</div><input class="tool-input" id="sigTwitter" placeholder="@janesmith" oninput="livePreview()" /></div>
+  </div>
+
+  <div>
+    <div class="tool-label">Accent Color</div>
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <input type="color" id="accentColor" value="#6C63FF" oninput="livePreview()" style="width:48px;height:36px;border:none;background:none;cursor:pointer;border-radius:6px" />
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <span onclick="setColor('#6C63FF')" style="width:24px;height:24px;background:#6C63FF;border-radius:50%;cursor:pointer;display:inline-block"></span>
+        <span onclick="setColor('#00F5D4')" style="width:24px;height:24px;background:#00F5D4;border-radius:50%;cursor:pointer;display:inline-block"></span>
+        <span onclick="setColor('#FF6B6B')" style="width:24px;height:24px;background:#FF6B6B;border-radius:50%;cursor:pointer;display:inline-block"></span>
+        <span onclick="setColor('#FFB347')" style="width:24px;height:24px;background:#FFB347;border-radius:50%;cursor:pointer;display:inline-block"></span>
+        <span onclick="setColor('#333333')" style="width:24px;height:24px;background:#333333;border-radius:50%;cursor:pointer;display:inline-block;border:1px solid #666"></span>
+        <span onclick="setColor('#0077B5')" style="width:24px;height:24px;background:#0077B5;border-radius:50%;cursor:pointer;display:inline-block"></span>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="tool-label">Template Style</div>
+    <div class="template-tabs">
+      <button class="tmpl-tab active" data-tmpl="1" onclick="setTemplate(this,1)">Classic</button>
+      <button class="tmpl-tab" data-tmpl="2" onclick="setTemplate(this,2)">Modern</button>
+      <button class="tmpl-tab" data-tmpl="3" onclick="setTemplate(this,3)">Minimal</button>
+      <button class="tmpl-tab" data-tmpl="4" onclick="setTemplate(this,4)">Bold</button>
+      <button class="tmpl-tab" data-tmpl="5" onclick="setTemplate(this,5)">Compact</button>
+    </div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <div class="tool-label" style="margin-bottom:0">Live Preview</div>
+    </div>
+    <div class="preview-box" id="sigPreview"></div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="copyHTML()"><i class="bi bi-code-slash"></i> Copy HTML</button>
+    <button class="btn-sm" onclick="copyPlainText()"><i class="bi bi-clipboard"></i> Copy Plain Text</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div class="tool-label">HTML Source</div>
+    <textarea class="code-box" id="htmlSource" readonly></textarea>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let currentTemplate = 1;
+
+function setColor(c) {
+  document.getElementById('accentColor').value = c;
+  livePreview();
+}
+
+function setTemplate(btn, n) {
+  currentTemplate = n;
+  document.querySelectorAll('.tmpl-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  livePreview();
+}
+
+function getData() {
+  return {
+    name: document.getElementById('sigName').value.trim(),
+    title: document.getElementById('sigTitle').value.trim(),
+    company: document.getElementById('sigCompany').value.trim(),
+    email: document.getElementById('sigEmail').value.trim(),
+    phone: document.getElementById('sigPhone').value.trim(),
+    website: document.getElementById('sigWebsite').value.trim(),
+    linkedin: document.getElementById('sigLinkedIn').value.trim(),
+    twitter: document.getElementById('sigTwitter').value.trim(),
+    color: document.getElementById('accentColor').value
+  };
+}
+
+function buildHTML(d) {
+  const link = (href, text) => href ? `<a href="${href}" style="color:${d.color};text-decoration:none">${text}</a>` : '';
+  const sep = `<span style="color:#ccc;margin:0 6px">|</span>`;
+
+  if (currentTemplate === 1) {
+    return `<table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;font-size:13px;color:#333">
+  <tr><td style="padding-bottom:4px"><strong style="font-size:15px;color:#111">${d.name}</strong></td></tr>
+  ${d.title||d.company ? `<tr><td style="color:#555;padding-bottom:8px">${[d.title,d.company].filter(Boolean).join(' · ')}</td></tr>` : ''}
+  <tr><td style="border-top:2px solid ${d.color};padding-top:8px">
+    ${d.email ? `<div style="margin-bottom:3px">📧 ${link('mailto:'+d.email, d.email)}</div>` : ''}
+    ${d.phone ? `<div style="margin-bottom:3px">📞 ${d.phone}</div>` : ''}
+    ${d.website ? `<div style="margin-bottom:3px">🌐 ${link(d.website, d.website.replace(/^https?:\/\//,''))}</div>` : ''}
+    ${d.linkedin ? `<div style="margin-bottom:3px">💼 ${link(d.linkedin, 'LinkedIn')}</div>` : ''}
+    ${d.twitter ? `<div>🐦 ${d.twitter}</div>` : ''}
+  </td></tr>
+</table>`;
+  }
+
+  if (currentTemplate === 2) {
+    return `<table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif">
+  <tr>
+    <td style="border-left:4px solid ${d.color};padding-left:12px">
+      <div style="font-size:16px;font-weight:700;color:#111;margin-bottom:2px">${d.name}</div>
+      ${d.title ? `<div style="font-size:12px;color:${d.color};font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${d.title}${d.company ? ' · ' + d.company : ''}</div>` : ''}
+      <div style="font-size:12px;color:#555;line-height:1.8">
+        ${[d.email ? link('mailto:'+d.email,d.email) : '', d.phone, d.website ? link(d.website,d.website.replace(/^https?:\/\//,'')) : ''].filter(Boolean).join(sep)}
+        ${d.linkedin || d.twitter ? '<br>' + [d.linkedin ? link(d.linkedin,'LinkedIn') : '', d.twitter ? d.twitter : ''].filter(Boolean).join(sep) : ''}
+      </div>
+    </td>
+  </tr>
+</table>`;
+  }
+
+  if (currentTemplate === 3) {
+    return `<div style="font-family:Arial,sans-serif;font-size:13px;color:#333;border-top:1px solid #eee;padding-top:10px">
+  <strong style="color:#111">${d.name}</strong>${d.title ? ` <span style="color:#888">— ${d.title}</span>` : ''}${d.company ? ` <span style="color:#888">@ ${d.company}</span>` : ''}<br>
+  <span style="font-size:12px;color:#888">${[d.email ? link('mailto:'+d.email,d.email) : '', d.phone, d.website ? link(d.website,d.website.replace(/^https?:\/\//,'')) : '', d.linkedin ? link(d.linkedin,'LinkedIn') : '', d.twitter].filter(Boolean).join(' · ')}</span>
+</div>`;
+  }
+
+  if (currentTemplate === 4) {
+    return `<table cellpadding="0" cellspacing="0" style="font-family:Arial,sans-serif;background:${d.color};border-radius:8px;overflow:hidden">
+  <tr><td style="padding:16px 20px">
+    <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:2px">${d.name}</div>
+    ${d.title ? `<div style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:10px">${d.title}${d.company ? ' · ' + d.company : ''}</div>` : ''}
+    <div style="font-size:12px;color:rgba(255,255,255,.9);line-height:1.8">
+      ${d.email ? `<div>${link('mailto:'+d.email,d.email)}</div>` : ''}
+      ${d.phone ? `<div>${d.phone}</div>` : ''}
+      ${d.website ? `<div>${link(d.website,d.website.replace(/^https?:\/\//,''))}</div>` : ''}
+    </div>
+  </td></tr>
+</table>`;
+  }
+
+  // Template 5: Compact
+  return `<div style="font-family:Arial,sans-serif;font-size:12px;color:#555">
+  <strong style="font-size:13px;color:#111">${d.name}</strong>${d.title ? ` | ${d.title}` : ''}${d.company ? ` | ${d.company}` : ''}<br>
+  ${[d.email ? link('mailto:'+d.email,d.email) : '', d.phone, d.website ? link(d.website,d.website.replace(/^https?:\/\//,'')) : '', d.linkedin ? link(d.linkedin,'in/') : '', d.twitter].filter(Boolean).join(' | ')}
+</div>`;
+}
+
+function livePreview() {
+  const d = getData();
+  const html = buildHTML(d);
+  document.getElementById('sigPreview').innerHTML = html;
+  document.getElementById('htmlSource').value = html;
+}
+
+function copyHTML() {
+  const html = document.getElementById('htmlSource').value;
+  navigator.clipboard.writeText(html).then(() => showOk('st','HTML copied to clipboard'));
+}
+
+function copyPlainText() {
+  const d = getData();
+  const lines = [d.name, [d.title, d.company].filter(Boolean).join(' · '), d.email, d.phone, d.website, d.linkedin, d.twitter].filter(Boolean);
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showOk('st','Plain text copied'));
+}
+
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;setTimeout(()=>el.className='status',3000);}
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+
+document.addEventListener('DOMContentLoaded', livePreview);
+</script>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 0.9rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+.upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02); margin-bottom: 1.5rem; }
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+.settings-panel { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem; display: none; }
+.preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; display: none; }
+.preview-box { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; background: rgba(0,0,0,0.4); text-align: center; }
+.preview-box img { max-width: 100%; max-height: 280px; border-radius: 8px; margin-bottom: 0.8rem; object-fit: contain; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-dl { display: block; width: 100%; padding: 0.7rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; text-decoration: none; border-radius: 8px; font-weight: 700; transition: transform 0.2s; border: none; cursor: pointer; }
+.btn-dl:hover { transform: translateY(-2px); color: #000; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+@media (max-width: 768px) { .preview-grid { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="upload-zone" id="drop-zone">
+  <div style="font-size:3rem;margin-bottom:0.8rem;">📐</div>
+  <h3 style="margin-bottom:0.5rem;">Upload Image to Resize</h3>
+  <p style="color:var(--muted);font-size:0.9rem;">Supports JPG, PNG, WebP · 100% local</p>
+  <input type="file" id="file-input" accept="image/*" style="display:none;">
+</div>
+
+<div class="settings-panel" id="settings">
+  <div style="margin-bottom:1rem;">
+    <span class="tool-label">Resize Mode</span>
+    <div style="display:flex;gap:0.5rem;">
+      <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;color:var(--text);">
+        <input type="radio" name="mode" value="px" id="mode-px" checked style="accent-color:var(--primary);"> Pixels
+      </label>
+      <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;color:var(--text);">
+        <input type="radio" name="mode" value="pct" id="mode-pct" style="accent-color:var(--primary);"> Percentage
+      </label>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <span class="tool-label" id="w-label">Width (px)</span>
+      <input type="number" id="in-width" class="num-input" min="1" max="10000">
+    </div>
+    <div>
+      <span class="tool-label" id="h-label">Height (px)</span>
+      <input type="number" id="in-height" class="num-input" min="1" max="10000">
+    </div>
+  </div>
+  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;color:var(--text);margin-bottom:1rem;">
+    <input type="checkbox" id="chk-lock" checked style="accent-color:var(--primary);width:16px;height:16px;"> Lock Aspect Ratio
+  </label>
+  <button class="btn-go" id="btn-resize">📐 Resize Image</button>
+</div>
+
+<div class="preview-grid" id="preview-area">
+  <div class="preview-box">
+    <h4 style="margin-bottom:0.8rem;color:var(--muted);">Original</h4>
+    <img id="img-orig" src="" alt="Original">
+    <div style="font-size:0.85rem;color:var(--muted);">Dimensions: <strong id="dims-orig" style="color:var(--text);">—</strong></div>
+  </div>
+  <div class="preview-box" style="border-color:var(--accent);">
+    <h4 style="margin-bottom:0.8rem;color:var(--accent);">Resized</h4>
+    <img id="img-resized" src="" alt="Resized">
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">Dimensions: <strong id="dims-resized" style="color:var(--text);">—</strong></div>
+    <a id="btn-download" class="btn-dl" download="resized.png"><i class="bi bi-download"></i> Download</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  let origImg = new Image(), origFile = null;
+  let origW = 0, origH = 0;
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', () => {
+    const isPct = document.getElementById('mode-pct').checked;
+    document.getElementById('w-label').textContent = isPct ? 'Width (%)' : 'Width (px)';
+    document.getElementById('h-label').textContent = isPct ? 'Height (%)' : 'Height (px)';
+    if (isPct) { document.getElementById('in-width').value = 100; document.getElementById('in-height').value = 100; }
+    else { document.getElementById('in-width').value = origW; document.getElementById('in-height').value = origH; }
+  }));
+
+  document.getElementById('in-width').addEventListener('input', () => {
+    if (!document.getElementById('chk-lock').checked) return;
+    const isPct = document.getElementById('mode-pct').checked;
+    const w = parseFloat(document.getElementById('in-width').value);
+    if (!w || !origW) return;
+    const ratio = origH / origW;
+    document.getElementById('in-height').value = isPct ? w : Math.round(w * ratio);
+  });
+
+  document.getElementById('in-height').addEventListener('input', () => {
+    if (!document.getElementById('chk-lock').checked) return;
+    const isPct = document.getElementById('mode-pct').checked;
+    const h = parseFloat(document.getElementById('in-height').value);
+    if (!h || !origH) return;
+    const ratio = origW / origH;
+    document.getElementById('in-width').value = isPct ? h : Math.round(h * ratio);
+  });
+
+  function handleFile(file) {
+    if (!file.type.startsWith('image/')) { alert('Please upload an image file.'); return; }
+    origFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+      origImg.src = e.target.result;
+      document.getElementById('img-orig').src = e.target.result;
+      origImg.onload = () => {
+        origW = origImg.width; origH = origImg.height;
+        document.getElementById('dims-orig').textContent = `${origW} × ${origH}`;
+        document.getElementById('in-width').value = origW;
+        document.getElementById('in-height').value = origH;
+        document.getElementById('settings').style.display = 'block';
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.getElementById('btn-resize').addEventListener('click', () => {
+    const isPct = document.getElementById('mode-pct').checked;
+    let w = parseFloat(document.getElementById('in-width').value);
+    let h = parseFloat(document.getElementById('in-height').value);
+    if (!w || !h) { alert('Please enter valid dimensions.'); return; }
+    if (isPct) { w = Math.round(origW * w / 100); h = Math.round(origH * h / 100); }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(origImg, 0, 0, w, h);
+    const fmt = origFile.type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+    const dataUrl = canvas.toDataURL(fmt, 0.92);
+    document.getElementById('img-resized').src = dataUrl;
+    document.getElementById('dims-resized').textContent = `${w} × ${h}`;
+    const ext = fmt === 'image/jpeg' ? 'jpg' : 'png';
+    const btn = document.getElementById('btn-download');
+    btn.href = dataUrl;
+    btn.download = (origFile.name.replace(/\.[^/.]+$/, '') || 'image') + `-${w}x${h}.${ext}`;
+    document.getElementById('preview-area').style.display = 'grid';
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') document.getElementById('btn-resize').click(); });
+});
+</script>
+{% endblock %}

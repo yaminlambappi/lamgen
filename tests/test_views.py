@@ -95,7 +95,7 @@ class TestAuthViews:
         assert '/login/' in resp['Location']
 
     def test_unauthenticated_dashboard_redirects_to_login(self, client):
-        resp = client.get(reverse('dashboard'))
+        resp = client.get(reverse('home'))
         assert resp.status_code == 302
         assert '/login/' in resp['Location']
 
@@ -193,16 +193,16 @@ class TestDashboardView:
 
     def test_dashboard_shows_user_theses(self, auth_client, user, db):
         ThesisRequestFactory(user=user, title='My Thesis')
-        resp = auth_client.get(reverse('dashboard'))
+        resp = auth_client.get(reverse('home'))
         assert resp.status_code == 200
         assert b'My Thesis' in resp.content
 
     def test_dashboard_empty_state(self, auth_client, db):
-        resp = auth_client.get(reverse('dashboard'))
+        resp = auth_client.get(reverse('home'))
         assert resp.status_code == 200
 
     def test_dashboard_unauthenticated_redirects(self, client):
-        resp = client.get(reverse('dashboard'))
+        resp = client.get(reverse('home'))
         assert resp.status_code == 302
 
 

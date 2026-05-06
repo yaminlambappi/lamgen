@@ -1,0 +1,172 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .timer-container { text-align: center; padding: 3rem 1rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 24px; position: relative; overflow: hidden; margin-bottom: 2rem; transition: background 0.5s; }
+    
+    .timer-display { font-family: 'Syne', monospace; font-size: 8rem; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 2rem; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
+    
+    .timer-modes { display: flex; justify-content: center; gap: 1rem; margin-bottom: 3rem; }
+    .mode-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 1.5rem; border-radius: 50px; cursor: pointer; transition: all 0.3s; font-weight: 600; }
+    .mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    
+    .controls { display: flex; justify-content: center; gap: 1.5rem; }
+    .btn-control { width: 80px; height: 80px; border-radius: 50%; border: none; cursor: pointer; font-size: 2rem; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s; }
+    .btn-control:hover { transform: scale(1.05); }
+    
+    .btn-play { background: #fff; color: #000; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
+    .btn-reset { background: rgba(255,255,255,0.1); color: var(--text); }
+    
+    .mode-work { --theme: var(--primary); }
+    .mode-short { --theme: var(--accent); }
+    .mode-long { --theme: var(--danger); }
+    
+    .bg-pulse { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; background: var(--theme); filter: blur(100px); opacity: 0.1; z-index: 0; pointer-events: none; transition: background 0.5s; }
+    .content-z { position: relative; z-index: 1; }
+    
+    @media (max-width: 768px) {
+        .timer-display { font-size: 5rem; }
+        .mode-btn { padding: 0.4rem 1rem; font-size: 0.9rem; }
+    }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="timer-container mode-work" id="timer-bg">
+    <div class="bg-pulse" id="pulse"></div>
+    
+    <div class="content-z">
+        <div class="timer-modes">
+            <button class="mode-btn active" data-mode="work" data-time="25">Pomodoro</button>
+            <button class="mode-btn" data-mode="short" data-time="5">Short Break</button>
+            <button class="mode-btn" data-mode="long" data-time="15">Long Break</button>
+        </div>
+        
+        <div class="timer-display" id="time">25:00</div>
+        
+        <div class="controls">
+            <button class="btn-control btn-play" id="btn-toggle"><i class="bi bi-play-fill" id="icon-toggle"></i></button>
+            <button class="btn-control btn-reset" id="btn-reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let defaultTime = 25 * 60; // seconds
+        let timeLeft = defaultTime;
+        let timerId = null;
+        let isRunning = false;
+        
+        const display = document.getElementById('time');
+        const btnToggle = document.getElementById('btn-toggle');
+        const iconToggle = document.getElementById('icon-toggle');
+        const btnReset = document.getElementById('btn-reset');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+        const timerBg = document.getElementById('timer-bg');
+        
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+        
+        function updateDisplay() {
+            display.textContent = formatTime(timeLeft);
+            document.title = `${formatTime(timeLeft)} - Pomodoro`;
+        }
+        
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timerId);
+                iconToggle.className = 'bi bi-play-fill';
+            } else {
+                if (timeLeft <= 0) return;
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        isRunning = false;
+                        iconToggle.className = 'bi bi-play-fill';
+                        playAlarm();
+                    }
+                }, 1000);
+                iconToggle.className = 'bi bi-pause-fill';
+            }
+            isRunning = !isRunning;
+        }
+        
+        function resetTimer() {
+            clearInterval(timerId);
+            isRunning = false;
+            timeLeft = defaultTime;
+            iconToggle.className = 'bi bi-play-fill';
+            updateDisplay();
+        }
+        
+        function setMode(btn) {
+            modeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const minutes = parseInt(btn.dataset.time);
+            defaultTime = minutes * 60;
+            
+            timerBg.className = `timer-container mode-${btn.dataset.mode}`;
+            
+            // Auto update theme colors
+            const root = document.documentElement;
+            if (btn.dataset.mode === 'short') {
+                btn.style.backgroundColor = 'var(--accent)';
+                btn.style.borderColor = 'var(--accent)';
+            } else if (btn.dataset.mode === 'long') {
+                btn.style.backgroundColor = 'var(--danger)';
+                btn.style.borderColor = 'var(--danger)';
+            } else {
+                btn.style.backgroundColor = 'var(--primary)';
+                btn.style.borderColor = 'var(--primary)';
+            }
+            
+            resetTimer();
+        }
+        
+        function playAlarm() {
+            // Use Web Audio API for simple beep
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            
+            gain.gain.setValueAtTime(0.5, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+            
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 1);
+        }
+        
+        btnToggle.addEventListener('click', toggleTimer);
+        btnReset.addEventListener('click', resetTimer);
+        
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Reset styling for all
+                modeBtns.forEach(b => {
+                    b.style.backgroundColor = 'transparent';
+                    b.style.color = 'var(--muted)';
+                    b.style.borderColor = 'var(--border)';
+                });
+                // Apply active styling
+                btn.style.color = '#fff';
+                setMode(btn);
+            });
+        });
+    });
+</script>
+{% endblock %}

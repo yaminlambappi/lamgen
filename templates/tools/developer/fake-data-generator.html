@@ -1,0 +1,214 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:10px 13px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.select-input{width:100%;padding:10px 13px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;cursor:pointer;box-sizing:border-box}
+.select-input:focus{border-color:var(--primary)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.5rem}
+.field-check{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);cursor:pointer;padding:.3rem .5rem;border-radius:6px;transition:background .15s}
+.field-check:hover{background:rgba(255,255,255,.04)}
+.field-check input{accent-color:var(--primary)}
+.preview-table{width:100%;border-collapse:collapse;font-size:.78rem;overflow:auto}
+.preview-table th{background:rgba(108,99,255,.15);color:var(--primary);padding:7px 10px;text-align:left;border:1px solid rgba(255,255,255,.08);font-weight:700;white-space:nowrap}
+.preview-table td{padding:6px 10px;border:1px solid rgba(255,255,255,.06);color:var(--text);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.preview-table tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.tool-code{width:100%;min-height:150px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Number of Rows</div>
+      <input class="tool-input" id="rowCount" type="number" min="1" max="100" value="10" />
+    </div>
+    <div>
+      <div class="tool-label">Export Format</div>
+      <select class="select-input" id="exportFormat">
+        <option value="json">JSON</option>
+        <option value="csv">CSV</option>
+        <option value="sql">SQL INSERT</option>
+      </select>
+    </div>
+  </div>
+
+  <div>
+    <div class="tool-label">Fields to Generate</div>
+    <div class="field-grid" id="fieldGrid"></div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generateData()"><i class="bi bi-database-fill"></i> Generate Data</button>
+    <button class="btn-sm" onclick="selectAll()"><i class="bi bi-check2-all"></i> All</button>
+    <button class="btn-sm" onclick="deselectAll()"><i class="bi bi-x"></i> None</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="results" style="display:none;flex-direction:column;gap:1rem">
+    <div style="overflow-x:auto;border-radius:10px;border:1px solid rgba(255,255,255,.08)">
+      <table class="preview-table" id="previewTable"></table>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+        <div class="tool-label" style="margin-bottom:0">Export Data</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-sm" onclick="copyData()"><i class="bi bi-clipboard"></i> Copy</button>
+          <button class="btn-sm" onclick="downloadData()"><i class="bi bi-download"></i> Download</button>
+        </div>
+      </div>
+      <textarea class="tool-code" id="exportData" readonly></textarea>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const FIELDS = [
+  'full_name','first_name','last_name','email','phone','address','city','country',
+  'company','job_title','username','password','uuid','date','ip_address',
+  'credit_card','color','url'
+];
+
+const FIRST_NAMES = ['Alice','Bob','Carol','David','Emma','Frank','Grace','Henry','Iris','Jack','Kate','Liam','Mia','Noah','Olivia','Paul','Quinn','Rachel','Sam','Tara','Uma','Victor','Wendy','Xavier','Yara','Zoe'];
+const LAST_NAMES = ['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Wilson','Taylor','Anderson','Thomas','Jackson','White','Harris','Martin','Thompson','Moore','Young','Allen','King','Wright','Scott','Green','Baker'];
+const CITIES = ['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','San Antonio','San Diego','Dallas','San Jose','Austin','Jacksonville','Fort Worth','Columbus','Charlotte','Indianapolis','San Francisco','Seattle','Denver','Nashville'];
+const COUNTRIES = ['United States','United Kingdom','Canada','Australia','Germany','France','Japan','Brazil','India','Mexico','Spain','Italy','Netherlands','Sweden','Norway'];
+const COMPANIES = ['Acme Corp','TechVision','DataFlow','CloudNine','NexGen','Apex Solutions','Bright Ideas','CoreLogic','Digital Dynamics','EcoSystems','FutureTech','GlobalNet','HorizonAI','InnovateCo','JetStream'];
+const JOBS = ['Software Engineer','Product Manager','Data Analyst','UX Designer','Marketing Manager','Sales Representative','DevOps Engineer','Business Analyst','Project Manager','Content Writer','Financial Analyst','HR Manager','Operations Manager','Customer Success Manager','Full Stack Developer'];
+const STREETS = ['Main St','Oak Ave','Maple Dr','Cedar Ln','Pine Rd','Elm St','Washington Blvd','Park Ave','Lake Dr','River Rd','Hill St','Forest Way','Valley Rd','Sunset Blvd','Harbor View'];
+const DOMAINS = ['gmail.com','yahoo.com','outlook.com','hotmail.com','protonmail.com','icloud.com','company.com','example.org','mail.net'];
+const TLDS = ['com','net','org','io','dev','app','co'];
+const COLORS = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FFEAA7','#DDA0DD','#98D8C8','#F7DC6F','#BB8FCE','#85C1E9','#82E0AA','#F0B27A','#AED6F1','#A9DFBF','#F9E79F'];
+
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randDigits(n) { return Array.from({length:n}, () => randInt(0,9)).join(''); }
+
+function generateValue(field) {
+  const fn = rand(FIRST_NAMES), ln = rand(LAST_NAMES);
+  switch(field) {
+    case 'full_name': return `${rand(FIRST_NAMES)} ${rand(LAST_NAMES)}`;
+    case 'first_name': return rand(FIRST_NAMES);
+    case 'last_name': return rand(LAST_NAMES);
+    case 'email': return `${fn.toLowerCase()}.${ln.toLowerCase()}${randInt(1,99)}@${rand(DOMAINS)}`;
+    case 'phone': return `+1 (${randDigits(3)}) ${randDigits(3)}-${randDigits(4)}`;
+    case 'address': return `${randInt(1,9999)} ${rand(STREETS)}, Apt ${randInt(1,99)}`;
+    case 'city': return rand(CITIES);
+    case 'country': return rand(COUNTRIES);
+    case 'company': return rand(COMPANIES);
+    case 'job_title': return rand(JOBS);
+    case 'username': return `${fn.toLowerCase()}${ln.toLowerCase().slice(0,3)}${randInt(10,99)}`;
+    case 'password': return btoa(Math.random().toString(36)).slice(0,12) + '!A1';
+    case 'uuid': return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r=Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); });
+    case 'date': { const d = new Date(Date.now() - Math.random()*10*365*86400000); return d.toISOString().split('T')[0]; }
+    case 'ip_address': return `${randInt(1,254)}.${randInt(0,255)}.${randInt(0,255)}.${randInt(1,254)}`;
+    case 'credit_card': return `${randDigits(4)}-${randDigits(4)}-${randDigits(4)}-${randDigits(4)}`;
+    case 'color': return rand(COLORS);
+    case 'url': return `https://www.${rand(COMPANIES).toLowerCase().replace(/\s/g,'')}.${rand(TLDS)}`;
+    default: return '';
+  }
+}
+
+// Build field checkboxes
+const grid = document.getElementById('fieldGrid');
+const defaultFields = ['full_name','email','phone','city','country','company','job_title','uuid'];
+FIELDS.forEach(f => {
+  const label = document.createElement('label');
+  label.className = 'field-check';
+  label.innerHTML = `<input type="checkbox" value="${f}" ${defaultFields.includes(f)?'checked':''}> ${f.replace(/_/g,' ')}`;
+  grid.appendChild(label);
+});
+
+function getSelectedFields() {
+  return Array.from(document.querySelectorAll('#fieldGrid input:checked')).map(i => i.value);
+}
+
+function selectAll() { document.querySelectorAll('#fieldGrid input').forEach(i => i.checked = true); }
+function deselectAll() { document.querySelectorAll('#fieldGrid input').forEach(i => i.checked = false); }
+
+let generatedData = [];
+
+function generateData() {
+  const fields = getSelectedFields();
+  if (!fields.length) { showErr('st','Select at least one field'); return; }
+  const rows = Math.min(parseInt(document.getElementById('rowCount').value) || 10, 100);
+  hideStatus('st');
+
+  generatedData = Array.from({length: rows}, () => {
+    const obj = {};
+    fields.forEach(f => { obj[f] = generateValue(f); });
+    return obj;
+  });
+
+  // Preview table
+  const table = document.getElementById('previewTable');
+  const previewRows = generatedData.slice(0, 10);
+  table.innerHTML = `<thead><tr>${fields.map(f=>`<th>${f.replace(/_/g,' ')}</th>`).join('')}</tr></thead>
+    <tbody>${previewRows.map(row=>`<tr>${fields.map(f=>`<td title="${escHtml(String(row[f]))}">${escHtml(String(row[f]))}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+  // Export
+  const format = document.getElementById('exportFormat').value;
+  let exportText = '';
+  if (format === 'json') {
+    exportText = JSON.stringify(generatedData, null, 2);
+  } else if (format === 'csv') {
+    const header = fields.join(',');
+    const csvRows = generatedData.map(row => fields.map(f => {
+      const v = String(row[f]);
+      return v.includes(',') || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v;
+    }).join(','));
+    exportText = [header, ...csvRows].join('\n');
+  } else if (format === 'sql') {
+    const table = 'fake_data';
+    const cols = fields.join(', ');
+    const valRows = generatedData.map(row => `(${fields.map(f => `'${String(row[f]).replace(/'/g,"''")}'`).join(', ')})`);
+    exportText = `INSERT INTO ${table} (${cols})\nVALUES\n${valRows.join(',\n')};`;
+  }
+
+  document.getElementById('exportData').value = exportText;
+  document.getElementById('results').style.display = 'flex';
+  showOk('st', `${rows} rows generated`);
+}
+
+function copyData() {
+  navigator.clipboard.writeText(document.getElementById('exportData').value);
+}
+
+function downloadData() {
+  const v = document.getElementById('exportData').value;
+  const format = document.getElementById('exportFormat').value;
+  const ext = format === 'json' ? 'json' : format === 'csv' ? 'csv' : 'sql';
+  const mime = format === 'json' ? 'application/json' : 'text/plain';
+  const blob = new Blob([v], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `fake-data.${ext}`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generateData(); }
+});
+</script>
+{% endblock %}

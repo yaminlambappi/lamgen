@@ -1,0 +1,206 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.skill-category{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.2rem}
+.cat-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:5px 12px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.15);border-radius:50px;font-size:.8rem;color:var(--text);cursor:pointer;transition:all .15s;user-select:none}
+.chip:hover{background:rgba(108,99,255,.2)}
+.chip.selected{background:rgba(108,99,255,.25);border-color:var(--primary);color:var(--primary);font-weight:600}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.role-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.5rem}
+.role-chip{padding:5px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:50px;font-size:.8rem;color:var(--muted);cursor:pointer;transition:all .15s}
+.role-chip:hover{background:rgba(108,99,255,.1);color:var(--primary);border-color:rgba(108,99,255,.3)}
+.select-count{font-size:.8rem;color:var(--muted);margin-left:auto}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Job Role / Industry</div>
+    <input class="tool-input" id="roleInput" placeholder="e.g. Frontend Developer, Product Manager, Data Analyst" />
+    <div class="role-chips">
+      <span class="role-chip" onclick="setRole('Frontend Developer')">Frontend Dev</span>
+      <span class="role-chip" onclick="setRole('Backend Developer')">Backend Dev</span>
+      <span class="role-chip" onclick="setRole('Full Stack Developer')">Full Stack</span>
+      <span class="role-chip" onclick="setRole('UX Designer')">UX Designer</span>
+      <span class="role-chip" onclick="setRole('Product Manager')">Product Manager</span>
+      <span class="role-chip" onclick="setRole('Data Analyst')">Data Analyst</span>
+      <span class="role-chip" onclick="setRole('DevOps Engineer')">DevOps</span>
+      <span class="role-chip" onclick="setRole('Marketing Manager')">Marketing</span>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generateSkills()"><i class="bi bi-lightning-fill"></i> Generate Skills</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="results" style="display:none;flex-direction:column;gap:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+      <div class="tool-label" style="margin-bottom:0">Click skills to select/deselect</div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <span class="select-count" id="selCount">0 selected</span>
+        <button class="btn-sm" onclick="selectAll()"><i class="bi bi-check2-all"></i> All</button>
+        <button class="btn-sm" onclick="deselectAll()"><i class="bi bi-x"></i> None</button>
+      </div>
+    </div>
+    <div class="grid-2" id="skillCategories"></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn-go" onclick="copySelected('comma')"><i class="bi bi-clipboard"></i> Copy as CSV</button>
+      <button class="btn-sm" onclick="copySelected('bullet')"><i class="bi bi-list-ul"></i> Copy as Bullets</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const SKILLS_DB = {
+  'Frontend Developer': {
+    'Technical Skills': ['HTML5','CSS3','JavaScript (ES6+)','TypeScript','React','Vue.js','Angular','Next.js','Nuxt.js','Tailwind CSS','SASS/SCSS','Webpack','Vite','REST APIs','GraphQL','Jest','Cypress','Storybook','Figma','Responsive Design'],
+    'Soft Skills': ['Attention to Detail','Problem Solving','Communication','Collaboration','Time Management','Adaptability','Creativity','Critical Thinking','Self-Motivation','Continuous Learning'],
+    'Tools & Technologies': ['Git','GitHub','VS Code','Chrome DevTools','Postman','Jira','Slack','Vercel','Netlify','Docker'],
+    'Domain Knowledge': ['Web Performance','Accessibility (WCAG)','SEO Basics','Cross-Browser Compatibility','Progressive Web Apps','Web Security','UX Principles','Agile/Scrum','CI/CD','Design Systems']
+  },
+  'Backend Developer': {
+    'Technical Skills': ['Python','Node.js','Java','Go','C#','Ruby','PHP','Django','FastAPI','Express.js','Spring Boot','PostgreSQL','MySQL','MongoDB','Redis','REST API Design','GraphQL','Microservices','Docker','Kubernetes'],
+    'Soft Skills': ['Problem Solving','Analytical Thinking','Communication','Collaboration','Attention to Detail','Time Management','Adaptability','Ownership','Critical Thinking','Documentation'],
+    'Tools & Technologies': ['Git','Linux','AWS','Azure','GCP','Terraform','Jenkins','GitHub Actions','Postman','Datadog'],
+    'Domain Knowledge': ['System Design','Database Optimization','API Security','Authentication/Authorization','Caching Strategies','Message Queues','Event-Driven Architecture','Agile/Scrum','CI/CD','Scalability Patterns']
+  },
+  'Full Stack Developer': {
+    'Technical Skills': ['JavaScript','TypeScript','React','Node.js','Python','PostgreSQL','MongoDB','REST APIs','GraphQL','Docker','AWS','Git','HTML/CSS','Redis','Webpack'],
+    'Soft Skills': ['Problem Solving','Communication','Collaboration','Adaptability','Time Management','Ownership','Critical Thinking','Continuous Learning','Attention to Detail','Leadership'],
+    'Tools & Technologies': ['VS Code','GitHub','Postman','Jira','Figma','Docker','Vercel','Linux','Slack','Datadog'],
+    'Domain Knowledge': ['System Design','Web Performance','Database Design','API Design','Security Best Practices','Agile/Scrum','CI/CD','Cloud Architecture','Testing Strategies','DevOps Basics']
+  },
+  'UX Designer': {
+    'Technical Skills': ['Figma','Sketch','Adobe XD','InVision','Prototyping','Wireframing','User Research','Usability Testing','Information Architecture','Interaction Design','Visual Design','Design Systems','HTML/CSS Basics','Motion Design','Accessibility'],
+    'Soft Skills': ['Empathy','Communication','Collaboration','Creativity','Critical Thinking','Attention to Detail','Presentation','Adaptability','Problem Solving','Storytelling'],
+    'Tools & Technologies': ['Figma','Miro','Notion','Jira','Zeplin','Maze','Hotjar','Google Analytics','Lottie','Principle'],
+    'Domain Knowledge': ['Design Thinking','User-Centered Design','WCAG Accessibility','Heuristic Evaluation','A/B Testing','Journey Mapping','Persona Development','Agile/Scrum','Product Strategy','Conversion Optimization']
+  },
+  'Product Manager': {
+    'Technical Skills': ['Product Roadmapping','User Story Writing','A/B Testing','Data Analysis','SQL Basics','Wireframing','Market Research','Competitive Analysis','OKR Setting','Sprint Planning'],
+    'Soft Skills': ['Leadership','Communication','Stakeholder Management','Prioritization','Negotiation','Empathy','Decision Making','Adaptability','Strategic Thinking','Presentation'],
+    'Tools & Technologies': ['Jira','Confluence','Notion','Figma','Mixpanel','Amplitude','Google Analytics','Slack','Miro','Productboard'],
+    'Domain Knowledge': ['Agile/Scrum','Product-Led Growth','Go-to-Market Strategy','Customer Development','Metrics & KPIs','Pricing Strategy','Feature Prioritization','User Research','Business Model Canvas','SaaS Metrics']
+  },
+  'Data Analyst': {
+    'Technical Skills': ['SQL','Python','R','Excel','Tableau','Power BI','Google Analytics','Pandas','NumPy','Matplotlib','Seaborn','Statistical Analysis','Data Cleaning','ETL Pipelines','Machine Learning Basics'],
+    'Soft Skills': ['Analytical Thinking','Attention to Detail','Communication','Problem Solving','Curiosity','Storytelling','Collaboration','Critical Thinking','Time Management','Presentation'],
+    'Tools & Technologies': ['Jupyter Notebook','VS Code','BigQuery','Snowflake','dbt','Looker','Airflow','Git','Slack','Notion'],
+    'Domain Knowledge': ['Business Intelligence','Data Visualization','A/B Testing','Cohort Analysis','Funnel Analysis','Forecasting','Data Governance','KPI Definition','Dashboard Design','Statistical Significance']
+  },
+  'DevOps Engineer': {
+    'Technical Skills': ['Docker','Kubernetes','Terraform','Ansible','AWS','Azure','GCP','CI/CD','Jenkins','GitHub Actions','Linux','Bash Scripting','Python','Monitoring','Networking'],
+    'Soft Skills': ['Problem Solving','Communication','Collaboration','Attention to Detail','Ownership','Adaptability','Critical Thinking','Documentation','Time Management','Continuous Learning'],
+    'Tools & Technologies': ['Prometheus','Grafana','ELK Stack','Datadog','PagerDuty','Vault','Helm','ArgoCD','Nginx','Cloudflare'],
+    'Domain Knowledge': ['Infrastructure as Code','Site Reliability Engineering','Security Best Practices','Disaster Recovery','Scalability','Cost Optimization','Incident Management','Compliance','Microservices','Service Mesh']
+  },
+  'Marketing Manager': {
+    'Technical Skills': ['SEO/SEM','Google Ads','Meta Ads','Email Marketing','Content Marketing','Social Media Marketing','Marketing Automation','CRM','Analytics','Copywriting'],
+    'Soft Skills': ['Communication','Creativity','Leadership','Analytical Thinking','Collaboration','Adaptability','Storytelling','Time Management','Negotiation','Strategic Thinking'],
+    'Tools & Technologies': ['HubSpot','Salesforce','Google Analytics','Mailchimp','Hootsuite','Canva','Semrush','Ahrefs','Slack','Notion'],
+    'Domain Knowledge': ['Brand Strategy','Customer Acquisition','Retention Marketing','Funnel Optimization','Market Research','Competitive Analysis','Budget Management','Campaign Planning','ROI Analysis','Growth Hacking']
+  }
+};
+
+const DEFAULT_SKILLS = {
+  'Technical Skills': ['Microsoft Office','Data Entry','Project Management','Research','Reporting','Presentation','Documentation','Process Improvement','Quality Assurance','Budget Management'],
+  'Soft Skills': ['Communication','Leadership','Teamwork','Problem Solving','Adaptability','Time Management','Critical Thinking','Creativity','Attention to Detail','Interpersonal Skills'],
+  'Tools & Technologies': ['Microsoft Office','Google Workspace','Slack','Zoom','Trello','Asana','Notion','Jira','Salesforce','HubSpot'],
+  'Domain Knowledge': ['Project Management','Agile/Scrum','Business Analysis','Strategic Planning','Stakeholder Management','Risk Management','Change Management','Process Optimization','Compliance','Reporting']
+};
+
+function setRole(role) {
+  document.getElementById('roleInput').value = role;
+  generateSkills();
+}
+
+function generateSkills() {
+  const role = document.getElementById('roleInput').value.trim();
+  if (!role) { showErr('st','Please enter a job role'); return; }
+  hideStatus('st');
+
+  const skillData = SKILLS_DB[role] || DEFAULT_SKILLS;
+  const catEl = document.getElementById('skillCategories');
+  catEl.innerHTML = '';
+
+  const catIcons = {
+    'Technical Skills': 'bi-code-slash',
+    'Soft Skills': 'bi-people-fill',
+    'Tools & Technologies': 'bi-tools',
+    'Domain Knowledge': 'bi-book-fill'
+  };
+
+  Object.entries(skillData).forEach(([cat, skills]) => {
+    const div = document.createElement('div');
+    div.className = 'skill-category';
+    div.innerHTML = `
+      <div class="cat-title"><i class="bi ${catIcons[cat] || 'bi-tag-fill'}" style="color:var(--primary)"></i>${cat}</div>
+      <div class="chips" id="cat-${cat.replace(/\W/g,'_')}"></div>
+    `;
+    catEl.appendChild(div);
+    const chipsEl = div.querySelector('.chips');
+    skills.forEach(skill => {
+      const chip = document.createElement('span');
+      chip.className = 'chip selected';
+      chip.textContent = skill;
+      chip.onclick = () => { chip.classList.toggle('selected'); updateCount(); };
+      chipsEl.appendChild(chip);
+    });
+  });
+
+  document.getElementById('results').style.display = 'flex';
+  updateCount();
+  showOk('st', `Skills generated for "${role}"`);
+}
+
+function updateCount() {
+  const sel = document.querySelectorAll('.chip.selected').length;
+  document.getElementById('selCount').textContent = `${sel} selected`;
+}
+
+function selectAll() { document.querySelectorAll('.chip').forEach(c => c.classList.add('selected')); updateCount(); }
+function deselectAll() { document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected')); updateCount(); }
+
+function copySelected(format) {
+  const selected = Array.from(document.querySelectorAll('.chip.selected')).map(c => c.textContent);
+  if (!selected.length) return;
+  const text = format === 'bullet' ? selected.map(s => `• ${s}`).join('\n') : selected.join(', ');
+  navigator.clipboard.writeText(text);
+}
+
+function clearAll() {
+  document.getElementById('roleInput').value = '';
+  document.getElementById('results').style.display = 'none';
+  hideStatus('st');
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generateSkills(); }
+});
+</script>
+{% endblock %}

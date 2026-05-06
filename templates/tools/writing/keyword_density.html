@@ -1,0 +1,167 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .editor-textarea { width: 100%; background: #0A0A0F; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 1rem; font-family: 'DM Sans', sans-serif; font-size: 1rem; resize: vertical; min-height: 200px; outline: none; margin-bottom: 1.5rem; }
+    .editor-textarea:focus { border-color: var(--primary); }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; text-align: center; }
+    .stat-val { font-size: 2rem; font-weight: 700; color: var(--primary); font-family: 'Syne', sans-serif; margin-bottom: 0.5rem; }
+    .stat-label { font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    .table-wrapper { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 2rem; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 1rem; border-bottom: 1px solid var(--border); }
+    th { background: #0A0A0F; color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+    tr:last-child td { border-bottom: none; }
+    .density-bar-bg { width: 100%; background: #0A0A0F; height: 8px; border-radius: 4px; overflow: hidden; }
+    .density-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 4px; }
+    
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .tab { padding: 0.8rem 1.5rem; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: bold; }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<textarea id="text-input" class="editor-textarea" placeholder="Paste your article or text here to analyze keyword density..."></textarea>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-val" id="stat-words">0</div>
+        <div class="stat-label">Total Words</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" id="stat-chars">0</div>
+        <div class="stat-label">Characters</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-val" id="stat-unique">0</div>
+        <div class="stat-label">Unique Words</div>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" data-target="words-1">1-Word Phrases</div>
+    <div class="tab" data-target="words-2">2-Word Phrases</div>
+    <div class="tab" data-target="words-3">3-Word Phrases</div>
+</div>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 40%;">Keyword</th>
+                <th style="width: 15%;">Count</th>
+                <th style="width: 15%;">Density</th>
+                <th style="width: 30%;">Visual</th>
+            </tr>
+        </thead>
+        <tbody id="density-table-body">
+            <tr><td colspan="4" style="text-align: center; color: var(--muted);">Type something to see analysis...</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('text-input');
+        const tbody = document.getElementById('density-table-body');
+        const tabs = document.querySelectorAll('.tab');
+        
+        let currentNgram = 1;
+        const stopWords = new Set(['a','an','and','are','as','at','be','by','for','from','has','he','in','is','it','its','of','on','that','the','to','was','were','will','with','this','they','but','not','or','you','i','we']);
+
+        function getNGrams(words, n) {
+            const grams = {};
+            for (let i = 0; i <= words.length - n; i++) {
+                let valid = true;
+                const chunk = [];
+                for (let j = 0; j < n; j++) {
+                    const w = words[i+j];
+                    if (stopWords.has(w) && n === 1) valid = false; // only filter stop words for 1-word
+                    chunk.push(w);
+                }
+                if (valid) {
+                    const phrase = chunk.join(' ');
+                    if (phrase.trim()) {
+                        grams[phrase] = (grams[phrase] || 0) + 1;
+                    }
+                }
+            }
+            return grams;
+        }
+
+        function analyze() {
+            const text = input.value;
+            if (!text.trim()) {
+                document.getElementById('stat-words').textContent = '0';
+                document.getElementById('stat-chars').textContent = '0';
+                document.getElementById('stat-unique').textContent = '0';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--muted);">Type something to see analysis...</td></tr>';
+                return;
+            }
+
+            document.getElementById('stat-chars').textContent = text.length;
+            
+            // Extract clean words
+            const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 0);
+            document.getElementById('stat-words').textContent = words.length;
+            
+            const unique = new Set(words);
+            document.getElementById('stat-unique').textContent = unique.size;
+            
+            if (words.length === 0) return;
+
+            const grams = getNGrams(words, currentNgram);
+            
+            // Sort by count
+            const sorted = Object.entries(grams)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 15); // Top 15
+
+            if (sorted.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--muted);">Not enough words for this phrase length.</td></tr>';
+                return;
+            }
+
+            // Total possible phrases of this length
+            const totalPhrases = Math.max(1, words.length - currentNgram + 1);
+
+            tbody.innerHTML = sorted.map(([phrase, count]) => {
+                const density = ((count / totalPhrases) * 100).toFixed(2);
+                return `
+                    <tr>
+                        <td style="font-weight: 600; color: var(--text); text-transform: capitalize;">${phrase}</td>
+                        <td style="color: var(--primary); font-weight: bold;">${count}</td>
+                        <td>${density}%</td>
+                        <td>
+                            <div class="density-bar-bg">
+                                <div class="density-bar-fill" style="width: ${Math.min(100, density * 5)}%;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        input.addEventListener('input', () => {
+            // Debounce
+            clearTimeout(input.timeout);
+            input.timeout = setTimeout(analyze, 300);
+        });
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                tabs.forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                currentNgram = parseInt(e.target.dataset.target.split('-')[1]);
+                analyze();
+            });
+        });
+    });
+</script>
+{% endblock %}

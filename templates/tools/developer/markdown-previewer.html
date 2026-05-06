@@ -1,0 +1,319 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.mode-tabs{display:flex;gap:4px}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.split-pane{display:grid;grid-template-columns:1fr 1fr;gap:1rem;min-height:400px}
+@media(max-width:768px){.split-pane{grid-template-columns:1fr}}
+.md-editor{width:100%;height:100%;min-height:400px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.md-editor:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.md-editor::placeholder{color:rgba(255,255,255,.2)}
+.md-preview{min-height:400px;padding:20px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow-y:auto;line-height:1.7;color:var(--text)}
+.md-preview h1,.md-preview h2,.md-preview h3,.md-preview h4,.md-preview h5,.md-preview h6{font-family:'Syne',sans-serif;margin:1.2em 0 .5em;color:#fff;line-height:1.3}
+.md-preview h1{font-size:1.8rem;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:.4em}
+.md-preview h2{font-size:1.4rem;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:.3em}
+.md-preview h3{font-size:1.15rem}
+.md-preview p{margin:.75em 0}
+.md-preview a{color:var(--primary);text-decoration:none}
+.md-preview a:hover{text-decoration:underline}
+.md-preview code{font-family:'JetBrains Mono',monospace;font-size:.85em;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;color:var(--accent)}
+.md-preview pre{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px;overflow-x:auto;margin:1em 0}
+.md-preview pre code{background:none;padding:0;color:var(--text);font-size:.82rem}
+.md-preview blockquote{border-left:3px solid var(--primary);margin:1em 0;padding:.5em 1em;background:rgba(108,99,255,.05);border-radius:0 8px 8px 0;color:var(--muted)}
+.md-preview ul,.md-preview ol{padding-left:1.5em;margin:.75em 0}
+.md-preview li{margin:.3em 0}
+.md-preview table{width:100%;border-collapse:collapse;margin:1em 0}
+.md-preview th{background:rgba(255,255,255,.06);padding:8px 12px;text-align:left;border:1px solid rgba(255,255,255,.1);font-weight:600}
+.md-preview td{padding:8px 12px;border:1px solid rgba(255,255,255,.08)}
+.md-preview tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.md-preview img{max-width:100%;border-radius:8px}
+.md-preview hr{border:none;border-top:1px solid rgba(255,255,255,.1);margin:1.5em 0}
+.md-preview input[type=checkbox]{accent-color:var(--primary);margin-right:6px}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.meta-item{display:flex;align-items:center;gap:5px}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div class="act-row">
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setView(this,'split')"><i class="bi bi-layout-split"></i> Split</button>
+      <button class="mode-tab" onclick="setView(this,'editor')"><i class="bi bi-pencil"></i> Editor</button>
+      <button class="mode-tab" onclick="setView(this,'preview')"><i class="bi bi-eye"></i> Preview</button>
+    </div>
+    <button class="btn-sm" id="btnCopy" onclick="copyMd()"><i class="bi bi-clipboard"></i> Copy MD</button>
+    <button class="btn-sm" onclick="exportHtml()"><i class="bi bi-download"></i> Export HTML</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div class="chips">
+    <span class="chip" onclick="loadEx('readme')">README example</span>
+    <span class="chip" onclick="loadEx('blog')">Blog post</span>
+    <span class="chip" onclick="loadEx('table')">Table & code</span>
+  </div>
+
+  <div class="split-pane" id="splitPane">
+    <div id="editorPane">
+      <div class="tool-label">Markdown</div>
+      <textarea class="md-editor" id="mdInput" placeholder="# Hello World&#10;&#10;Start writing **Markdown** here..." oninput="livePreview()"></textarea>
+    </div>
+    <div id="previewPane">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+        <div class="tool-label" style="margin-bottom:0">Preview</div>
+        <div class="meta-row" id="stats"></div>
+      </div>
+      <div class="md-preview" id="mdPreview"><p style="color:var(--muted);text-align:center;padding:40px 0"><i class="bi bi-markdown" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.3"></i>Preview will appear here</p></div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+const EXAMPLES = {
+  readme: `# My Awesome Project
+
+> A brief description of what this project does.
+
+## Features
+
+- ✅ Fast and lightweight
+- ✅ Easy to configure
+- ✅ Cross-platform support
+- ✅ Fully documented
+
+## Installation
+
+\`\`\`bash
+npm install my-awesome-project
+\`\`\`
+
+## Usage
+
+\`\`\`javascript
+const project = require('my-awesome-project');
+project.init({ debug: true });
+\`\`\`
+
+## API Reference
+
+| Method | Parameters | Returns |
+|--------|-----------|---------|
+| \`init()\` | \`options: Object\` | \`Promise<void>\` |
+| \`run()\` | \`task: string\` | \`Promise<Result>\` |
+| \`stop()\` | — | \`void\` |
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first.
+
+---
+
+**License**: MIT`,
+
+  blog: `# The Future of Web Development
+
+*Published on January 15, 2024 by Alice Johnson*
+
+Web development has evolved dramatically over the past decade. From simple HTML pages to complex single-page applications, the landscape continues to shift.
+
+## The Rise of Edge Computing
+
+Edge computing brings computation closer to the user, reducing latency and improving performance. This paradigm shift is changing how we think about:
+
+1. **Server-side rendering** — now happening at the edge
+2. **API routes** — distributed globally
+3. **Static assets** — cached at CDN nodes
+
+## What This Means for Developers
+
+> "The best performance optimization is to not do the work at all." — Unknown
+
+As developers, we need to adapt our mental models. The traditional client-server architecture is giving way to a more distributed approach.
+
+### Key Takeaways
+
+- [ ] Learn edge runtime environments
+- [ ] Understand streaming responses
+- [ ] Embrace progressive enhancement
+
+## Conclusion
+
+The future is distributed, fast, and developer-friendly. Embrace the change!`,
+
+  table: `# Data Structures Cheat Sheet
+
+## Arrays vs Linked Lists
+
+| Operation | Array | Linked List |
+|-----------|-------|-------------|
+| Access | O(1) | O(n) |
+| Search | O(n) | O(n) |
+| Insert | O(n) | O(1) |
+| Delete | O(n) | O(1) |
+
+## Code Examples
+
+### Binary Search
+
+\`\`\`python
+def binary_search(arr, target):
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1
+\`\`\`
+
+### Quick Sort
+
+\`\`\`javascript
+function quickSort(arr) {
+  if (arr.length <= 1) return arr;
+  const pivot = arr[Math.floor(arr.length / 2)];
+  const left = arr.filter(x => x < pivot);
+  const mid = arr.filter(x => x === pivot);
+  const right = arr.filter(x => x > pivot);
+  return [...quickSort(left), ...mid, ...quickSort(right)];
+}
+\`\`\`
+
+---
+
+*Last updated: 2024*`
+};
+
+function loadEx(k) {
+  document.getElementById('mdInput').value = EXAMPLES[k];
+  livePreview();
+}
+
+// Configure marked
+if (typeof marked !== 'undefined') {
+  marked.setOptions({
+    gfm: true,
+    breaks: true
+  });
+}
+
+function sanitize(html) {
+  // Basic sanitization — remove script tags and event handlers
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\son\w+\s*=/gi, ' data-removed=');
+}
+
+function livePreview() {
+  const md = document.getElementById('mdInput').value;
+  const preview = document.getElementById('mdPreview');
+
+  if (!md.trim()) {
+    preview.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 0"><i class="bi bi-markdown" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.3"></i>Preview will appear here</p>';
+    document.getElementById('stats').innerHTML = '';
+    return;
+  }
+
+  if (typeof marked !== 'undefined') {
+    const html = sanitize(marked.parse(md));
+    preview.innerHTML = html;
+  } else {
+    // Fallback basic renderer
+    preview.innerHTML = '<pre style="white-space:pre-wrap">' + md.replace(/</g,'&lt;') + '</pre>';
+  }
+
+  const words = md.replace(/[#*`_\[\]()>-]/g,'').split(/\s+/).filter(Boolean).length;
+  const chars = md.length;
+  const lines = md.split('\n').length;
+  document.getElementById('stats').innerHTML = `
+    <span class="meta-item"><i class="bi bi-type"></i> ${words} words</span>
+    <span class="meta-item"><i class="bi bi-fonts"></i> ${chars} chars</span>
+    <span class="meta-item"><i class="bi bi-list-ol"></i> ${lines} lines</span>
+  `;
+}
+
+function setView(btn, mode) {
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const ep = document.getElementById('editorPane');
+  const pp = document.getElementById('previewPane');
+  const sp = document.getElementById('splitPane');
+  if (mode === 'split') {
+    sp.style.gridTemplateColumns = '1fr 1fr';
+    ep.style.display = ''; pp.style.display = '';
+  } else if (mode === 'editor') {
+    sp.style.gridTemplateColumns = '1fr';
+    ep.style.display = ''; pp.style.display = 'none';
+  } else {
+    sp.style.gridTemplateColumns = '1fr';
+    ep.style.display = 'none'; pp.style.display = '';
+  }
+}
+
+function copyMd() {
+  const v = document.getElementById('mdInput').value;
+  if (!v) return;
+  const btn = document.getElementById('btnCopy');
+  navigator.clipboard.writeText(v).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function exportHtml() {
+  const md = document.getElementById('mdInput').value;
+  if (!md) return;
+  const html = typeof marked !== 'undefined' ? sanitize(marked.parse(md)) : md;
+  const full = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Exported Markdown</title>
+<style>body{font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.6;color:#333}
+pre{background:#f5f5f5;padding:16px;border-radius:8px;overflow-x:auto}
+code{background:#f0f0f0;padding:2px 5px;border-radius:3px}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px 12px}th{background:#f5f5f5}
+blockquote{border-left:4px solid #6C63FF;margin:0;padding:.5em 1em;background:#f9f9ff}
+</style></head><body>${html}</body></html>`;
+  const blob = new Blob([full], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'document.html'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearAll() {
+  document.getElementById('mdInput').value = '';
+  livePreview();
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); livePreview(); }
+});
+
+// Load default example
+loadEx('readme');
+</script>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02); margin-bottom: 1.5rem; }
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+.settings-panel { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem; display: none; }
+.slider-wrap label { display: flex; justify-content: space-between; margin-bottom: 0.4rem; color: var(--text); font-size: 0.9rem; }
+.quality-slider { width: 100%; accent-color: var(--primary); }
+.preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; display: none; }
+.preview-box { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; background: rgba(0,0,0,0.4); text-align: center; }
+.preview-box img { max-width: 100%; max-height: 280px; border-radius: 8px; margin-bottom: 0.8rem; object-fit: contain; }
+.preview-stats { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+.preview-stats strong { color: var(--text); }
+.btn-dl { display: block; width: 100%; padding: 0.7rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; text-decoration: none; border-radius: 8px; font-weight: 700; transition: transform 0.2s; border: none; cursor: pointer; }
+.btn-dl:hover { transform: translateY(-2px); color: #000; }
+.select-input { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 0.8rem; border-radius: 8px; outline: none; }
+.mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+.mode-tab { flex: 1; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem; transition: all 0.2s; text-align: center; }
+.mode-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+@media (max-width: 768px) { .preview-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="mode-tabs">
+  <button class="mode-tab active" id="tab-to-webp" onclick="setMode('to-webp')">→ Convert TO WebP</button>
+  <button class="mode-tab" id="tab-from-webp" onclick="setMode('from-webp')">← Convert FROM WebP</button>
+</div>
+
+<div class="upload-zone" id="drop-zone">
+  <div style="font-size:3rem;margin-bottom:0.8rem;">🖼️</div>
+  <h3 style="margin-bottom:0.5rem;" id="upload-label">Upload any image to convert to WebP</h3>
+  <p style="color:var(--muted);font-size:0.9rem;" id="upload-hint">Supports JPG, PNG, GIF, BMP · 100% local</p>
+  <input type="file" id="file-input" accept="image/*" style="display:none;">
+</div>
+
+<div class="settings-panel" id="settings">
+  <div class="slider-wrap" id="quality-wrap">
+    <label><span>Quality</span><span id="q-val" style="color:var(--primary);font-weight:700;">85%</span></label>
+    <input type="range" id="q-slider" class="quality-slider" min="1" max="100" value="85">
+  </div>
+  <div id="output-format-wrap" style="display:none;">
+    <span class="tool-label">Output Format</span>
+    <select id="format-select" class="select-input">
+      <option value="image/png">PNG</option>
+      <option value="image/jpeg">JPEG</option>
+    </select>
+  </div>
+</div>
+
+<div class="preview-grid" id="preview-area">
+  <div class="preview-box">
+    <h4 style="margin-bottom:0.8rem;color:var(--muted);">Original</h4>
+    <img id="img-orig" src="" alt="Original">
+    <div class="preview-stats">Size: <strong id="size-orig">—</strong></div>
+    <div class="preview-stats">Format: <strong id="fmt-orig">—</strong></div>
+  </div>
+  <div class="preview-box" style="border-color:var(--accent);">
+    <h4 style="margin-bottom:0.8rem;color:var(--accent);">Converted</h4>
+    <img id="img-conv" src="" alt="Converted">
+    <div class="preview-stats">Size: <strong id="size-conv">—</strong> (<span id="size-diff" style="color:var(--accent);">—</span>)</div>
+    <div class="preview-stats">Format: <strong id="fmt-conv">—</strong></div>
+    <a id="btn-download" class="btn-dl" download="converted.webp"><i class="bi bi-download"></i> Download</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let mode = 'to-webp';
+  let origFile = null;
+  let origImg = new Image();
+
+  window.setMode = (m) => {
+    mode = m;
+    document.getElementById('tab-to-webp').classList.toggle('active', m === 'to-webp');
+    document.getElementById('tab-from-webp').classList.toggle('active', m === 'from-webp');
+    document.getElementById('upload-label').textContent = m === 'to-webp' ? 'Upload any image to convert to WebP' : 'Upload a WebP image to convert';
+    document.getElementById('upload-hint').textContent = m === 'to-webp' ? 'Supports JPG, PNG, GIF, BMP · 100% local' : 'Supports WebP · Convert to PNG or JPEG';
+    document.getElementById('file-input').accept = m === 'to-webp' ? 'image/*' : 'image/webp';
+    document.getElementById('quality-wrap').style.display = m === 'to-webp' ? 'block' : 'none';
+    document.getElementById('output-format-wrap').style.display = m === 'from-webp' ? 'block' : 'none';
+    if (origFile) convert();
+  };
+
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+  document.getElementById('q-slider').addEventListener('input', () => { document.getElementById('q-val').textContent = document.getElementById('q-slider').value + '%'; if (origFile) convert(); });
+  document.getElementById('format-select').addEventListener('change', () => { if (origFile) convert(); });
+
+  function fmtBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(2) + ' MB';
+  }
+
+  function handleFile(file) {
+    if (!file.type.startsWith('image/')) { alert('Please upload an image file.'); return; }
+    origFile = file;
+    document.getElementById('size-orig').textContent = fmtBytes(file.size);
+    document.getElementById('fmt-orig').textContent = file.type.split('/')[1].toUpperCase();
+    const reader = new FileReader();
+    reader.onload = e => {
+      origImg.src = e.target.result;
+      document.getElementById('img-orig').src = e.target.result;
+      origImg.onload = () => {
+        document.getElementById('settings').style.display = 'block';
+        document.getElementById('preview-area').style.display = 'grid';
+        convert();
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function convert() {
+    const canvas = document.createElement('canvas');
+    canvas.width = origImg.width;
+    canvas.height = origImg.height;
+    const ctx = canvas.getContext('2d');
+    let outputFmt, quality, ext;
+    if (mode === 'to-webp') {
+      outputFmt = 'image/webp';
+      quality = parseInt(document.getElementById('q-slider').value) / 100;
+      ext = 'webp';
+    } else {
+      outputFmt = document.getElementById('format-select').value;
+      quality = 0.92;
+      ext = outputFmt === 'image/jpeg' ? 'jpg' : 'png';
+      if (outputFmt === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+    }
+    ctx.drawImage(origImg, 0, 0);
+    const dataUrl = canvas.toDataURL(outputFmt, quality);
+    document.getElementById('img-conv').src = dataUrl;
+    const head = 'data:' + outputFmt + ';base64,';
+    const convSize = Math.round((dataUrl.length - head.length) * 3 / 4);
+    document.getElementById('size-conv').textContent = fmtBytes(convSize);
+    const diff = origFile.size - convSize;
+    document.getElementById('size-diff').textContent = diff > 0 ? Math.round(diff / origFile.size * 100) + '% smaller' : Math.round(-diff / origFile.size * 100) + '% larger';
+    document.getElementById('fmt-conv').textContent = ext.toUpperCase();
+    const btn = document.getElementById('btn-download');
+    btn.href = dataUrl;
+    btn.download = (origFile.name.replace(/\.[^/.]+$/, '') || 'image') + '.' + ext;
+    btn.textContent = `⬇ Download ${ext.toUpperCase()}`;
+  }
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter' && origFile) convert(); });
+});
+</script>
+{% endblock %}

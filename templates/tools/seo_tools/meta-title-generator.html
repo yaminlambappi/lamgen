@@ -1,0 +1,183 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; }
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input, .select-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus, .select-input:focus { border-color: var(--primary); }
+.input-grp { margin-bottom: 1.2rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s, opacity 0.2s; }
+.btn-go:hover { transform: translateY(-2px); opacity: 0.9; }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.result-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.result-card:hover { border-color: rgba(108,99,255,0.4); }
+.char-badge { font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px; white-space: nowrap; }
+.char-green { background: rgba(0,200,100,0.15); color: #00c864; }
+.char-yellow { background: rgba(255,200,0,0.15); color: #ffc800; }
+.char-red { background: rgba(255,107,107,0.15); color: var(--danger); }
+.results-panel { max-height: 520px; overflow-y: auto; }
+.live-counter { font-size: 0.8rem; font-weight: 700; }
+@media (max-width: 768px) { .dev-tool-wrap { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="input-grp">
+      <span class="tool-label">Keyword / Topic</span>
+      <input type="text" id="in-keyword" class="num-input" placeholder="e.g. best running shoes" value="">
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Brand Name <span style="color:var(--muted);font-weight:400;">(optional)</span></span>
+      <input type="text" id="in-brand" class="num-input" placeholder="e.g. Nike">
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Page Type</span>
+      <select id="in-type" class="select-input">
+        <option value="homepage">Homepage</option>
+        <option value="product">Product Page</option>
+        <option value="blog" selected>Blog Post</option>
+        <option value="category">Category Page</option>
+      </select>
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Live Title Preview</span>
+      <input type="text" id="in-custom" class="num-input" placeholder="Type a custom title to check length…">
+      <div style="margin-top:0.4rem; display:flex; align-items:center; gap:0.5rem;">
+        <div style="flex:1; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+          <div id="live-bar" style="height:100%; width:0%; background:var(--accent); transition:width 0.2s, background 0.2s; border-radius:3px;"></div>
+        </div>
+        <span id="live-count" class="live-counter char-green">0/60</span>
+      </div>
+    </div>
+    <button class="btn-go" id="btn-generate">⚡ Generate Titles</button>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:0.6rem;">Ctrl+Enter to generate</p>
+  </div>
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <span class="tool-label" style="margin:0;">Generated Titles (10)</span>
+      <span style="font-size:0.75rem;color:var(--muted);">🟢 ≤60 &nbsp;🟡 61-70 &nbsp;🔴 >70</span>
+    </div>
+    <div class="results-panel" id="results">
+      <div style="color:var(--muted);text-align:center;padding:3rem 0;">Enter a keyword and click Generate</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const templates = {
+    homepage: [
+      '{keyword} | {brand}',
+      '{brand} – {keyword}',
+      'Welcome to {brand}: {keyword}',
+      '{keyword} – Official {brand} Site',
+      '{brand}: Your {keyword} Destination',
+      'Discover {keyword} at {brand}',
+      '{keyword} Solutions | {brand}',
+      '{brand} | {keyword} & More',
+      'The Best {keyword} – {brand}',
+      '{keyword} Made Easy | {brand}',
+    ],
+    product: [
+      'Buy {keyword} Online | {brand}',
+      '{keyword} – Best Price at {brand}',
+      'Shop {keyword} | {brand}',
+      '{keyword} for Sale – {brand}',
+      'Top-Rated {keyword} | {brand}',
+      '{keyword} – Free Shipping | {brand}',
+      'Premium {keyword} | {brand}',
+      '{keyword} Reviews & Deals | {brand}',
+      'Best {keyword} 2025 | {brand}',
+      '{keyword} – Compare & Buy | {brand}',
+    ],
+    blog: [
+      'How to {keyword}: A Complete Guide',
+      '{keyword}: Everything You Need to Know',
+      'The Ultimate Guide to {keyword}',
+      '{keyword} Tips & Tricks for 2025',
+      'Why {keyword} Matters in 2025',
+      'Top 10 {keyword} Strategies That Work',
+      '{keyword}: Beginner to Expert Guide',
+      'Mastering {keyword} in 30 Days',
+      '{keyword} Explained Simply',
+      'The Truth About {keyword} Nobody Tells You',
+    ],
+    category: [
+      '{keyword} – Browse All Products | {brand}',
+      'Shop {keyword} | {brand}',
+      '{keyword} Collection | {brand}',
+      'All {keyword} Products | {brand}',
+      '{keyword} – Filter & Find | {brand}',
+      'Best {keyword} Picks | {brand}',
+      '{keyword} Deals & Offers | {brand}',
+      'Explore {keyword} | {brand}',
+      '{keyword} – New Arrivals | {brand}',
+      '{keyword} Catalog | {brand}',
+    ],
+  };
+
+  function fill(tpl, kw, brand) {
+    let s = tpl.replace(/{keyword}/g, kw || 'Your Topic');
+    s = s.replace(/{brand}/g, brand || 'YourBrand');
+    return s;
+  }
+
+  function charClass(n) {
+    if (n <= 60) return 'char-green';
+    if (n <= 70) return 'char-yellow';
+    return 'char-red';
+  }
+
+  function render(titles) {
+    const el = document.getElementById('results');
+    if (!titles.length) { el.innerHTML = '<div style="color:var(--muted);text-align:center;padding:3rem 0;">No results</div>'; return; }
+    el.innerHTML = titles.map((t, i) => {
+      const cls = charClass(t.length);
+      return `<div class="result-card">
+        <span style="font-size:0.95rem;flex:1;">${t}</span>
+        <span class="char-badge ${cls}">${t.length}</span>
+        <button class="btn-sm" onclick="copyText(this,'${t.replace(/'/g,"\\'")}')"><i class="bi bi-clipboard"></i></button>
+      </div>`;
+    }).join('');
+  }
+
+  window.copyText = async (btn, text) => {
+    await navigator.clipboard.writeText(text);
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i>', 1500);
+  };
+
+  function generate() {
+    const kw = document.getElementById('in-keyword').value.trim();
+    const brand = document.getElementById('in-brand').value.trim();
+    const type = document.getElementById('in-type').value;
+    if (!kw) { document.getElementById('results').innerHTML = '<div style="color:var(--danger);text-align:center;padding:2rem;">Please enter a keyword.</div>'; return; }
+    const tpls = templates[type] || templates.blog;
+    const titles = tpls.map(t => fill(t, kw, brand));
+    render(titles);
+  }
+
+  document.getElementById('btn-generate').addEventListener('click', generate);
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+
+  // Live counter
+  document.getElementById('in-custom').addEventListener('input', function() {
+    const n = this.value.length;
+    const pct = Math.min(n / 70 * 100, 100);
+    const bar = document.getElementById('live-bar');
+    const cnt = document.getElementById('live-count');
+    bar.style.width = pct + '%';
+    const cls = charClass(n);
+    bar.style.background = cls === 'char-green' ? 'var(--accent)' : cls === 'char-yellow' ? '#ffc800' : 'var(--danger)';
+    cnt.textContent = n + '/60';
+    cnt.className = 'live-counter ' + cls;
+  });
+});
+</script>
+{% endblock %}

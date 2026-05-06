@@ -1,0 +1,236 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:100px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default;min-height:140px}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.warn{display:flex;background:rgba(255,193,7,.08);color:#FFC107;border:1px solid rgba(255,193,7,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.25rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.jwt-panels{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:768px){.jwt-panels{grid-template-columns:1fr}}
+.jwt-panel{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden}
+.jwt-panel-head{padding:10px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center}
+.jwt-panel-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.jwt-panel-body{padding:14px;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-all;min-height:100px}
+.jwt-sig{background:rgba(255,107,107,.05);border-color:rgba(255,107,107,.15)}
+.jwt-sig .jwt-panel-title{color:#FF6B6B}
+.jwt-header-panel .jwt-panel-title{color:#6C63FF}
+.jwt-payload-panel .jwt-panel-title{color:var(--accent)}
+.exp-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700}
+.exp-valid{background:rgba(0,245,212,.1);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.exp-expired{background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.2)}
+.exp-none{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid rgba(255,255,255,.1)}
+.ts-table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.5rem}
+.ts-table td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.05)}
+.ts-table td:first-child{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.ts-table td:last-child{font-family:'JetBrains Mono',monospace;color:var(--text)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div>
+    <div class="tool-label">JWT Token</div>
+    <textarea class="tool-code" id="jwtIn" rows="4" placeholder="Paste your JWT token here... eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+    <div class="chips">
+      <span class="chip" onclick="loadEx('valid')">Valid JWT</span>
+      <span class="chip" onclick="loadEx('expired')">Expired JWT</span>
+      <span class="chip" onclick="loadEx('noexp')">No Expiry</span>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="decodeJWT()"><i class="bi bi-shield-lock"></i> Decode</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+    <div id="expBadge"></div>
+  </div>
+
+  <div id="result" style="display:none">
+    <div class="jwt-panels">
+      <div class="jwt-panel jwt-header-panel">
+        <div class="jwt-panel-head">
+          <span class="jwt-panel-title">Header</span>
+          <button class="btn-sm" style="padding:4px 10px;font-size:.72rem" onclick="copyPanel('headerOut')"><i class="bi bi-clipboard"></i></button>
+        </div>
+        <div class="jwt-panel-body" id="headerOut"></div>
+      </div>
+      <div class="jwt-panel jwt-payload-panel">
+        <div class="jwt-panel-head">
+          <span class="jwt-panel-title">Payload</span>
+          <button class="btn-sm" style="padding:4px 10px;font-size:.72rem" onclick="copyPanel('payloadOut')"><i class="bi bi-clipboard"></i></button>
+        </div>
+        <div class="jwt-panel-body" id="payloadOut"></div>
+      </div>
+    </div>
+
+    <div class="jwt-panel jwt-sig" style="margin-top:.75rem">
+      <div class="jwt-panel-head">
+        <span class="jwt-panel-title">Signature (Base64url)</span>
+        <button class="btn-sm" style="padding:4px 10px;font-size:.72rem" onclick="copyPanel('sigOut')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="jwt-panel-body" id="sigOut" style="min-height:unset;word-break:break-all"></div>
+    </div>
+
+    <div id="tsPanel" style="display:none;margin-top:.75rem">
+      <div class="tool-label">Timestamps</div>
+      <div class="jwt-panel">
+        <table class="ts-table" id="tsTable"></table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+// Sample JWTs
+const now = Math.floor(Date.now()/1000);
+const EXAMPLES = {
+  valid: (() => {
+    const h = btoa(JSON.stringify({alg:'HS256',typ:'JWT'})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    const p = btoa(JSON.stringify({sub:'1234567890',name:'Alice Johnson',email:'alice@example.com',role:'admin',iat:now-3600,exp:now+3600,nbf:now-3600})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    return `${h}.${p}.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`;
+  })(),
+  expired: (() => {
+    const h = btoa(JSON.stringify({alg:'HS256',typ:'JWT'})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    const p = btoa(JSON.stringify({sub:'9876543210',name:'Bob Smith',iat:now-86400*7,exp:now-86400,nbf:now-86400*7})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    return `${h}.${p}.invalid_signature_for_demo`;
+  })(),
+  noexp: (() => {
+    const h = btoa(JSON.stringify({alg:'RS256',typ:'JWT',kid:'key-2024'})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    const p = btoa(JSON.stringify({sub:'service-account',iss:'https://auth.example.com',aud:'api.example.com',iat:now-1000,scope:'read:data write:data'})).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    return `${h}.${p}.no_expiry_token_signature`;
+  })()
+};
+
+function loadEx(k) {
+  document.getElementById('jwtIn').value = EXAMPLES[k];
+  decodeJWT();
+}
+
+function b64urlDecode(str) {
+  str = str.replace(/-/g,'+').replace(/_/g,'/');
+  while (str.length % 4) str += '=';
+  const binary = atob(str);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function fmtTs(unix) {
+  if (!unix) return 'N/A';
+  const d = new Date(unix * 1000);
+  return d.toUTCString() + ` (${unix})`;
+}
+
+function decodeJWT() {
+  const raw = document.getElementById('jwtIn').value.trim();
+  if (!raw) { showErr('st','No token provided'); return; }
+  hideStatus('st');
+  document.getElementById('expBadge').innerHTML = '';
+
+  const parts = raw.split('.');
+  if (parts.length !== 3) { showErr('st','Invalid JWT: must have 3 parts separated by dots'); return; }
+
+  let header, payload;
+  try { header = JSON.parse(b64urlDecode(parts[0])); }
+  catch(e) { showErr('st','Invalid header: ' + e.message); return; }
+  try { payload = JSON.parse(b64urlDecode(parts[1])); }
+  catch(e) { showErr('st','Invalid payload: ' + e.message); return; }
+
+  document.getElementById('headerOut').textContent = JSON.stringify(header, null, 2);
+  document.getElementById('payloadOut').textContent = JSON.stringify(payload, null, 2);
+  document.getElementById('sigOut').textContent = parts[2];
+  document.getElementById('result').style.display = '';
+
+  // Expiry
+  const nowTs = Math.floor(Date.now()/1000);
+  let badge = '';
+  if (payload.exp) {
+    if (nowTs > payload.exp) {
+      badge = '<span class="exp-badge exp-expired"><i class="bi bi-x-circle-fill"></i> EXPIRED</span>';
+      showErr('st', `Token expired ${Math.round((nowTs-payload.exp)/60)} minutes ago`);
+    } else {
+      const mins = Math.round((payload.exp - nowTs)/60);
+      badge = '<span class="exp-badge exp-valid"><i class="bi bi-check-circle-fill"></i> VALID</span>';
+      showOk('st', `Token valid — expires in ${mins < 60 ? mins + ' min' : Math.round(mins/60) + ' hr'}`);
+    }
+  } else {
+    badge = '<span class="exp-badge exp-none"><i class="bi bi-infinity"></i> No Expiry</span>';
+    showOk('st', 'Token decoded — no expiry claim');
+  }
+  document.getElementById('expBadge').innerHTML = badge;
+
+  // Timestamps
+  const tsFields = ['iat','exp','nbf','auth_time'];
+  const tsRows = tsFields.filter(f => payload[f]).map(f => {
+    const label = {iat:'Issued At',exp:'Expires At',nbf:'Not Before',auth_time:'Auth Time'}[f] || f;
+    return `<tr><td>${label}</td><td>${fmtTs(payload[f])}</td></tr>`;
+  });
+  if (tsRows.length) {
+    document.getElementById('tsTable').innerHTML = tsRows.join('');
+    document.getElementById('tsPanel').style.display = '';
+  } else {
+    document.getElementById('tsPanel').style.display = 'none';
+  }
+}
+
+function copyPanel(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target.closest('button');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function clearAll() {
+  document.getElementById('jwtIn').value = '';
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('expBadge').innerHTML = '';
+  hideStatus('st');
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); decodeJWT(); }
+});
+
+// Live decode on paste
+document.getElementById('jwtIn').addEventListener('input', () => {
+  const v = document.getElementById('jwtIn').value.trim();
+  if (v.split('.').length === 3) decodeJWT();
+});
+</script>
+{% endblock %}

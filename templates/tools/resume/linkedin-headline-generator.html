@@ -1,0 +1,170 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-label{font-size:.75rem;color:var(--muted);font-weight:600}
+.text-input,.select-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.text-input:focus,.select-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.result-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;transition:all .2s;margin-bottom:.5rem}
+.result-item:hover{background:rgba(255,255,255,.06)}
+.result-text{flex:1;font-size:.9rem;line-height:1.4;color:var(--text)}
+.char-badge{font-size:.7rem;padding:2px 8px;border-radius:50px;font-weight:700;flex-shrink:0}
+.char-ok{background:rgba(0,245,212,.1);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.char-warn{background:rgba(255,193,7,.1);color:#FFC107;border:1px solid rgba(255,193,7,.2)}
+.copy-btn{padding:4px 10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:.72rem;cursor:pointer;color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif;flex-shrink:0}
+.copy-btn:hover{background:rgba(108,99,255,.15);color:var(--primary);border-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div class="grid-2">
+    <div class="input-group">
+      <label class="input-label">Current Role / Title *</label>
+      <input type="text" class="text-input" id="role" placeholder="e.g. Software Engineer, Marketing Manager">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Top Skill / Specialization</label>
+      <input type="text" class="text-input" id="skill" placeholder="e.g. React, Growth Marketing, Data Analysis">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Value / Outcome You Deliver</label>
+      <input type="text" class="text-input" id="value" placeholder="e.g. scalable products, revenue growth, user retention">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Industry / Niche</label>
+      <input type="text" class="text-input" id="industry" placeholder="e.g. SaaS, FinTech, E-commerce">
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-linkedin"></i> Generate Headlines</button>
+    <button class="btn-sm" onclick="generate()"><i class="bi bi-arrow-clockwise"></i> Regenerate</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div class="tool-label">Generated Headlines <span style="font-weight:400;color:var(--muted)">(max 220 chars)</span></div>
+    <div id="resultsList"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function waitForEngine(cb) {
+  if (window.GenEngine) { cb(); return; }
+  setTimeout(() => waitForEngine(cb), 50);
+}
+
+waitForEngine(() => {
+const G = window.GenEngine;
+
+// Expose to global scope for onclick handlers
+window.generate = generate;
+window.copyOne = copyOne;
+
+function generate() {
+  const role    = document.getElementById('role').value.trim();
+  const skill   = document.getElementById('skill').value.trim();
+  const value   = document.getElementById('value').value.trim();
+  const industry= document.getElementById('industry').value.trim();
+
+  if (!role) { showErr('st','Enter your role first'); return; }
+  hideStatus('st');
+
+  const R = role, S = skill || G.powerAdj() + ' specialist';
+  const V = value || G.synonym('results');
+  const I = industry || 'tech';
+
+  // 12 structurally distinct generator functions
+  const generators = [
+    () => `${R} | ${G.synonym('help')}ing ${G.pick(['teams','companies','startups','brands'])} ${G.synonym('grow')} through ${S}`,
+    () => `${G.powerAdj()} ${R} ${G.pick(['specializing in','focused on','obsessed with'])} ${S} & ${V}`,
+    () => `${R} → ${G.synonym('build')}ing ${G.powerAdj()} ${I} ${G.pick(['products','solutions','systems','experiences'])} | ${S}`,
+    () => `${G.synonym('help')}ing ${I} ${G.pick(['companies','teams','founders','leaders'])} ${G.synonym('grow')} with ${S}`,
+    () => `${R} at the intersection of ${S} & ${V} | ${G.powerAdj()} ${I} ${G.pick(['builder','creator','strategist','leader'])}`,
+    () => `${G.powerAdj()} ${R} | ${S} | ${G.synonym('deliver')}ing ${V} for ${I}`,
+    () => `${G.pick(['Turning','Transforming','Converting'])} ${G.pick(['ideas','challenges','problems','data'])} into ${V} | ${R} | ${S}`,
+    () => `${R} who ${G.synonym('build')}s ${G.powerAdj()} ${I} ${G.pick(['products','teams','strategies'])} | ${S} expert`,
+    () => `${G.powerAdj()} ${I} ${R} | ${G.synonym('drive')}ing ${V} through ${S}`,
+    () => `${S} + ${G.pick(['strategy','execution','creativity','data'])} = ${V} | ${R} in ${I}`,
+    () => `${G.pick(['Open to','Available for','Seeking'])} ${G.pick(['new opportunities','collaborations','consulting'])} | ${R} | ${S} | ${I}`,
+    () => `${R} | ${G.powerAdj()} ${S} | ${G.synonym('help')}ing ${I} ${G.pick(['brands','teams','companies'])} ${G.synonym('grow')}`,
+    () => `${G.pick(['Building','Crafting','Designing','Scaling'])} the future of ${I} | ${R} | ${S}`,
+    () => `${G.powerAdj()} ${R} | ${G.synonym('deliver')}ing ${V} | ${S} in ${I}`,
+    () => `${R} — ${G.synonym('passionate')} about ${S} and ${G.synonym('build')}ing ${V} in ${I}`,
+  ];
+
+  const seen = new Set();
+  const results = [];
+  const shuffled = G.shuffle(generators);
+
+  for (const gen of shuffled) {
+    if (results.length >= 10) break;
+    try {
+      const text = gen().trim();
+      const norm = text.toLowerCase().slice(0, 50);
+      if (seen.has(norm) || text.length > 220) continue;
+      seen.add(norm);
+      results.push(text);
+    } catch(e) {}
+  }
+
+  document.getElementById('resultsList').innerHTML = results.map((text, i) => {
+    const len = text.length;
+    const badgeCls = len <= 180 ? 'char-ok' : 'char-warn';
+    return `
+      <div class="result-item">
+        <span class="result-text">${escHtml(text)}</span>
+        <span class="char-badge ${badgeCls}">${len}</span>
+        <button class="copy-btn" onclick="copyOne(${i}, this)"><i class="bi bi-clipboard"></i></button>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('resultsWrap').style.display = '';
+  showOk('st', `${results.length} headlines generated`);
+}
+
+function copyOne(idx, btn) {
+  const items = document.querySelectorAll('.result-text');
+  const text = items[idx]?.textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showErr(id, msg) { const el=document.getElementById(id); el.className='status err'; el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg; }
+function showOk(id, msg) { const el=document.getElementById(id); el.className='status ok'; el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg; }
+function hideStatus(id) { document.getElementById(id).className='status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generate(); }
+});
+
+}); // end waitForEngine
+</script>
+{% endblock %}

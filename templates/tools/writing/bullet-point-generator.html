@@ -1,0 +1,143 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.check-row{display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;user-select:none}
+.check-row input{accent-color:var(--primary);width:16px;height:16px}
+.style-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.style-tab{padding:6px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.82rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.style-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Input Text (paragraph or sentences)</div>
+    <textarea class="tool-code" id="input-text" placeholder="Paste your paragraph here. Each sentence will become a bullet point."></textarea>
+  </div>
+
+  <div>
+    <div class="tool-label">Bullet Style</div>
+    <div class="style-tabs">
+      <button class="style-tab active" onclick="setStyle('•',this)">• Bullet</button>
+      <button class="style-tab" onclick="setStyle('-',this)">- Dash</button>
+      <button class="style-tab" onclick="setStyle('→',this)">→ Arrow</button>
+      <button class="style-tab" onclick="setStyle('numbered',this)">1. Numbered</button>
+      <button class="style-tab" onclick="setStyle('✓',this)">✓ Check</button>
+      <button class="style-tab" onclick="setStyle('★',this)">★ Star</button>
+      <button class="style-tab" onclick="setStyle('▸',this)">▸ Triangle</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap">
+    <label class="check-row"><input type="checkbox" id="opt-capitalize" checked> Capitalize first word</label>
+    <label class="check-row"><input type="checkbox" id="opt-period"> Add period at end</label>
+    <label class="check-row"><input type="checkbox" id="opt-sort"> Sort alphabetically</label>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generateBullets()"><i class="bi bi-list-ul"></i> Generate Bullets</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="output-section" style="display:none">
+    <div class="tool-label">Output</div>
+    <textarea class="tool-code out" id="output-text" readonly style="min-height:200px"></textarea>
+    <div class="act-row" style="margin-top:8px">
+      <button class="btn-sm" onclick="copyResult()"><i class="bi bi-clipboard"></i> Copy</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+let bulletStyle = '•';
+
+function setStyle(style, btn) {
+  bulletStyle = style;
+  document.querySelectorAll('.style-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function generateBullets() {
+  const text = document.getElementById('input-text').value.trim();
+  if (!text) { showErr('status', 'Please enter some text'); return; }
+
+  let sentences = text.match(/[^.!?]+[.!?]*/g) || [text];
+  sentences = sentences.map(s => s.trim()).filter(Boolean);
+
+  if (document.getElementById('opt-capitalize').checked) {
+    sentences = sentences.map(s => s.charAt(0).toUpperCase() + s.slice(1));
+  }
+  if (document.getElementById('opt-period').checked) {
+    sentences = sentences.map(s => s.endsWith('.') || s.endsWith('!') || s.endsWith('?') ? s : s + '.');
+  }
+  if (document.getElementById('opt-sort').checked) {
+    sentences.sort((a,b) => a.localeCompare(b));
+  }
+
+  let result;
+  if (bulletStyle === 'numbered') {
+    result = sentences.map((s,i) => `${i+1}. ${s}`).join('\n');
+  } else {
+    result = sentences.map(s => `${bulletStyle} ${s}`).join('\n');
+  }
+
+  document.getElementById('output-text').value = result;
+  document.getElementById('output-section').style.display = 'block';
+  showOk('status', sentences.length + ' bullet points generated');
+}
+
+function copyResult() {
+  const result = document.getElementById('output-text').value;
+  if (!result) return;
+  const btn = event.target.closest('button');
+  copyText(result, btn);
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateBullets();
+});
+</script>
+{% endblock %}

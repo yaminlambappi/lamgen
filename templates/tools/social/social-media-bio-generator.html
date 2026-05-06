@@ -1,0 +1,242 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-label{font-size:.75rem;color:var(--muted);font-weight:600}
+.text-input,.select-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.text-input:focus,.select-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.platform-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.ptab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.ptab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.bio-result{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;margin-bottom:.6rem}
+.bio-result-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.bio-platform{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--primary);background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;padding:2px 10px}
+.bio-body{font-size:.9rem;line-height:1.65;color:var(--text);white-space:pre-line}
+.bio-footer{display:flex;gap:10px;margin-top:8px;font-size:.72rem;color:var(--muted);align-items:center}
+.char-ok{color:var(--accent)}
+.char-warn{color:#FFC107}
+.char-bad{color:#FF6B6B}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div class="input-group">
+      <label class="input-label">Your Role / What You Do *</label>
+      <input type="text" class="text-input" id="role" placeholder="e.g. Photographer, Developer, Fitness Coach">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Top Interest / Passion</label>
+      <input type="text" class="text-input" id="interest" placeholder="e.g. travel, coding, wellness, design">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Personality Style</label>
+      <select class="select-input" id="personality">
+        <option value="funny">Funny / Witty</option>
+        <option value="professional">Professional</option>
+        <option value="creative">Creative / Artistic</option>
+        <option value="minimal">Minimal / Clean</option>
+        <option value="aesthetic">Aesthetic / Dreamy</option>
+        <option value="bold">Bold / Confident</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">CTA / Link Text (optional)</label>
+      <input type="text" class="text-input" id="cta" placeholder="e.g. DM for collabs, Link in bio 👇">
+    </div>
+  </div>
+
+  <div>
+    <div class="input-label" style="margin-bottom:.4rem">Platforms</div>
+    <div class="platform-tabs" id="platformTabs">
+      <span class="ptab active" data-p="instagram">Instagram</span>
+      <span class="ptab active" data-p="twitter">Twitter / X</span>
+      <span class="ptab active" data-p="tiktok">TikTok</span>
+      <span class="ptab active" data-p="linkedin">LinkedIn</span>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-person-circle"></i> Generate Bios</button>
+    <button class="btn-sm" onclick="generate()"><i class="bi bi-arrow-clockwise"></i> Regenerate</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div class="tool-label">Generated Bios</div>
+    <div id="resultsList"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function waitForEngine(cb) {
+  if (window.GenEngine) { cb(); return; }
+  setTimeout(() => waitForEngine(cb), 50);
+}
+waitForEngine(() => {
+const G = window.GenEngine;
+
+// Expose to global scope for onclick handlers
+window.generate = generate;
+window.copyBio = copyBio;
+
+// Toggle platform tabs
+document.querySelectorAll('.ptab').forEach(tab => {
+  tab.addEventListener('click', () => tab.classList.toggle('active'));
+});
+
+const PLATFORM_LIMITS = { instagram: 150, twitter: 160, tiktok: 80, linkedin: 220 };
+
+const PLATFORM_STYLES = {
+  instagram: {
+    emojis: ['✨','🌸','💫','🤍','🌙','🦋','🌿','💛','🫶','🌊','🎨','📸','🌺','💜'],
+    separators: [' | ',' · ',' 🌸 ',' ✨ ',' 💫 '],
+    cta_prefix: ['📍','🔗','👇','💌'],
+  },
+  twitter: {
+    emojis: ['🔥','💡','🎯','⚡','🧵','👀','✅','🚀'],
+    separators: [' | ',' · ',' / '],
+    cta_prefix: ['🔗','👇','📩'],
+  },
+  tiktok: {
+    emojis: ['💀','😭','✨','🫶','🔥','💅','👀','🤣','😩'],
+    separators: [' | ',' 🔥 ',' ✨ '],
+    cta_prefix: ['👇','🔗','💌'],
+  },
+  linkedin: {
+    emojis: ['🚀','💡','🎯','📈','✅','🔥','💪','🌟','🤝'],
+    separators: [' | ',' · ',' — '],
+    cta_prefix: ['📩','🤝','💼'],
+  },
+};
+
+function makeBio(platform, role, interest, personality, cta) {
+  const ps = PLATFORM_STYLES[platform];
+  const E = () => G.pick(ps.emojis);
+  const SEP = G.pick(ps.separators);
+  const R = role, I = interest || G.pick(['creativity','innovation','storytelling']);
+  const ctaLine = cta ? `\n${G.pick(ps.cta_prefix)} ${cta}` : '';
+
+  const generators = {
+    funny: [
+      () => `${R} by day, ${G.pick(['overthinker','coffee addict','meme curator','chaos agent'])} by night ${E()}\n${G.synonym('passionate')} about ${I}${ctaLine}`,
+      () => `Professional ${R}. Amateur ${G.pick(['chef','philosopher','napper','overthinker'])} ${E()}\nCurrently ${G.pick(['surviving','thriving','caffeinating'])}${ctaLine}`,
+      () => `${R} ${E()} | ${I} enthusiast | ${G.pick(['probably overthinking this bio','send help','or coffee','not a robot'])}${ctaLine}`,
+    ],
+    professional: [
+      () => `${G.powerAdj()} ${R}${SEP}${G.synonym('passionate')} about ${I}${SEP}${G.synonym('help')}ing ${G.pick(['teams','brands','people'])} ${G.synonym('grow')} ${E()}${ctaLine}`,
+      () => `${R} ${E()}\n${G.synonym('build')}ing ${G.powerAdj()} ${G.synonym('solutions')} through ${I}\n${G.synonym('deliver')}ing ${G.synonym('results')} that matter${ctaLine}`,
+      () => `${G.powerAdj()} ${R}${SEP}${I} expert${SEP}${G.synonym('drive')}ing ${G.synonym('results')} ${E()}${ctaLine}`,
+    ],
+    creative: [
+      () => `${R} ${E()} ${G.synonym('create')}ing ${G.powerAdj()} ${G.synonym('content')} about ${I}\n${G.pick(['Making the ordinary extraordinary','Turning ideas into reality','Creating what doesn\'t exist yet'])}${ctaLine}`,
+      () => `${G.pick(['Part','Half'])} ${R}, ${G.pick(['part','half'])} ${G.pick(['dreamer','storyteller','visionary','artist'])} ${E()}\n${I} is my ${G.pick(['canvas','language','superpower'])}${ctaLine}`,
+      () => `${R} ${E()} | ${I} | ${G.pick(['Creating','Building','Designing'])} ${G.pick(['the future','something beautiful','what matters'])}${ctaLine}`,
+    ],
+    minimal: [
+      () => `${R}${SEP}${I} ${E()}${ctaLine}`,
+      () => `${R} · ${I} · ${G.pick(['creating','building','exploring'])} ${E()}${ctaLine}`,
+      () => `${R} ${E()}\n${I}${ctaLine}`,
+    ],
+    aesthetic: [
+      () => `${R} ${E()}\n${G.pick(['chasing','living for','obsessed with'])} ${I}\n${G.pick(['soft life era','main character energy','in my element'])} ${E()}${ctaLine}`,
+      () => `${G.pick(['dreaming in','living through','creating with'])} ${I} ${E()}\n${R} ${E()}${ctaLine}`,
+      () => `${R} ${E()} ${I} ${E()}\n${G.pick(['aesthetic','vibes','energy'])} ${G.pick(['only','always','forever'])}${ctaLine}`,
+    ],
+    bold: [
+      () => `${R}. ${G.synonym('build')}er. ${G.synonym('drive')}r. ${E()}\n${G.synonym('passionate')} about ${I}. ${G.pick(['No excuses.','Results only.','Always forward.'])}${ctaLine}`,
+      () => `${G.powerAdj()} ${R} ${E()}\n${G.synonym('build')}ing ${G.powerAdj()} ${G.synonym('results')} through ${I}\n${G.pick(['Let\'s go.','No limits.','Built different.'])}${ctaLine}`,
+      () => `${R} ${E()} | ${I} | ${G.pick(['Relentless.','Unstoppable.','Built to last.','Always evolving.'])}${ctaLine}`,
+    ],
+  };
+
+  const gens = generators[personality] || generators.professional;
+  const shuffled = G.shuffle(gens);
+  for (const gen of shuffled) {
+    try {
+      const text = gen().trim();
+      if (text && text.length <= PLATFORM_LIMITS[platform] * 1.1) return text;
+    } catch(e) {}
+  }
+  return `${R} | ${I} ${G.pick(ps.emojis)}`;
+}
+
+function generate() {
+  const role = document.getElementById('role').value.trim();
+  if (!role) { showErr('st','Enter your role first'); return; }
+  hideStatus('st');
+
+  const interest    = document.getElementById('interest').value.trim();
+  const personality = document.getElementById('personality').value;
+  const cta         = document.getElementById('cta').value.trim();
+
+  const activePlatforms = [...document.querySelectorAll('.ptab.active')].map(t => t.dataset.p);
+  if (!activePlatforms.length) { showErr('st','Select at least one platform'); return; }
+
+  const results = activePlatforms.map(platform => {
+    const bio = makeBio(platform, role, interest, personality, cta);
+    return { platform, bio, limit: PLATFORM_LIMITS[platform] };
+  });
+
+  document.getElementById('resultsList').innerHTML = results.map((r, i) => {
+    const len = r.bio.length;
+    const cls = len <= r.limit ? 'char-ok' : len <= r.limit * 1.1 ? 'char-warn' : 'char-bad';
+    return `
+      <div class="bio-result">
+        <div class="bio-result-head">
+          <span class="bio-platform">${r.platform}</span>
+          <button class="btn-sm" style="padding:4px 10px;font-size:.72rem" onclick="copyBio(${i},this)">
+            <i class="bi bi-clipboard"></i> Copy
+          </button>
+        </div>
+        <div class="bio-body" id="bio-${i}">${escHtml(r.bio)}</div>
+        <div class="bio-footer">
+          <span class="${cls}">${len} / ${r.limit} chars</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('resultsWrap').style.display = '';
+  showOk('st', `${results.length} bios generated`);
+}
+
+function copyBio(idx, btn) {
+  const el = document.getElementById('bio-' + idx);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showErr(id, msg) { const el=document.getElementById(id); el.className='status err'; el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg; }
+function showOk(id, msg) { const el=document.getElementById(id); el.className='status ok'; el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg; }
+function hideStatus(id) { document.getElementById(id).className='status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generate(); }
+});
+}); // end waitForEngine
+</script>
+{% endblock %}

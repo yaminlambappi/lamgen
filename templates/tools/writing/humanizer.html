@@ -1,0 +1,152 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .humanizer-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .editor-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .text-area {
+        width: 100%;
+        min-height: 250px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+        padding: 1rem;
+        font-family: 'DM Sans', sans-serif;
+        resize: vertical;
+        outline: none;
+    }
+    .text-area:focus { border-color: var(--primary); }
+    .intensity-slider {
+        margin: 1rem 0;
+    }
+    .stats-bar {
+        display: flex;
+        gap: 2rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+    }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="humanizer-container">
+    <div class="editor-box">
+        <label>Input AI-Generated Text</label>
+        <textarea id="human-input" class="text-area" placeholder="Paste AI text here..."></textarea>
+    </div>
+
+    <div class="intensity-slider">
+        <label class="flex justify-between">
+            <span>Humanization Intensity</span>
+            <span id="intensity-val">Medium</span>
+        </label>
+        <input type="range" id="intensity" min="1" max="3" value="2" class="w-full">
+    </div>
+
+    <div class="flex gap-4">
+        <button id="humanize-btn" class="btn-nexus flex-1">
+            <i class="bi bi-magic"></i> Humanize Text
+        </button>
+    </div>
+
+    <div class="editor-box">
+        <label>Humanized Result</label>
+        <textarea id="human-output" class="text-area" readonly placeholder="Result will appear here..."></textarea>
+    </div>
+
+    <div class="stats-bar">
+        <span id="char-count">0 characters</span>
+        <span id="word-count">0 words</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    const input = document.getElementById('human-input');
+    const output = document.getElementById('human-output');
+    const humanizeBtn = document.getElementById('humanize-btn');
+    const intensity = document.getElementById('intensity');
+    const intensityVal = document.getElementById('intensity-val');
+
+    intensity.addEventListener('input', () => {
+        const vals = {1: 'Low', 2: 'Medium', 3: 'High'};
+        intensityVal.textContent = vals[intensity.value];
+    });
+
+    const patterns = {
+        fillers: ['actually', 'basically', 'honestly', 'literally', 'essentially', 'in fact'],
+        synonyms: {
+            'utilize': 'use',
+            'commence': 'start',
+            'terminate': 'end',
+            'subsequent': 'next',
+            'furthermore': 'also',
+            'nevertheless': 'but',
+            'additionally': 'also',
+            'consequently': 'so',
+        }
+    };
+
+    function humanize(text, level) {
+        let result = text;
+
+        // 1. Synonym replacement
+        for (let [complex, simple] of Object.entries(patterns.synonyms)) {
+            const regex = new RegExp('\\b' + complex + '\\b', 'gi');
+            result = result.replace(regex, simple);
+        }
+
+        // 2. Sentence structure variation (simulated by randomizing common AI transitions)
+        if (level >= 2) {
+            result = result.replace(/Firstly,/gi, "To start with,");
+            result = result.replace(/Secondly,/gi, "Moving on,");
+            result = result.replace(/In conclusion,/gi, "Long story short,");
+        }
+
+        // 3. Adding subtle "human" imperfections/variations
+        if (level == 3) {
+            const sentences = result.split('. ');
+            result = sentences.map(s => {
+                if (Math.random() > 0.7) {
+                    const filler = patterns.fillers[Math.floor(Math.random() * patterns.fillers.length)];
+                    return s.replace(/, / , `, ${filler} `);
+                }
+                return s;
+            }).join('. ');
+        }
+
+        return result;
+    }
+
+    humanizeBtn.addEventListener('click', () => {
+        const text = input.value.trim();
+        if (!text) return;
+        
+        humanizeBtn.disabled = true;
+        humanizeBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Humanizing...';
+        
+        // Add a fake delay for UX
+        setTimeout(() => {
+            output.value = humanize(text, parseInt(intensity.value));
+            humanizeBtn.disabled = false;
+            humanizeBtn.innerHTML = '<i class="bi bi-magic"></i> Humanize Text';
+        }, 800);
+    });
+
+    input.addEventListener('input', () => {
+        const text = input.value;
+        document.getElementById('char-count').textContent = `${text.length} characters`;
+        document.getElementById('word-count').textContent = `${text.trim().split(/\s+/).length} words`;
+    });
+</script>
+{% endblock %}

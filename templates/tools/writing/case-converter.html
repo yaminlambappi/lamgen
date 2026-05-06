@@ -1,0 +1,89 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:640px){.case-grid{grid-template-columns:1fr}}
+.case-item{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 14px}
+.case-name{font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.case-result{font-size:.88rem;color:var(--text);word-break:break-all;line-height:1.5;min-height:20px}
+.case-actions{display:flex;gap:6px;margin-top:8px}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Input Text</div>
+    <textarea class="tool-code" id="input-text" placeholder="Type or paste your text here..." oninput="convertAll()"></textarea>
+  </div>
+
+  <div class="act-row">
+    <div class="status" id="status"></div>
+  </div>
+
+  <div>
+    <div class="tool-label">All Case Variants</div>
+    <div class="case-grid" id="case-grid"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+const CASES = [
+  {name:'UPPERCASE', fn: t => t.toUpperCase()},
+  {name:'lowercase', fn: t => t.toLowerCase()},
+  {name:'Title Case', fn: t => t.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())},
+  {name:'Sentence case', fn: t => t.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase())},
+  {name:'camelCase', fn: t => t.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (_, c) => c.toUpperCase())},
+  {name:'PascalCase', fn: t => t.replace(/[^a-zA-Z0-9]+(.)/g, (_, c) => c.toUpperCase()).replace(/^(.)/, c => c.toUpperCase())},
+  {name:'snake_case', fn: t => t.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')},
+  {name:'kebab-case', fn: t => t.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')},
+  {name:'CONSTANT_CASE', fn: t => t.toUpperCase().replace(/\s+/g,'_').replace(/[^A-Z0-9_]/g,'')},
+  {name:'dot.case', fn: t => t.toLowerCase().replace(/\s+/g,'.').replace(/[^a-z0-9.]/g,'')},
+  {name:'aLtErNaTiNg CaSe', fn: t => t.split('').map((c,i) => i%2===0?c.toLowerCase():c.toUpperCase()).join('')},
+  {name:'InVeRsE cAsE', fn: t => t.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('')},
+];
+
+function convertAll() {
+  const text = document.getElementById('input-text').value;
+  const grid = document.getElementById('case-grid');
+  if (!text.trim()) { grid.innerHTML = ''; return; }
+  grid.innerHTML = CASES.map(c => {
+    const result = c.fn(text);
+    const escaped = result.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<div class="case-item">
+      <div class="case-name">${c.name}</div>
+      <div class="case-result">${escaped}</div>
+      <div class="case-actions">
+        <button class="btn-sm" style="padding:4px 10px;font-size:.75rem" onclick="copyText(${JSON.stringify(result)},this)"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" style="padding:4px 10px;font-size:.75rem" onclick="document.getElementById('input-text').value=${JSON.stringify(result)};convertAll()"><i class="bi bi-arrow-up"></i> Use</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+</script>
+{% endblock %}

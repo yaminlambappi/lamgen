@@ -1,0 +1,229 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.line-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; }
+.line-card:hover { border-color: rgba(108,99,255,0.3); }
+.line-text { font-size: 1rem; color: var(--text); line-height: 1.5; margin-bottom: 0.6rem; }
+.line-actions { display: flex; align-items: center; gap: 0.5rem; }
+.rating-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.2rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.rating-btn:hover { border-color: var(--primary); }
+.rating-btn.liked { border-color: #00c864; color: #00c864; background: rgba(0,200,100,0.1); }
+.rating-btn.disliked { border-color: var(--danger); color: var(--danger); background: rgba(255,107,107,0.1); }
+.cat-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.2rem; }
+.cat-tab { padding: 0.35rem 0.9rem; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.cat-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.fav-section { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-top: 1.5rem; }
+.results-panel { max-height: 500px; overflow-y: auto; }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="cat-tabs" id="cat-tabs"></div>
+<div style="display:flex;gap:0.8rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+  <button class="btn-go" id="btn-random">🎲 Random Line</button>
+  <button class="btn-sm" id="btn-show-all">Show 10 Lines</button>
+  <button class="btn-sm" id="btn-show-favs">⭐ Favorites (<span id="fav-count">0</span>)</button>
+</div>
+<div class="results-panel" id="results">
+  <div style="color:var(--muted);text-align:center;padding:3rem 0;">Click "Random Line" or select a category</div>
+</div>
+<div class="fav-section" id="fav-section" style="display:none;">
+  <span class="tool-label">Saved Favorites</span>
+  <div id="fav-list"></div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const lines = {
+    cheesy: [
+      "Are you a magician? Because whenever I look at you, everyone else disappears.",
+      "Do you have a map? I keep getting lost in your eyes.",
+      "Are you a parking ticket? Because you've got 'fine' written all over you.",
+      "Is your name Google? Because you have everything I've been searching for.",
+      "Do you believe in love at first sight, or should I walk by again?",
+      "Are you a camera? Because every time I look at you, I smile.",
+      "If you were a vegetable, you'd be a cute-cumber.",
+      "Are you a bank loan? Because you have my interest.",
+      "Do you have a Band-Aid? Because I just scraped my knee falling for you.",
+      "Are you a star? Because your beauty lights up the room.",
+      "If beauty were time, you'd be an eternity.",
+      "Are you a dictionary? Because you add meaning to my life.",
+      "Is your name Wi-Fi? Because I'm feeling a connection.",
+      "Are you a 90-degree angle? Because you're looking right!",
+      "Do you like science? Because I've got great chemistry with you.",
+    ],
+    nerdy: [
+      "Are you made of copper and tellurium? Because you're CuTe.",
+      "Do you have 11 protons? Because you're sodium fine.",
+      "Are you a keyboard? Because you're just my type.",
+      "I must be a snowflake, because I've fallen for you.",
+      "Are you a function? Because I want to be your domain.",
+      "Do you like Star Wars? Because Yoda one for me.",
+      "Are you a compiler? Because you make my heart run faster.",
+      "I'd never play hide and seek with you because someone like you is impossible to find.",
+      "Are you a black hole? Because you're pulling me in.",
+      "Do you like math? Because you + me = perfect.",
+      "Are you a loop? Because I keep coming back to you.",
+      "Is your name JavaScript? Because you make my heart async.",
+      "Are you a git repo? Because I want to commit to you.",
+      "Do you like Python? Because you've got me feeling like a snake charmer.",
+      "Are you an API? Because I want to make a request.",
+    ],
+    food: [
+      "Are you a pizza? Because I want a pizza you.",
+      "Do you like raisins? How do you feel about a date?",
+      "Are you a donut? Because I'm glazed over by your beauty.",
+      "You must be a taco, because you're making me want to take a bite.",
+      "Are you a coffee? Because you wake me up inside.",
+      "Do you like chocolate? Because you're sweet enough to eat.",
+      "Are you a burger? Because you're well done.",
+      "Is your name Candy? Because you look so sweet.",
+      "Are you a pretzel? Because you've got me all twisted up.",
+      "Do you like sushi? Because I think we'd make a great roll.",
+      "Are you a cupcake? Because you're the sweetest thing I've ever seen.",
+      "Is your name Nutella? Because I want to spread you everywhere.",
+      "Are you a lemon? Because you make everything better.",
+      "Do you like ice cream? Because you make my heart melt.",
+      "Are you a cookie? Because I want to take a bite.",
+    ],
+    gaming: [
+      "Are you a save point? Because I want to remember this moment forever.",
+      "Do you have a respawn? Because you just killed me with your looks.",
+      "Are you a loot box? Because I'd spend all my coins on you.",
+      "Is your name Zelda? Because I've been on a quest to find you.",
+      "Are you a health pack? Because you just healed my heart.",
+      "Do you play Minecraft? Because I'd dig you.",
+      "Are you a cheat code? Because you make everything easier.",
+      "Is your name Mario? Because you make my heart jump.",
+      "Are you a controller? Because I want to hold you all night.",
+      "Do you like RPGs? Because I want to be your main quest.",
+      "Are you a power-up? Because you make me feel invincible.",
+      "Is your name Pikachu? Because you're shockingly beautiful.",
+      "Are you a loading screen? Because I can't stop staring at you.",
+      "Do you have extra lives? Because you just took one of mine.",
+      "Are you a final boss? Because you're impossibly hard to get.",
+    ],
+    classic: [
+      "Heaven must be missing an angel.",
+      "If I could rearrange the alphabet, I'd put U and I together.",
+      "Do you come here often?",
+      "Are you tired? Because you've been running through my mind all day.",
+      "Can I follow you home? Cause my parents always told me to follow my dreams.",
+      "If you were a triangle, you'd be acute one.",
+      "Are you a time traveler? Because I see you in my future.",
+      "Do you have a mirror in your pocket? Because I can see myself in your pants.",
+      "Are you a light switch? Because you turn me on.",
+      "If stars would fall every time I thought of you, the sky would soon be empty.",
+      "Are you a magnet? Because I'm attracted to you.",
+      "Do you have a sunburn, or are you always this hot?",
+      "Are you a dream? Because I never want to wake up.",
+      "If you were a song, you'd be the best track on the album.",
+      "Are you a wish? Because you just came true.",
+    ],
+  };
+
+  const categories = Object.keys(lines);
+  let currentCat = 'all';
+  let ratings = JSON.parse(localStorage.getItem('pickup-ratings') || '{}');
+  let favorites = JSON.parse(localStorage.getItem('pickup-favs') || '[]');
+
+  function updateFavCount() {
+    document.getElementById('fav-count').textContent = favorites.length;
+  }
+
+  function renderLine(line, idx) {
+    const r = ratings[line] || 0;
+    const isFav = favorites.includes(line);
+    return `<div class="line-card">
+      <div class="line-text">"${line}"</div>
+      <div class="line-actions">
+        <button class="rating-btn ${r > 0 ? 'liked' : ''}" onclick="rate('${line.replace(/'/g,"\\'")}',1)">👍 ${r > 0 ? '1' : ''}</button>
+        <button class="rating-btn ${r < 0 ? 'disliked' : ''}" onclick="rate('${line.replace(/'/g,"\\'")}', -1)">👎</button>
+        <button class="btn-sm" onclick="toggleFav('${line.replace(/'/g,"\\'")}')">
+          ${isFav ? '⭐ Saved' : '☆ Save'}
+        </button>
+        <button class="btn-sm" onclick="copyLine('${line.replace(/'/g,"\\'")}')"><i class="bi bi-clipboard"></i> Copy</button>
+      </div>
+    </div>`;
+  }
+
+  window.rate = (line, val) => {
+    ratings[line] = ratings[line] === val ? 0 : val;
+    localStorage.setItem('pickup-ratings', JSON.stringify(ratings));
+    showLines(currentCat);
+  };
+
+  window.toggleFav = (line) => {
+    const idx = favorites.indexOf(line);
+    if (idx === -1) favorites.push(line);
+    else favorites.splice(idx, 1);
+    localStorage.setItem('pickup-favs', JSON.stringify(favorites));
+    updateFavCount();
+    showLines(currentCat);
+  };
+
+  window.copyLine = async (line) => {
+    await navigator.clipboard.writeText(line);
+  };
+
+  function getAllLines() {
+    return Object.values(lines).flat();
+  }
+
+  function showLines(cat) {
+    currentCat = cat;
+    let pool = cat === 'all' ? getAllLines() : (lines[cat] || []);
+    const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, 10);
+    document.getElementById('results').innerHTML = shuffled.map((l, i) => renderLine(l, i)).join('');
+    document.getElementById('fav-section').style.display = 'none';
+  }
+
+  function showRandom() {
+    const pool = currentCat === 'all' ? getAllLines() : (lines[currentCat] || getAllLines());
+    const line = pool[Math.floor(Math.random() * pool.length)];
+    document.getElementById('results').innerHTML = renderLine(line, 0);
+    document.getElementById('fav-section').style.display = 'none';
+  }
+
+  // Tabs
+  const tabsEl = document.getElementById('cat-tabs');
+  ['all', ...categories].forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-tab' + (cat === 'all' ? ' active' : '');
+    btn.textContent = cat === 'all' ? '🎲 All' : cat.charAt(0).toUpperCase() + cat.slice(1);
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      showLines(cat);
+    });
+    tabsEl.appendChild(btn);
+  });
+
+  document.getElementById('btn-random').addEventListener('click', showRandom);
+  document.getElementById('btn-show-all').addEventListener('click', () => showLines(currentCat));
+  document.getElementById('btn-show-favs').addEventListener('click', () => {
+    const favSection = document.getElementById('fav-section');
+    if (favSection.style.display === 'none') {
+      favSection.style.display = 'block';
+      document.getElementById('fav-list').innerHTML = favorites.length
+        ? favorites.map(l => renderLine(l, 0)).join('')
+        : '<div style="color:var(--muted);text-align:center;padding:1rem;">No favorites yet. Save some lines!</div>';
+    } else {
+      favSection.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') showRandom(); });
+  updateFavCount();
+  showLines('all');
+});
+</script>
+{% endblock %}

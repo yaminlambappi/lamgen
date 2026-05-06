@@ -1,0 +1,199 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .editor-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        height: 500px;
+    }
+    
+    .editor-pane {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #0A0A0F;
+    }
+    
+    .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .editor-header h3 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+    
+    .editor-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .editor-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .editor-btn:hover {
+        background: var(--surface);
+        color: var(--text);
+    }
+    
+    .editor-content {
+        flex-grow: 1;
+        padding: 1rem;
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: var(--text);
+        font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        resize: none;
+        outline: none;
+    }
+
+    #error-msg {
+        color: var(--danger);
+        font-size: 0.85rem;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: rgba(255, 107, 107, 0.1);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        border-radius: 8px;
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .editor-container {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+        .editor-pane {
+            height: 400px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="editor-container">
+    <div class="editor-pane">
+        <div class="editor-header">
+            <h3>Input JSON</h3>
+            <div class="editor-actions">
+                <button class="editor-btn" id="btn-clear" title="Clear input"><i class="bi bi-trash"></i></button>
+                <button class="editor-btn" id="btn-paste" title="Paste from clipboard"><i class="bi bi-clipboard"></i></button>
+            </div>
+        </div>
+        <textarea id="json-input" class="editor-content" placeholder="Paste your JSON here..." spellcheck="false"></textarea>
+    </div>
+    
+    <div class="editor-pane">
+        <div class="editor-header">
+            <h3>Formatted JSON</h3>
+            <div class="editor-actions">
+                <button class="editor-btn" id="btn-minify" title="Minify JSON">Minify</button>
+                <button class="editor-btn" id="btn-copy" title="Copy to clipboard"><i class="bi bi-clipboard-check"></i> Copy</button>
+            </div>
+        </div>
+        <textarea id="json-output" class="editor-content" readonly spellcheck="false" placeholder="Formatted output will appear here..."></textarea>
+    </div>
+</div>
+<div id="error-msg"></div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputArea = document.getElementById('json-input');
+        const outputArea = document.getElementById('json-output');
+        const errorMsg = document.getElementById('error-msg');
+        const btnClear = document.getElementById('btn-clear');
+        const btnPaste = document.getElementById('btn-paste');
+        const btnCopy = document.getElementById('btn-copy');
+        const btnMinify = document.getElementById('btn-minify');
+
+        function formatJSON() {
+            const val = inputArea.value.trim();
+            if (!val) {
+                outputArea.value = '';
+                errorMsg.style.display = 'none';
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(val);
+                outputArea.value = JSON.stringify(parsed, null, 4);
+                errorMsg.style.display = 'none';
+            } catch (err) {
+                errorMsg.textContent = 'Invalid JSON: ' + err.message;
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        function minifyJSON() {
+            const val = inputArea.value.trim();
+            if (!val) return;
+            try {
+                const parsed = JSON.parse(val);
+                outputArea.value = JSON.stringify(parsed);
+                errorMsg.style.display = 'none';
+            } catch (err) {
+                errorMsg.textContent = 'Invalid JSON: ' + err.message;
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        inputArea.addEventListener('input', formatJSON);
+
+        btnClear.addEventListener('click', () => {
+            inputArea.value = '';
+            outputArea.value = '';
+            errorMsg.style.display = 'none';
+        });
+
+        btnPaste.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                inputArea.value = text;
+                formatJSON();
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+            }
+        });
+
+        btnCopy.addEventListener('click', async () => {
+            if (!outputArea.value) return;
+            try {
+                await navigator.clipboard.writeText(outputArea.value);
+                const originalText = btnCopy.innerHTML;
+                btnCopy.innerHTML = '<i class="bi bi-check2"></i> Copied';
+                setTimeout(() => {
+                    btnCopy.innerHTML = originalText;
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        });
+
+        btnMinify.addEventListener('click', minifyJSON);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02); margin-bottom: 1.5rem; }
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+.upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 0.8rem; }
+.settings-panel { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem; display: none; }
+.slider-wrap { margin-bottom: 1rem; }
+.slider-wrap label { display: flex; justify-content: space-between; margin-bottom: 0.4rem; color: var(--text); font-size: 0.9rem; }
+.quality-slider { width: 100%; accent-color: var(--primary); }
+.preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; display: none; }
+.preview-box { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; background: rgba(0,0,0,0.4); text-align: center; }
+.preview-box img { max-width: 100%; max-height: 280px; border-radius: 8px; margin-bottom: 0.8rem; object-fit: contain; }
+.preview-stats { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.8rem; }
+.preview-stats strong { color: var(--text); }
+.btn-dl { display: block; width: 100%; padding: 0.7rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; text-decoration: none; border-radius: 8px; font-weight: 700; transition: transform 0.2s; border: none; cursor: pointer; }
+.btn-dl:hover { transform: translateY(-2px); color: #000; }
+.select-input { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 0.8rem; border-radius: 8px; outline: none; }
+@media (max-width: 768px) { .preview-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="upload-zone" id="drop-zone">
+  <div class="upload-icon">📁</div>
+  <h3 style="margin-bottom:0.5rem;">Click or Drag Image Here</h3>
+  <p style="color:var(--muted);font-size:0.9rem;">Supports JPG, PNG, WebP · Max 10MB · 100% local processing</p>
+  <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" style="display:none;">
+</div>
+
+<div class="settings-panel" id="settings">
+  <div class="slider-wrap">
+    <label><span>Quality</span><span id="q-val" style="color:var(--primary);font-weight:700;">80%</span></label>
+    <input type="range" id="q-slider" class="quality-slider" min="1" max="100" value="80">
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+    <span style="color:var(--text);font-size:0.9rem;">Output Format:</span>
+    <select id="format-select" class="select-input">
+      <option value="image/jpeg">JPEG</option>
+      <option value="image/webp">WebP (Best Compression)</option>
+      <option value="image/png">PNG (Lossless)</option>
+    </select>
+  </div>
+</div>
+
+<div class="preview-grid" id="preview-area">
+  <div class="preview-box">
+    <h4 style="margin-bottom:0.8rem;color:var(--muted);">Original</h4>
+    <img id="img-orig" src="" alt="Original">
+    <div class="preview-stats">Size: <strong id="size-orig">—</strong></div>
+    <div class="preview-stats">Dimensions: <strong id="dims-orig">—</strong></div>
+  </div>
+  <div class="preview-box" style="border-color:var(--primary);">
+    <h4 style="margin-bottom:0.8rem;color:var(--primary);">Compressed</h4>
+    <img id="img-comp" src="" alt="Compressed">
+    <div class="preview-stats">Size: <strong id="size-comp">—</strong> (<span id="size-saved" style="color:var(--accent);">—</span>)</div>
+    <div class="preview-stats">Format: <strong id="format-out">—</strong></div>
+    <a id="btn-download" class="btn-dl" download="compressed.jpg"><i class="bi bi-download"></i> Download</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const settings = document.getElementById('settings');
+  const previewArea = document.getElementById('preview-area');
+  const qSlider = document.getElementById('q-slider');
+  const qVal = document.getElementById('q-val');
+  const formatSelect = document.getElementById('format-select');
+  let origFile = null;
+  let origImg = new Image();
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  qSlider.addEventListener('input', () => { qVal.textContent = qSlider.value + '%'; if (origFile) compress(); });
+  formatSelect.addEventListener('change', () => { if (origFile) compress(); });
+
+  function fmtBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(2) + ' MB';
+  }
+
+  function handleFile(file) {
+    if (!file.type.startsWith('image/')) { alert('Please upload an image file.'); return; }
+    if (file.size > 10 * 1024 * 1024) { alert('File too large. Max 10MB.'); return; }
+    origFile = file;
+    document.getElementById('size-orig').textContent = fmtBytes(file.size);
+    const reader = new FileReader();
+    reader.onload = e => {
+      origImg.src = e.target.result;
+      document.getElementById('img-orig').src = e.target.result;
+      origImg.onload = () => {
+        document.getElementById('dims-orig').textContent = `${origImg.width} × ${origImg.height}`;
+        settings.style.display = 'block';
+        previewArea.style.display = 'grid';
+        compress();
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function compress() {
+    const canvas = document.createElement('canvas');
+    canvas.width = origImg.width;
+    canvas.height = origImg.height;
+    const ctx = canvas.getContext('2d');
+    const fmt = formatSelect.value;
+    if (fmt === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+    ctx.drawImage(origImg, 0, 0);
+    const quality = parseInt(qSlider.value) / 100;
+    const dataUrl = canvas.toDataURL(fmt, quality);
+    document.getElementById('img-comp').src = dataUrl;
+    const head = 'data:' + fmt + ';base64,';
+    const compSize = Math.round((dataUrl.length - head.length) * 3 / 4);
+    document.getElementById('size-comp').textContent = fmtBytes(compSize);
+    const saved = origFile.size > compSize ? Math.round((1 - compSize / origFile.size) * 100) : 0;
+    document.getElementById('size-saved').textContent = saved > 0 ? saved + '% saved' : 'no reduction';
+    document.getElementById('format-out').textContent = fmt.split('/')[1].toUpperCase();
+    const ext = fmt === 'image/jpeg' ? 'jpg' : fmt.split('/')[1];
+    const btn = document.getElementById('btn-download');
+    btn.href = dataUrl;
+    btn.download = (origFile.name.replace(/\.[^/.]+$/, '') || 'image') + '-compressed.' + ext;
+  }
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter' && origFile) compress(); });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{# Sticky mobile action bar — include at bottom of tool pages #}
+{# Usage: {% include "partials/tool_action_bar.html" with action_id="btn-process" label="Format" icon="bi-play-fill" %} #}
+<div class="tool-action-bar"
+     role="toolbar"
+     aria-label="Tool actions"
+     style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:500; padding:12px 16px; background:rgba(10,10,15,0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.08); gap:10px; align-items:center;">
+  <button
+    onclick="document.getElementById('{{ action_id|default:'btn-process' }}')?.click()"
+    class="btn-nexus"
+    style="flex:1; justify-content:center;"
+    aria-label="{{ label|default:'Process' }}">
+    <i class="bi {{ icon|default:'bi-play-fill' }}"></i>
+    {{ label|default:'Process' }}
+  </button>
+  {% if show_copy %}
+  <button
+    onclick="document.getElementById('btn-copy')?.click()"
+    class="btn-ghost-nexus"
+    style="padding:12px 16px;"
+    aria-label="Copy result">
+    <i class="bi bi-clipboard"></i>
+  </button>
+  {% endif %}
+</div>
+<style>
+@media (max-width: 768px) {
+  .tool-action-bar { display: flex !important; }
+}
+</style>

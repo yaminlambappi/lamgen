@@ -1,0 +1,149 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .upload-zone {
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        padding: 4rem 2rem;
+        text-align: center;
+        transition: 0.3s;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: var(--primary);
+        background: rgba(108, 99, 255, 0.05);
+    }
+    .file-list {
+        margin-top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .file-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: grab;
+    }
+    .file-item:active { cursor: grabbing; }
+    .merge-action {
+        margin-top: 2rem;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="tool-container">
+    <div class="upload-zone" id="drop-zone">
+        <i class="bi bi-file-earmark-plus" style="font-size: 3rem; color: var(--primary);"></i>
+        <h3>Select PDF Files to Merge</h3>
+        <p class="text-muted">Drag and drop files to reorder them.</p>
+        <input type="file" id="file-input" multiple accept=".pdf" style="display: none;">
+    </div>
+
+    <div id="file-list" class="file-list"></div>
+
+    <div class="merge-action" id="merge-panel" style="display: none;">
+        <button id="merge-btn" class="btn-nexus" style="width: 100%; max-width: 300px;">
+            <i class="bi bi-intersect"></i> Merge PDFs Now
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
+    const mergePanel = document.getElementById('merge-panel');
+    const mergeBtn = document.getElementById('merge-btn');
+
+    let filesArray = [];
+
+    new Sortable(fileList, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: () => {
+            // Reorder filesArray based on UI
+            const newOrder = Array.from(fileList.children).map(item => item.dataset.id);
+            const newFiles = newOrder.map(id => filesArray.find(f => f.id === id));
+            filesArray = newFiles;
+        }
+    });
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            if (file.type !== 'application/pdf') return;
+            const id = Math.random().toString(36).substr(2, 9);
+            filesArray.push({ id, file });
+            
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            item.dataset.id = id;
+            item.innerHTML = `
+                <span><i class="bi bi-grip-vertical"></i> ${file.name}</span>
+                <button class="btn-nexus-secondary" style="padding: 2px 8px;" onclick="removeFile('${id}')">✕</button>
+            `;
+            fileList.appendChild(item);
+        });
+        updateMergePanel();
+    }
+
+    window.removeFile = function(id) {
+        filesArray = filesArray.filter(f => f.id !== id);
+        document.querySelector(`[data-id="${id}"]`).remove();
+        updateMergePanel();
+    };
+
+    function updateMergePanel() {
+        mergePanel.style.display = filesArray.length >= 2 ? 'block' : 'none';
+    }
+
+    mergeBtn.addEventListener('click', async () => {
+        try {
+            mergeBtn.disabled = true;
+            mergeBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Merging...';
+            
+            const mergedPdf = await PDFLib.PDFDocument.create();
+            
+            for (const item of filesArray) {
+                const arrayBuffer = await item.file.arrayBuffer();
+                const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                copiedPages.forEach((page) => mergedPdf.addPage(page));
+            }
+            
+            const mergedPdfBytes = await mergedPdf.save();
+            const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'merged_lamgen.pdf';
+            link.click();
+            
+            mergeBtn.disabled = false;
+            mergeBtn.innerHTML = '<i class="bi bi-intersect"></i> Merge PDFs Now';
+        } catch (e) {
+            console.error(e);
+            alert('Error merging PDFs: ' + e.message);
+            mergeBtn.disabled = false;
+            mergeBtn.innerHTML = '<i class="bi bi-intersect"></i> Merge PDFs Now';
+        }
+    });
+</script>
+{% endblock %}

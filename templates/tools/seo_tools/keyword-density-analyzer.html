@@ -1,0 +1,151 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+textarea.num-input { resize: vertical; min-height: 200px; }
+.input-grp { margin-bottom: 1.2rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.stat-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.8rem; }
+.stat-num { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--accent); }
+.stat-label { font-size: 0.8rem; color: var(--muted); }
+.density-meter { height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; margin: 0.5rem 0; }
+.density-fill { height: 100%; border-radius: 5px; transition: width 0.4s, background 0.4s; }
+.word-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; font-size: 0.9rem; }
+.word-bar { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.word-fill { height: 100%; background: var(--primary); border-radius: 3px; }
+.check-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 0.4rem; }
+.grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
+@media (max-width: 768px) { .dev-tool-wrap { grid-template-columns: 1fr; } .grid-stats { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="input-grp">
+      <span class="tool-label">Content Text</span>
+      <textarea id="in-content" class="num-input" placeholder="Paste your article, blog post, or page content here…"></textarea>
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Target Keyword / Phrase</span>
+      <input type="text" id="in-keyword" class="num-input" placeholder="e.g. running shoes">
+    </div>
+    <button class="btn-go" id="btn-analyze">🔍 Analyze</button>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:0.6rem;">Ctrl+Enter to analyze</p>
+  </div>
+  <div id="results-panel">
+    <div style="color:var(--muted);text-align:center;padding:3rem 0;">Paste content and enter a keyword to analyze</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const stopWords = new Set(['a','an','and','are','as','at','be','but','by','for','if','in','into','is','it','no','not','of','on','or','such','that','the','their','then','there','these','they','this','to','was','will','with','from','about','which','when','where','who','how','what','all','also','been','both','can','do','does','each','few','get','had','has','have','he','her','him','his','i','its','just','me','more','my','nor','our','out','own','same','she','so','some','than','too','up','us','very','we','were','you','your','it','its','been','being','have','has','had','do','does','did','will','would','could','should','may','might','shall','must','can','need','dare','ought','used']);
+
+  function countOccurrences(text, phrase) {
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('\\b' + escaped + '\\b', 'gi');
+    return (text.match(re) || []).length;
+  }
+
+  function getWords(text) {
+    return text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+  }
+
+  function topWords(words, n) {
+    const freq = {};
+    words.forEach(w => { if (!stopWords.has(w) && w.length > 2) freq[w] = (freq[w] || 0) + 1; });
+    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, n);
+  }
+
+  function tfidf(word, docWords, allWords) {
+    const tf = docWords.filter(w => w === word).length / docWords.length;
+    // Single doc: IDF approximation based on word rarity
+    const idf = Math.log((allWords.length + 1) / (docWords.filter(w => w === word).length + 1)) + 1;
+    return (tf * idf).toFixed(4);
+  }
+
+  function analyze() {
+    const content = document.getElementById('in-content').value;
+    const keyword = document.getElementById('in-keyword').value.trim();
+    if (!content.trim()) { document.getElementById('results-panel').innerHTML = '<div style="color:var(--danger);text-align:center;padding:2rem;">Please paste some content.</div>'; return; }
+    if (!keyword) { document.getElementById('results-panel').innerHTML = '<div style="color:var(--danger);text-align:center;padding:2rem;">Please enter a target keyword.</div>'; return; }
+
+    const words = getWords(content);
+    const totalWords = words.length;
+    const kwCount = countOccurrences(content, keyword);
+    const kwWords = keyword.toLowerCase().split(/\s+/).length;
+    const density = totalWords > 0 ? ((kwCount * kwWords) / totalWords * 100).toFixed(2) : 0;
+
+    // Paragraph/section detection
+    const paragraphs = content.split(/\n+/).filter(Boolean);
+    const firstPara = paragraphs[0] || '';
+    const inFirst = countOccurrences(firstPara, keyword) > 0;
+
+    // Heading detection (lines starting with # or all caps short lines)
+    const headings = paragraphs.filter(p => p.startsWith('#') || (p.length < 80 && p === p.toUpperCase() && p.trim().length > 3));
+    const inHeading = headings.some(h => countOccurrences(h, keyword) > 0);
+
+    // Top words
+    const top = topWords(words, 10);
+    const maxFreq = top[0] ? top[0][1] : 1;
+
+    // TF-IDF for keyword
+    const kwTF = kwCount / totalWords;
+    const kwIDF = Math.log((totalWords + 1) / (kwCount + 1)) + 1;
+    const kwTFIDF = (kwTF * kwIDF).toFixed(4);
+
+    // Density color
+    const dNum = parseFloat(density);
+    const dColor = dNum >= 1 && dNum <= 3 ? '#00c864' : dNum > 3 ? 'var(--danger)' : '#ffc800';
+    const dPct = Math.min(dNum / 5 * 100, 100);
+
+    const recMsg = dNum < 0.5 ? '⚠ Very low density. Use the keyword more naturally.' :
+                   dNum < 1 ? '⚠ Below ideal. Aim for 1–3% density.' :
+                   dNum <= 3 ? '✓ Ideal keyword density (1–3%).' :
+                   dNum <= 5 ? '⚠ Slightly high. May appear spammy.' :
+                   '✗ Too high! Keyword stuffing detected.';
+
+    document.getElementById('results-panel').innerHTML = `
+      <div class="grid-stats">
+        <div class="stat-card"><div class="stat-num">${kwCount}</div><div class="stat-label">Keyword Occurrences</div></div>
+        <div class="stat-card"><div class="stat-num">${density}%</div><div class="stat-label">Keyword Density</div></div>
+        <div class="stat-card"><div class="stat-num">${totalWords}</div><div class="stat-label">Total Words</div></div>
+        <div class="stat-card"><div class="stat-num">${kwTFIDF}</div><div class="stat-label">TF-IDF Score</div></div>
+      </div>
+      <div class="stat-card" style="margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.3rem;">
+          <span style="font-size:0.85rem;color:var(--muted);">Density Meter</span>
+          <span style="font-size:0.85rem;font-weight:700;color:${dColor};">${density}%</span>
+        </div>
+        <div class="density-meter"><div class="density-fill" style="width:${dPct}%;background:${dColor};"></div></div>
+        <div style="font-size:0.8rem;color:${dColor};margin-top:0.3rem;">${recMsg}</div>
+      </div>
+      <div class="stat-card" style="margin-bottom:1rem;">
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem;">Keyword Placement</div>
+        <div class="check-item"><span style="color:${inFirst?'#00c864':'var(--danger)'};">${inFirst?'✓':'✗'}</span> <span>In first paragraph</span></div>
+        <div class="check-item"><span style="color:${inHeading?'#00c864':'#ffc800'};">${inHeading?'✓':'⚠'}</span> <span>In headings ${inHeading?'(detected)':'(not detected)'}</span></div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">Top 10 Words by Frequency</div>
+        ${top.map(([w, c]) => `
+          <div class="word-row">
+            <span style="min-width:100px;color:var(--text);">${w}</span>
+            <div class="word-bar"><div class="word-fill" style="width:${c/maxFreq*100}%;"></div></div>
+            <span style="min-width:30px;text-align:right;color:var(--muted);font-size:0.8rem;">${c}</span>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  document.getElementById('btn-analyze').addEventListener('click', analyze);
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') analyze(); });
+});
+</script>
+{% endblock %}

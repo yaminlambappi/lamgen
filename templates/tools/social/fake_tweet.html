@@ -1,0 +1,196 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .split-layout { display: flex; gap: 2rem; flex-wrap: wrap; }
+    .controls { flex: 1; min-width: 300px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+    .preview-container { flex: 1; min-width: 350px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+    
+    .input-grp { margin-bottom: 1rem; }
+    .input-grp label { display: block; margin-bottom: 0.5rem; color: var(--muted); font-size: 0.9rem; }
+    .input-field { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 0.8rem; border-radius: 8px; outline: none; }
+    .input-field:focus { border-color: var(--primary); }
+    
+    /* Fake Tweet Canvas */
+    .tweet-box { background: #000; color: #fff; width: 100%; max-width: 450px; border-radius: 16px; border: 1px solid #333; padding: 1.2rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; position: relative; }
+    .tweet-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+    .tweet-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #333; }
+    .tweet-name-col { display: flex; flex-direction: column; }
+    .tweet-name { font-weight: bold; display: flex; align-items: center; gap: 0.2rem; }
+    .tweet-username { color: #71767b; font-size: 0.95rem; }
+    .verified-badge { color: #1d9bf0; font-size: 1.1rem; display: none; }
+    
+    .tweet-text { font-size: 1.4rem; line-height: 1.3; margin-bottom: 1rem; white-space: pre-wrap; word-break: break-word; }
+    .tweet-meta { color: #71767b; font-size: 0.95rem; padding-bottom: 1rem; border-bottom: 1px solid #333; margin-bottom: 1rem; }
+    
+    .tweet-stats { display: flex; gap: 1.5rem; color: #71767b; font-size: 0.95rem; font-weight: bold; }
+    .tweet-stats span { color: #fff; }
+    
+    .btn-action { width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 1.5rem; transition: transform 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="split-layout">
+    <div class="controls">
+        <h3 style="margin-bottom: 1.5rem;">Customize Tweet</h3>
+        
+        <div style="display: flex; gap: 1rem;">
+            <div class="input-grp" style="flex: 1;">
+                <label>Name</label>
+                <input type="text" id="in-name" class="input-field" value="Elon Musk">
+            </div>
+            <div class="input-grp" style="flex: 1;">
+                <label>Username</label>
+                <input type="text" id="in-user" class="input-field" value="elonmusk">
+            </div>
+        </div>
+        
+        <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer; color: var(--text);">
+            <input type="checkbox" id="in-verified" checked style="width:16px; height:16px;"> Show Verified Badge
+        </label>
+        
+        <div class="input-grp">
+            <label>Profile Picture (Optional)</label>
+            <input type="file" id="in-avatar" accept="image/*" class="input-field" style="padding: 0.5rem;">
+        </div>
+        
+        <div class="input-grp">
+            <label>Tweet Content</label>
+            <textarea id="in-text" class="input-field" rows="4">Just shipped the new LamGen tools ecosystem. It's incredibly fast! 🚀</textarea>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <div class="input-grp" style="flex: 1;">
+                <label>Time/Date</label>
+                <input type="text" id="in-date" class="input-field" value="10:42 AM · May 4, 2026">
+            </div>
+            <div class="input-grp" style="flex: 1;">
+                <label>Views</label>
+                <input type="text" id="in-views" class="input-field" value="42.5M">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <div class="input-grp" style="flex: 1;">
+                <label>Retweets</label>
+                <input type="text" id="in-rt" class="input-field" value="124K">
+            </div>
+            <div class="input-grp" style="flex: 1;">
+                <label>Likes</label>
+                <input type="text" id="in-likes" class="input-field" value="1.2M">
+            </div>
+        </div>
+    </div>
+    
+    <div class="preview-container">
+        <div style="color: var(--muted); margin-bottom: 1rem; font-size: 0.9rem;">Live Preview (Twitter/X Dark Mode)</div>
+        
+        <div class="tweet-box" id="tweet-box">
+            <div class="tweet-header">
+                <img src="https://ui-avatars.com/api/?name=Elon+Musk&background=random" id="out-avatar" class="tweet-avatar">
+                <div class="tweet-name-col">
+                    <div class="tweet-name">
+                        <span id="out-name">Elon Musk</span>
+                        <i class="bi bi-patch-check-fill verified-badge" id="out-verified" style="display: inline-block;"></i>
+                    </div>
+                    <div class="tweet-username">@<span id="out-user">elonmusk</span></div>
+                </div>
+            </div>
+            
+            <div class="tweet-text" id="out-text">Just shipped the new LamGen tools ecosystem. It's incredibly fast! 🚀</div>
+            
+            <div class="tweet-meta"><span id="out-date">10:42 AM · May 4, 2026</span> · <span style="color:#fff;font-weight:bold;" id="out-views">42.5M</span> Views</div>
+            
+            <div class="tweet-stats">
+                <div><span id="out-rt">124K</span> Retweets</div>
+                <div><span id="out-likes">1.2M</span> Likes</div>
+            </div>
+        </div>
+        
+        <button id="btn-download" class="btn-action"><i class="bi bi-camera"></i> Download as Image</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Inputs
+        const inputs = {
+            name: document.getElementById('in-name'),
+            user: document.getElementById('in-user'),
+            verified: document.getElementById('in-verified'),
+            text: document.getElementById('in-text'),
+            date: document.getElementById('in-date'),
+            views: document.getElementById('in-views'),
+            rt: document.getElementById('in-rt'),
+            likes: document.getElementById('in-likes'),
+            avatar: document.getElementById('in-avatar')
+        };
+        
+        // Outputs
+        const outs = {
+            name: document.getElementById('out-name'),
+            user: document.getElementById('out-user'),
+            verified: document.getElementById('out-verified'),
+            text: document.getElementById('out-text'),
+            date: document.getElementById('out-date'),
+            views: document.getElementById('out-views'),
+            rt: document.getElementById('out-rt'),
+            likes: document.getElementById('out-likes'),
+            avatar: document.getElementById('out-avatar')
+        };
+        
+        function updatePreview() {
+            outs.name.textContent = inputs.name.value || 'Name';
+            outs.user.textContent = inputs.user.value || 'username';
+            outs.verified.style.display = inputs.verified.checked ? 'inline-block' : 'none';
+            outs.text.textContent = inputs.text.value || '...';
+            outs.date.textContent = inputs.date.value || '...';
+            outs.views.textContent = inputs.views.value || '0';
+            outs.rt.textContent = inputs.rt.value || '0';
+            outs.likes.textContent = inputs.likes.value || '0';
+        }
+        
+        // Attach listeners
+        ['name', 'user', 'text', 'date', 'views', 'rt', 'likes'].forEach(k => {
+            inputs[k].addEventListener('input', updatePreview);
+        });
+        inputs.verified.addEventListener('change', updatePreview);
+        
+        inputs.name.addEventListener('input', () => {
+            if (!inputs.avatar.files.length) {
+                outs.avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(inputs.name.value)}&background=random`;
+            }
+        });
+        
+        inputs.avatar.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => outs.avatar.src = e.target.result;
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        
+        document.getElementById('btn-download').addEventListener('click', () => {
+            const node = document.getElementById('tweet-box');
+            
+            // To ensure rounded borders are captured perfectly on Safari/Chrome
+            html2canvas(node, {
+                backgroundColor: null,
+                scale: 2, // High resolution
+                useCORS: true
+            }).then(canvas => {
+                const url = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `fake_tweet_${inputs.user.value}.png`;
+                a.click();
+            });
+        });
+    });
+</script>
+{% endblock %}

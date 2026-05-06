@@ -1,0 +1,257 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-label{font-size:.75rem;color:var(--muted);font-weight:600}
+.text-input,.select-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.text-input:focus,.select-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.hashtag-cloud{display:flex;flex-wrap:wrap;gap:8px;padding:16px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px}
+.hashtag-pill{padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.82rem;color:var(--primary);cursor:pointer;transition:all .15s;user-select:none}
+.hashtag-pill:hover{background:rgba(108,99,255,.25)}
+.hashtag-pill.selected{background:rgba(108,99,255,.3);border-color:var(--primary);color:#fff}
+.copy-group{display:flex;gap:8px;flex-wrap:wrap}
+.group-card{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px}
+.group-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px}
+.group-tags{font-size:.82rem;color:var(--text);line-height:1.8;word-break:break-all}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div class="input-group">
+      <label class="input-label">Topic / Keyword *</label>
+      <input type="text" class="text-input" id="topic" placeholder="e.g. fitness, travel photography, web design">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Platform</label>
+      <select class="select-input" id="platform">
+        <option value="instagram">Instagram</option>
+        <option value="tiktok">TikTok</option>
+        <option value="twitter">Twitter / X</option>
+        <option value="linkedin">LinkedIn</option>
+        <option value="youtube">YouTube</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Niche / Industry</label>
+      <input type="text" class="text-input" id="niche" placeholder="e.g. lifestyle, tech, food, fashion">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Count</label>
+      <select class="select-input" id="count">
+        <option value="15">15 hashtags</option>
+        <option value="20">20 hashtags</option>
+        <option value="30" selected>30 hashtags</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-hash"></i> Generate Hashtags</button>
+    <button class="btn-sm" onclick="generate()"><i class="bi bi-arrow-clockwise"></i> Regenerate</button>
+    <button class="btn-sm" onclick="copySelected()"><i class="bi bi-clipboard"></i> Copy Selected</button>
+    <button class="btn-sm" onclick="copyAll()"><i class="bi bi-clipboard-fill"></i> Copy All</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <div class="tool-label" style="margin-bottom:0">Click to select hashtags</div>
+      <span id="selCount" style="font-size:.75rem;color:var(--muted)">0 selected</span>
+    </div>
+    <div class="hashtag-cloud" id="hashtagCloud"></div>
+
+    <div style="margin-top:1rem">
+      <div class="tool-label">Ready-to-use groups</div>
+      <div class="copy-group" id="copyGroups"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function waitForEngine(cb) {
+  if (window.GenEngine) { cb(); return; }
+  setTimeout(() => waitForEngine(cb), 50);
+}
+waitForEngine(() => {
+const G = window.GenEngine;
+
+// Expose to global scope for onclick handlers
+window.generate = generate;
+window.copySelected = copySelected;
+window.copyAll = copyAll;
+window.copyGroup = copyGroup;
+window.toggleTag = toggleTag;
+
+let allHashtags = [];
+
+// Platform-specific suffix patterns
+const PLATFORM_PATTERNS = {
+  instagram: ['', 'life', 'love', 'daily', 'gram', 'photo', 'style', 'vibes', 'goals', 'inspo', 'community', 'official', 'world', 'hub', 'nation'],
+  tiktok:    ['', 'tok', 'fyp', 'viral', 'trend', 'challenge', 'check', 'foryou', 'trending', 'tiktok'],
+  twitter:   ['', 'news', 'talk', 'chat', 'update', 'thread', 'tip', 'fact'],
+  linkedin:  ['', 'professional', 'career', 'industry', 'leadership', 'growth', 'business', 'network'],
+  youtube:   ['', 'channel', 'video', 'tutorial', 'review', 'tips', 'guide', 'howto'],
+};
+
+// Modifier words for variation
+const MODIFIERS = {
+  prefix: ['best', 'top', 'real', 'daily', 'modern', 'pro', 'smart', 'new', 'true', 'pure', 'raw', 'bold', 'epic', 'ultra', 'mega'],
+  suffix: ['life', 'tips', 'goals', 'inspo', 'vibes', 'hacks', 'ideas', 'guide', 'talk', 'hub', 'club', 'crew', 'squad', 'world', 'zone'],
+};
+
+function slugify(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/\s+/g, '');
+}
+
+function generate() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { showErr('st','Enter a topic first'); return; }
+  hideStatus('st');
+
+  const niche    = document.getElementById('niche').value.trim();
+  const platform = document.getElementById('platform').value;
+  const count    = parseInt(document.getElementById('count').value);
+
+  const T = slugify(topic);
+  const N = niche ? slugify(niche) : '';
+  const patterns = PLATFORM_PATTERNS[platform] || PLATFORM_PATTERNS.instagram;
+
+  const seen = new Set();
+  const tags = [];
+
+  function addTag(tag) {
+    const clean = '#' + tag.replace(/^#+/, '').replace(/[^a-zA-Z0-9_]/g, '');
+    if (clean.length < 3 || seen.has(clean.toLowerCase())) return;
+    seen.add(clean.toLowerCase());
+    tags.push(clean);
+  }
+
+  // Core topic tags
+  addTag(T);
+  if (N) addTag(N);
+
+  // Topic + platform patterns
+  G.shuffle(patterns).forEach(p => {
+    if (p) addTag(T + p);
+    if (N && p) addTag(N + p);
+  });
+
+  // Prefix + topic
+  G.shuffle(MODIFIERS.prefix).forEach(p => addTag(p + T));
+
+  // Topic + suffix
+  G.shuffle(MODIFIERS.suffix).forEach(s => addTag(T + s));
+
+  // Combined niche + topic
+  if (N) {
+    G.shuffle(MODIFIERS.suffix).slice(0, 5).forEach(s => addTag(N + T + s));
+    addTag(T + N);
+    addTag(N + T);
+  }
+
+  // Platform-specific generic tags
+  const genericByPlatform = {
+    instagram: ['instagood','photooftheday','instadaily','picoftheday','instamood','instaphoto'],
+    tiktok:    ['fyp','foryoupage','viral','trending','tiktoktrend','foryou'],
+    twitter:   ['trending','viral','thread','news','update'],
+    linkedin:  ['linkedin','networking','career','professional','growth'],
+    youtube:   ['youtube','subscribe','video','content','creator'],
+  };
+  (genericByPlatform[platform] || []).forEach(t => addTag(t));
+
+  // Shuffle and trim to count
+  allHashtags = G.shuffle(tags).slice(0, count);
+
+  // Render cloud
+  document.getElementById('hashtagCloud').innerHTML = allHashtags.map((tag, i) =>
+    `<span class="hashtag-pill" data-idx="${i}" onclick="toggleTag(this)">${escHtml(tag)}</span>`
+  ).join('');
+
+  // Render copy groups
+  const g1 = allHashtags.slice(0, 10).join(' ');
+  const g2 = allHashtags.slice(10, 20).join(' ');
+  const g3 = allHashtags.slice(20).join(' ');
+  const groups = [
+    { title: `Group 1 (${Math.min(10, allHashtags.length)})`, tags: g1 },
+    g2 ? { title: `Group 2 (${Math.min(10, allHashtags.slice(10).length)})`, tags: g2 } : null,
+    g3 ? { title: `Group 3 (${allHashtags.slice(20).length})`, tags: g3 } : null,
+  ].filter(Boolean);
+
+  document.getElementById('copyGroups').innerHTML = groups.map((g, i) => `
+    <div class="group-card" style="flex:1;min-width:200px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div class="group-title">${g.title}</div>
+        <button class="btn-sm" style="padding:3px 8px;font-size:.7rem" onclick="copyGroup(${i},this)">
+          <i class="bi bi-clipboard"></i>
+        </button>
+      </div>
+      <div class="group-tags" id="grp-${i}">${escHtml(g.tags)}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('resultsWrap').style.display = '';
+  updateSelCount();
+  showOk('st', `${allHashtags.length} hashtags generated`);
+}
+
+function toggleTag(el) {
+  el.classList.toggle('selected');
+  updateSelCount();
+}
+
+function updateSelCount() {
+  const n = document.querySelectorAll('.hashtag-pill.selected').length;
+  document.getElementById('selCount').textContent = n ? `${n} selected` : '0 selected';
+}
+
+function copySelected() {
+  const selected = [...document.querySelectorAll('.hashtag-pill.selected')].map(el => el.textContent);
+  if (!selected.length) { showErr('st','Select hashtags first'); return; }
+  navigator.clipboard.writeText(selected.join(' ')).then(() => showOk('st', `${selected.length} hashtags copied`));
+}
+
+function copyAll() {
+  if (!allHashtags.length) return;
+  navigator.clipboard.writeText(allHashtags.join(' ')).then(() => showOk('st', 'All hashtags copied'));
+}
+
+function copyGroup(idx, btn) {
+  const el = document.getElementById('grp-' + idx);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showErr(id, msg) { const el=document.getElementById(id); el.className='status err'; el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg; }
+function showOk(id, msg) { const el=document.getElementById(id); el.className='status ok'; el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg; }
+function hideStatus(id) { document.getElementById(id).className='status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generate(); }
+});
+}); // end waitForEngine
+</script>
+{% endblock %}

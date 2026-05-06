@@ -1,0 +1,167 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.progress-bar-wrap{height:10px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:5px;transition:width .3s}
+.category-header{font-size:.8rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.8px;padding:8px 0 4px;border-bottom:1px solid rgba(108,99,255,.2);margin-bottom:6px}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;cursor:pointer;transition:all .2s;margin-bottom:6px}
+.check-item:hover{background:rgba(255,255,255,.06)}
+.check-item.checked{background:rgba(0,245,212,.05);border-color:rgba(0,245,212,.2)}
+.check-item input[type=checkbox]{accent-color:var(--primary);width:18px;height:18px;flex-shrink:0;margin-top:2px;cursor:pointer}
+.check-item-content{flex:1}
+.check-item-title{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:2px}
+.check-item.checked .check-item-title{color:var(--accent)}
+.check-item-tip{font-size:.78rem;color:var(--muted);line-height:1.4}
+.score-display{text-align:center;padding:16px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px}
+.score-num{font-size:3rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent)}
+.score-label{font-size:.8rem;color:var(--muted)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="score-display">
+    <div class="score-num" id="score-pct">0%</div>
+    <div class="score-label">Academic Integrity Checklist Complete</div>
+    <div style="margin-top:10px">
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:4px"><span id="checked-count">0</span> of <span id="total-count">20</span> items checked</div>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-sm" onclick="checkAll()"><i class="bi bi-check2-all"></i> Check All</button>
+    <button class="btn-sm" onclick="uncheckAll()"><i class="bi bi-square"></i> Uncheck All</button>
+    <button class="btn-go" onclick="printChecklist()"><i class="bi bi-printer"></i> Print / Download</button>
+  </div>
+
+  <div id="checklist-container"></div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const CHECKLIST = [
+  {
+    category: 'Citations & References',
+    items: [
+      {id:'c1', title:'All sources are properly cited in-text', tip:'Every idea, quote, or data point from another source must have an in-text citation.'},
+      {id:'c2', title:'Reference list is complete and formatted correctly', tip:'All cited sources appear in the reference list using the required citation style (APA, MLA, Chicago, etc.).'},
+      {id:'c3', title:'URLs and online sources include access dates', tip:'Web sources should include the date you accessed them, as content can change.'},
+      {id:'c4', title:'All authors are credited appropriately', tip:'Do not omit co-authors or editors from citations.'},
+    ]
+  },
+  {
+    category: 'Paraphrasing',
+    items: [
+      {id:'p1', title:'Paraphrased content is in your own words', tip:'Simply changing a few words is not paraphrasing. Rewrite the idea completely in your own style.'},
+      {id:'p2', title:'Paraphrased sections still include citations', tip:'Even when you rewrite an idea, you must cite the original source.'},
+      {id:'p3', title:'The meaning of the original source is preserved', tip:'Paraphrasing should not distort or misrepresent the original author\'s intent.'},
+    ]
+  },
+  {
+    category: 'Direct Quotes',
+    items: [
+      {id:'q1', title:'All direct quotes are enclosed in quotation marks', tip:'Any text copied verbatim must be in quotation marks, no matter how short.'},
+      {id:'q2', title:'Long quotes are formatted as block quotes (if required)', tip:'Quotes over 40 words (APA) or 4 lines (MLA) are typically formatted as block quotes.'},
+      {id:'q3', title:'Page numbers are included for direct quotes', tip:'Most citation styles require page numbers for direct quotations.'},
+      {id:'q4', title:'Quotes are used sparingly and purposefully', tip:'Over-reliance on direct quotes can indicate a lack of original analysis.'},
+    ]
+  },
+  {
+    category: 'Self-Plagiarism',
+    items: [
+      {id:'s1', title:'Previously submitted work is not reused without permission', tip:'Submitting the same paper for multiple courses is self-plagiarism unless explicitly allowed.'},
+      {id:'s2', title:'Your own prior publications are cited if referenced', tip:'Even your own published work must be cited when referenced.'},
+      {id:'s3', title:'Instructor permission obtained for any reused content', tip:'If you want to build on previous work, get written permission from your instructor first.'},
+    ]
+  },
+  {
+    category: 'Collaboration & AI',
+    items: [
+      {id:'a1', title:'Collaboration boundaries are respected', tip:'Only collaborate with others to the extent permitted by the assignment guidelines.'},
+      {id:'a2', title:'AI-generated content is disclosed (if used)', tip:'If AI tools were used in writing, disclose this per your institution\'s policy.'},
+      {id:'a3', title:'All work submitted is your own original contribution', tip:'The ideas, analysis, and writing should be your own unless otherwise specified.'},
+      {id:'a4', title:'Data and statistics are accurately reported', tip:'Do not fabricate, falsify, or selectively report data.'},
+    ]
+  },
+  {
+    category: 'Final Review',
+    items: [
+      {id:'f1', title:'Plagiarism checker tool has been run on the document', tip:'Use tools like Turnitin, Grammarly, or Copyscape to check for unintentional plagiarism.'},
+      {id:'f2', title:'All images, figures, and tables are properly attributed', tip:'Visual content from other sources must be cited just like text.'},
+      {id:'f3', title:'The paper meets the originality requirements of the institution', tip:'Check your institution\'s specific originality threshold (e.g., less than 15% similarity).'},
+    ]
+  }
+];
+
+let checked = new Set();
+
+function renderChecklist() {
+  const container = document.getElementById('checklist-container');
+  let totalItems = 0;
+  container.innerHTML = CHECKLIST.map(cat => {
+    totalItems += cat.items.length;
+    return `<div>
+      <div class="category-header">${cat.category}</div>
+      ${cat.items.map(item => `
+        <div class="check-item ${checked.has(item.id)?'checked':''}" onclick="toggleItem('${item.id}',this)">
+          <input type="checkbox" ${checked.has(item.id)?'checked':''} onclick="event.stopPropagation();toggleItem('${item.id}',this.closest('.check-item'))">
+          <div class="check-item-content">
+            <div class="check-item-title">${item.title}</div>
+            <div class="check-item-tip"><i class="bi bi-lightbulb" style="color:var(--primary);margin-right:4px"></i>${item.tip}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  }).join('');
+  document.getElementById('total-count').textContent = totalItems;
+  updateScore(totalItems);
+}
+
+function toggleItem(id, el) {
+  if (checked.has(id)) checked.delete(id);
+  else checked.add(id);
+  const allItems = CHECKLIST.flatMap(c => c.items);
+  const totalItems = allItems.length;
+  renderChecklist();
+}
+
+function updateScore(total) {
+  const count = checked.size;
+  const pct = total > 0 ? Math.round((count/total)*100) : 0;
+  document.getElementById('score-pct').textContent = pct + '%';
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('checked-count').textContent = count;
+  const scoreEl = document.getElementById('score-pct');
+  if (pct === 100) scoreEl.style.color = 'var(--accent)';
+  else if (pct >= 70) scoreEl.style.color = '#FFC107';
+  else scoreEl.style.color = '#FF6B6B';
+}
+
+function checkAll() {
+  CHECKLIST.forEach(cat => cat.items.forEach(item => checked.add(item.id)));
+  renderChecklist();
+}
+
+function uncheckAll() {
+  checked.clear();
+  renderChecklist();
+}
+
+function printChecklist() {
+  window.print();
+}
+
+renderChecklist();
+</script>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap { display: grid; grid-template-columns: 1fr 1.3fr; gap: 2rem; }
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+textarea.num-input { resize: vertical; min-height: 80px; }
+.input-grp { margin-bottom: 1.2rem; }
+.char-bar-wrap { margin-top: 0.4rem; display: flex; align-items: center; gap: 0.6rem; }
+.char-bar { flex: 1; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.char-fill { height: 100%; border-radius: 3px; transition: width 0.2s, background 0.2s; }
+.char-label { font-size: 0.75rem; font-weight: 700; min-width: 50px; text-align: right; }
+.char-green { color: #00c864; }
+.char-yellow { color: #ffc800; }
+.char-red { color: var(--danger); }
+/* Mode toggle */
+.mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+.mode-tab { padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.mode-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+/* Desktop SERP */
+.serp-desktop { background: #fff; border-radius: 12px; padding: 1.5rem; font-family: arial, sans-serif; color: #202124; }
+.serp-breadcrumb { font-size: 14px; color: #202124; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.serp-favicon { width: 18px; height: 18px; border-radius: 50%; background: #e8eaed; display: inline-block; }
+.serp-title { font-size: 20px; color: #1a0dab; line-height: 1.3; margin-bottom: 4px; cursor: pointer; max-width: 600px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.serp-title:hover { text-decoration: underline; }
+.serp-desc { font-size: 14px; color: #4d5156; line-height: 1.58; max-width: 600px; }
+.serp-date { color: #70757a; }
+/* Mobile SERP */
+.serp-mobile { background: #fff; border-radius: 12px; padding: 1rem; font-family: arial, sans-serif; color: #202124; max-width: 360px; }
+.serp-mobile .serp-title { font-size: 18px; max-width: 320px; }
+.serp-mobile .serp-desc { font-size: 13px; max-width: 320px; }
+/* Pixel width indicator */
+.px-indicator { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; }
+@media (max-width: 768px) { .dev-tool-wrap { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="input-grp">
+      <span class="tool-label">Page Title</span>
+      <input type="text" id="in-title" class="num-input" placeholder="e.g. Best Running Shoes 2025 | Nike" value="Best Running Shoes 2025 | Nike">
+      <div class="char-bar-wrap">
+        <div class="char-bar"><div class="char-fill" id="title-fill"></div></div>
+        <span class="char-label char-green" id="title-count">0/60</span>
+      </div>
+      <div class="px-indicator" id="title-px">~0px (limit ~580px)</div>
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Page URL</span>
+      <input type="text" id="in-url" class="num-input" placeholder="https://example.com/page" value="https://nike.com/running/shoes">
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Meta Description</span>
+      <textarea id="in-desc" class="num-input" placeholder="Your meta description…">Shop the best running shoes of 2025. Expert picks, reviews, and deals on top brands. Free shipping on orders over $50.</textarea>
+      <div class="char-bar-wrap">
+        <div class="char-bar"><div class="char-fill" id="desc-fill"></div></div>
+        <span class="char-label char-green" id="desc-count">0/155</span>
+      </div>
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Date (optional)</span>
+      <input type="text" id="in-date" class="num-input" placeholder="e.g. May 4, 2025">
+    </div>
+  </div>
+  <div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-desktop" onclick="setMode('desktop')">🖥 Desktop</button>
+      <button class="mode-tab" id="tab-mobile" onclick="setMode('mobile')">📱 Mobile</button>
+    </div>
+    <div id="serp-preview-wrap">
+      <div class="serp-desktop" id="serp-desktop">
+        <div class="serp-breadcrumb">
+          <span class="serp-favicon"></span>
+          <span id="out-breadcrumb">nike.com › running › shoes</span>
+        </div>
+        <div class="serp-title" id="out-title">Best Running Shoes 2025 | Nike</div>
+        <div class="serp-desc"><span class="serp-date" id="out-date"></span><span id="out-desc">Shop the best running shoes of 2025. Expert picks, reviews, and deals on top brands. Free shipping on orders over $50.</span></div>
+      </div>
+      <div class="serp-mobile" id="serp-mobile" style="display:none;">
+        <div class="serp-breadcrumb">
+          <span class="serp-favicon"></span>
+          <span id="out-breadcrumb-m">nike.com › running › shoes</span>
+        </div>
+        <div class="serp-title" id="out-title-m">Best Running Shoes 2025 | Nike</div>
+        <div class="serp-desc"><span class="serp-date" id="out-date-m"></span><span id="out-desc-m">Shop the best running shoes of 2025. Expert picks, reviews, and deals on top brands.</span></div>
+      </div>
+    </div>
+    <div style="margin-top:1.2rem;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:1rem;">
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem;">Compliance Summary</div>
+      <div id="compliance-summary"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let mode = 'desktop';
+  window.setMode = function(m) {
+    mode = m;
+    document.getElementById('serp-desktop').style.display = m === 'desktop' ? 'block' : 'none';
+    document.getElementById('serp-mobile').style.display = m === 'mobile' ? 'block' : 'none';
+    document.getElementById('tab-desktop').classList.toggle('active', m === 'desktop');
+    document.getElementById('tab-mobile').classList.toggle('active', m === 'mobile');
+  };
+
+  function approxPx(text, fontSize) {
+    // Approximate: Arial ~0.55 * fontSize per char average
+    return Math.round(text.length * fontSize * 0.55);
+  }
+
+  function charClass(n, green, yellow) {
+    if (n <= green) return { cls: 'char-green', color: '#00c864' };
+    if (n <= yellow) return { cls: 'char-yellow', color: '#ffc800' };
+    return { cls: 'char-red', color: 'var(--danger)' };
+  }
+
+  function buildBreadcrumb(url) {
+    try {
+      const u = new URL(url);
+      const parts = [u.hostname, ...u.pathname.split('/').filter(Boolean)];
+      return parts.join(' › ');
+    } catch { return url; }
+  }
+
+  function update() {
+    const title = document.getElementById('in-title').value;
+    const url = document.getElementById('in-url').value;
+    const desc = document.getElementById('in-desc').value;
+    const date = document.getElementById('in-date').value;
+
+    // Title
+    const tLen = title.length;
+    const tPx = approxPx(title, 20);
+    const tInfo = charClass(tLen, 60, 70);
+    document.getElementById('title-fill').style.width = Math.min(tLen / 70 * 100, 100) + '%';
+    document.getElementById('title-fill').style.background = tInfo.color;
+    document.getElementById('title-count').textContent = tLen + '/60';
+    document.getElementById('title-count').className = 'char-label ' + tInfo.cls;
+    document.getElementById('title-px').textContent = `~${tPx}px (limit ~580px)`;
+
+    // Desc
+    const dLen = desc.length;
+    const dInfo = charClass(dLen, 155, 160);
+    document.getElementById('desc-fill').style.width = Math.min(dLen / 165 * 100, 100) + '%';
+    document.getElementById('desc-fill').style.background = dInfo.color;
+    document.getElementById('desc-count').textContent = dLen + '/155';
+    document.getElementById('desc-count').className = 'char-label ' + dInfo.cls;
+
+    // Truncate for display
+    const titleDisp = tLen > 60 ? title.substring(0, 57) + '...' : title;
+    const descDisp = dLen > 155 ? desc.substring(0, 152) + '...' : desc;
+    const descMobile = dLen > 120 ? desc.substring(0, 117) + '...' : desc;
+    const breadcrumb = buildBreadcrumb(url || 'https://example.com');
+    const dateStr = date ? date + ' — ' : '';
+
+    ['out-title','out-title-m'].forEach(id => document.getElementById(id).textContent = titleDisp || 'Page Title');
+    ['out-breadcrumb','out-breadcrumb-m'].forEach(id => document.getElementById(id).textContent = breadcrumb);
+    document.getElementById('out-desc').textContent = descDisp || 'Meta description will appear here.';
+    document.getElementById('out-desc-m').textContent = descMobile || 'Meta description will appear here.';
+    ['out-date','out-date-m'].forEach(id => document.getElementById(id).textContent = dateStr);
+
+    // Compliance
+    const items = [
+      { label: 'Title length', ok: tLen > 0 && tLen <= 60, warn: tLen > 60 && tLen <= 70, msg: tLen === 0 ? 'Missing title' : tLen <= 60 ? `✓ ${tLen} chars` : tLen <= 70 ? `⚠ ${tLen} chars (slightly long)` : `✗ ${tLen} chars (too long)` },
+      { label: 'Title pixel width', ok: tPx <= 580, warn: false, msg: tPx <= 580 ? `✓ ~${tPx}px` : `✗ ~${tPx}px (may truncate)` },
+      { label: 'Description length', ok: dLen > 0 && dLen <= 155, warn: dLen > 155 && dLen <= 160, msg: dLen === 0 ? 'Missing description' : dLen <= 155 ? `✓ ${dLen} chars` : dLen <= 160 ? `⚠ ${dLen} chars (slightly long)` : `✗ ${dLen} chars (too long)` },
+      { label: 'URL present', ok: url.length > 0, warn: false, msg: url ? '✓ URL provided' : '✗ No URL' },
+    ];
+    document.getElementById('compliance-summary').innerHTML = items.map(item => `
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;padding:0.25rem 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+        <span style="color:var(--muted);">${item.label}</span>
+        <span style="color:${item.ok?'#00c864':item.warn?'#ffc800':'var(--danger)'};">${item.msg}</span>
+      </div>`).join('');
+  }
+
+  ['in-title','in-url','in-desc','in-date'].forEach(id => document.getElementById(id).addEventListener('input', update));
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') update(); });
+  update();
+});
+</script>
+{% endblock %}

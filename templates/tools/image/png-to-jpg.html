@@ -1,0 +1,98 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 3rem 2rem; text-align: center; cursor: pointer; transition: all 0.3s; background: rgba(255,255,255,0.02); margin-bottom: 1.5rem; }
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+.settings-panel { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem; display: none; }
+.slider-wrap label { display: flex; justify-content: space-between; margin-bottom: 0.4rem; color: var(--text); font-size: 0.9rem; }
+.quality-slider { width: 100%; accent-color: var(--primary); }
+.preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; display: none; }
+.preview-box { border: 1px solid var(--border); border-radius: 12px; padding: 1rem; background: rgba(0,0,0,0.4); text-align: center; }
+.preview-box img { max-width: 100%; max-height: 280px; border-radius: 8px; margin-bottom: 0.8rem; object-fit: contain; }
+.btn-dl { display: block; width: 100%; padding: 0.7rem; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; text-decoration: none; border-radius: 8px; font-weight: 700; transition: transform 0.2s; border: none; cursor: pointer; }
+.btn-dl:hover { transform: translateY(-2px); color: #000; }
+@media (max-width: 768px) { .preview-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="upload-zone" id="drop-zone">
+  <div style="font-size:3rem;margin-bottom:0.8rem;">🖼️</div>
+  <h3 style="margin-bottom:0.5rem;">Upload PNG Image</h3>
+  <p style="color:var(--muted);font-size:0.9rem;">Convert to JPG · 100% local</p>
+  <input type="file" id="file-input" accept="image/png" style="display:none;">
+</div>
+<div class="settings-panel" id="settings">
+  <div class="slider-wrap">
+    <label><span>Quality</span><span id="q-val" style="color:var(--primary);font-weight:700;">90%</span></label>
+    <input type="range" id="q-slider" class="quality-slider" min="1" max="100" value="90">
+  </div>
+</div>
+<div class="preview-grid" id="preview-area">
+  <div class="preview-box">
+    <h4 style="margin-bottom:0.8rem;color:var(--muted);">Original PNG</h4>
+    <img id="img-orig" src="" alt="Original">
+    <div style="font-size:0.85rem;color:var(--muted);">Size: <strong id="size-orig" style="color:var(--text);">—</strong></div>
+  </div>
+  <div class="preview-box" style="border-color:var(--accent);">
+    <h4 style="margin-bottom:0.8rem;color:var(--accent);">Converted JPG</h4>
+    <img id="img-conv" src="" alt="Converted">
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.8rem;">Size: <strong id="size-conv" style="color:var(--text);">—</strong></div>
+    <a id="btn-download" class="btn-dl" download="converted.jpg"><i class="bi bi-download"></i> Download JPG</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  let origImg = new Image(), origFile = null;
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+  document.getElementById('q-slider').addEventListener('input', () => { document.getElementById('q-val').textContent = document.getElementById('q-slider').value + '%'; if (origFile) convert(); });
+
+  function fmtBytes(b) { return b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(2) + ' MB'; }
+
+  function handleFile(file) {
+    if (!file.type.match(/image\/png/)) { alert('Please upload a PNG file.'); return; }
+    origFile = file;
+    document.getElementById('size-orig').textContent = fmtBytes(file.size);
+    const reader = new FileReader();
+    reader.onload = e => {
+      origImg.src = e.target.result;
+      document.getElementById('img-orig').src = e.target.result;
+      origImg.onload = () => {
+        document.getElementById('settings').style.display = 'block';
+        document.getElementById('preview-area').style.display = 'grid';
+        convert();
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function convert() {
+    const canvas = document.createElement('canvas');
+    canvas.width = origImg.width;
+    canvas.height = origImg.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(origImg, 0, 0);
+    const quality = parseInt(document.getElementById('q-slider').value) / 100;
+    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+    document.getElementById('img-conv').src = dataUrl;
+    const convSize = Math.round((dataUrl.length - 'data:image/jpeg;base64,'.length) * 3 / 4);
+    document.getElementById('size-conv').textContent = fmtBytes(convSize);
+    const btn = document.getElementById('btn-download');
+    btn.href = dataUrl;
+    btn.download = (origFile.name.replace(/\.[^/.]+$/, '') || 'image') + '.jpg';
+  }
+});
+</script>
+{% endblock %}

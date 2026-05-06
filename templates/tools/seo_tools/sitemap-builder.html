@@ -1,0 +1,158 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input, .select-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.6rem 0.8rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; transition: border-color 0.2s; }
+.num-input:focus, .select-input:focus { border-color: var(--primary); }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.url-row { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; margin-bottom: 0.6rem; display: grid; grid-template-columns: 2fr 1fr 1fr 0.7fr auto; gap: 0.5rem; align-items: center; }
+.url-row:hover { border-color: rgba(108,99,255,0.3); }
+.output-area { background: #0A0A0F; border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; position: relative; margin-top: 1.5rem; }
+.output-code { font-family: 'JetBrains Mono', monospace; color: var(--accent); white-space: pre-wrap; word-break: break-all; font-size: 0.78rem; max-height: 400px; overflow-y: auto; }
+.btn-remove { background: rgba(255,107,107,0.1); color: var(--danger); border: 1px solid rgba(255,107,107,0.3); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+.warning-banner { background: rgba(255,200,0,0.1); border: 1px solid rgba(255,200,0,0.3); border-radius: 8px; padding: 0.8rem 1rem; color: #ffc800; font-size: 0.85rem; margin-bottom: 1rem; display: none; }
+.col-header { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+@media (max-width: 900px) { .url-row { grid-template-columns: 1fr 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem;">
+  <span class="tool-label" style="margin:0;">URLs <span id="url-count" style="color:var(--primary);">(1)</span></span>
+  <div style="display:flex;gap:0.5rem;">
+    <button class="btn-sm" id="btn-add"><i class="bi bi-plus-lg"></i> Add URL</button>
+    <button class="btn-sm" id="btn-add-bulk">Bulk Add</button>
+  </div>
+</div>
+
+<div class="warning-banner" id="warning-banner">⚠ Sitemaps should not exceed 50,000 URLs or 50MB. Consider splitting into multiple sitemaps.</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr 1fr 0.7fr auto;gap:0.5rem;padding:0 0.8rem;margin-bottom:0.3rem;">
+  <span class="col-header">URL (loc)</span>
+  <span class="col-header">Last Modified</span>
+  <span class="col-header">Change Freq</span>
+  <span class="col-header">Priority</span>
+  <span></span>
+</div>
+
+<div id="url-list"></div>
+
+<div id="bulk-area" style="display:none;margin-bottom:1rem;">
+  <span class="tool-label">Bulk Add URLs (one per line)</span>
+  <textarea id="bulk-input" class="num-input" rows="5" placeholder="https://example.com/page1&#10;https://example.com/page2&#10;https://example.com/page3" style="resize:vertical;min-height:100px;"></textarea>
+  <button class="btn-sm" id="btn-bulk-add" style="margin-top:0.5rem;">Add All</button>
+</div>
+
+<div style="display:flex;gap:0.8rem;margin-top:1rem;flex-wrap:wrap;">
+  <button class="btn-go" id="btn-generate">⚡ Generate Sitemap XML</button>
+</div>
+
+<div class="output-area" id="output-area" style="display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+    <span class="tool-label" style="margin:0;">sitemap.xml</span>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn-sm" id="btn-copy"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn-sm" id="btn-download"><i class="bi bi-download"></i> Download sitemap.xml</button>
+    </div>
+  </div>
+  <div class="output-code" id="output-code"></div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  let urls = [{ loc: 'https://example.com', lastmod: today, changefreq: 'weekly', priority: '0.8' }];
+
+  const freqs = ['always','hourly','daily','weekly','monthly','yearly','never'];
+
+  function render() {
+    const count = urls.length;
+    document.getElementById('url-count').textContent = `(${count})`;
+    document.getElementById('warning-banner').style.display = count >= 50000 ? 'block' : 'none';
+
+    document.getElementById('url-list').innerHTML = urls.map((u, i) => `
+      <div class="url-row">
+        <input type="url" class="num-input u-loc" data-i="${i}" value="${u.loc.replace(/"/g,'&quot;')}" placeholder="https://example.com/page">
+        <input type="date" class="num-input u-lastmod" data-i="${i}" value="${u.lastmod}">
+        <select class="select-input u-freq" data-i="${i}">
+          ${freqs.map(f => `<option value="${f}" ${u.changefreq===f?'selected':''}>${f}</option>`).join('')}
+        </select>
+        <input type="number" class="num-input u-priority" data-i="${i}" value="${u.priority}" min="0" max="1" step="0.1">
+        ${urls.length > 1 ? `<button class="btn-remove" onclick="removeUrl(${i})"><i class="bi bi-trash"></i></button>` : '<div style="width:28px;"></div>'}
+      </div>`).join('');
+
+    document.querySelectorAll('.u-loc').forEach(el => el.addEventListener('input', e => { urls[e.target.dataset.i].loc = e.target.value; }));
+    document.querySelectorAll('.u-lastmod').forEach(el => el.addEventListener('input', e => { urls[e.target.dataset.i].lastmod = e.target.value; }));
+    document.querySelectorAll('.u-freq').forEach(el => el.addEventListener('change', e => { urls[e.target.dataset.i].changefreq = e.target.value; }));
+    document.querySelectorAll('.u-priority').forEach(el => el.addEventListener('input', e => { urls[e.target.dataset.i].priority = e.target.value; }));
+  }
+
+  window.removeUrl = (i) => { urls.splice(i, 1); render(); };
+
+  document.getElementById('btn-add').addEventListener('click', () => {
+    urls.push({ loc: '', lastmod: today, changefreq: 'weekly', priority: '0.5' });
+    render();
+  });
+
+  document.getElementById('btn-add-bulk').addEventListener('click', () => {
+    const area = document.getElementById('bulk-area');
+    area.style.display = area.style.display === 'none' ? 'block' : 'none';
+  });
+
+  document.getElementById('btn-bulk-add').addEventListener('click', () => {
+    const lines = document.getElementById('bulk-input').value.split('\n').map(l => l.trim()).filter(Boolean);
+    lines.forEach(loc => urls.push({ loc, lastmod: today, changefreq: 'weekly', priority: '0.5' }));
+    document.getElementById('bulk-input').value = '';
+    document.getElementById('bulk-area').style.display = 'none';
+    render();
+  });
+
+  function buildXML() {
+    const valid = urls.filter(u => u.loc.trim());
+    const entries = valid.map(u => `  <url>
+    <loc>${u.loc.trim()}</loc>
+    ${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${parseFloat(u.priority).toFixed(1)}</priority>
+  </url>`).join('\n');
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${entries}
+</urlset>`;
+  }
+
+  document.getElementById('btn-generate').addEventListener('click', () => {
+    const valid = urls.filter(u => u.loc.trim());
+    if (!valid.length) { alert('Please add at least one URL.'); return; }
+    const xml = buildXML();
+    document.getElementById('output-code').textContent = xml;
+    document.getElementById('output-area').style.display = 'block';
+    document.getElementById('output-area').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(document.getElementById('output-code').textContent);
+    const btn = document.getElementById('btn-copy');
+    btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 1500);
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const blob = new Blob([document.getElementById('output-code').textContent], { type: 'application/xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'sitemap.xml';
+    a.click();
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') document.getElementById('btn-generate').click(); });
+  render();
+});
+</script>
+{% endblock %}

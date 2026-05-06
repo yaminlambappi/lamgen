@@ -1,0 +1,263 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:768px){.tool-row{grid-template-columns:1fr}}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:200px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.25rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.meta-item{display:flex;align-items:center;gap:5px}
+.mode-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div>
+    <div class="tool-label">Input XML</div>
+    <textarea class="tool-code" id="xmlIn" placeholder='<root><item id="1"><name>Alice</name></item></root>'></textarea>
+    <div class="chips">
+      <span class="chip" onclick="loadEx('simple')">Simple</span>
+      <span class="chip" onclick="loadEx('attrs')">With Attributes</span>
+      <span class="chip" onclick="loadEx('rss')">RSS-like</span>
+      <span class="chip" onclick="loadEx('minified')">Minified</span>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="formatXML()"><i class="bi bi-file-code"></i> Format</button>
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-indent="2" onclick="setIndent(this,2)">2 Spaces</button>
+      <button class="mode-tab" data-indent="4" onclick="setIndent(this,4)">4 Spaces</button>
+      <button class="mode-tab" data-indent="tab" onclick="setIndent(this,'tab')">Tabs</button>
+    </div>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Output</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" id="btnCopy" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <textarea class="tool-code out" id="xmlOut" readonly placeholder="Formatted XML will appear here..."></textarea>
+    <div class="meta-row" id="stats" style="margin-top:.5rem"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let indentSize = 2;
+
+const EXAMPLES = {
+  simple: '<root><person><name>Alice</name><age>30</age><email>alice@example.com</email></person><person><name>Bob</name><age>25</age><email>bob@example.com</email></person></root>',
+  attrs: '<catalog><book id="1" lang="en"><title>Clean Code</title><author>Robert Martin</author><price currency="USD">39.99</price></book><book id="2" lang="en"><title>The Pragmatic Programmer</title><author>David Thomas</author><price currency="USD">49.99</price></book></catalog>',
+  rss: '<rss version="2.0"><channel><title>Tech News</title><link>https://example.com</link><description>Latest tech news</description><item><title>New Framework Released</title><pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate><description>A new JavaScript framework has been released.</description></item></channel></rss>',
+  minified: '<?xml version="1.0" encoding="UTF-8"?><config><database><host>localhost</host><port>5432</port><name>mydb</name></database><cache><ttl>3600</ttl><maxSize>1000</maxSize></cache></config>'
+};
+
+function loadEx(key) {
+  document.getElementById('xmlIn').value = EXAMPLES[key];
+  formatXML();
+}
+
+function setIndent(btn, size) {
+  indentSize = size;
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (document.getElementById('xmlOut').value) formatXML();
+}
+
+function getIndentStr() {
+  if (indentSize === 'tab') return '\t';
+  return ' '.repeat(indentSize);
+}
+
+function serializeNode(node, depth, indentStr) {
+  const indent = indentStr.repeat(depth);
+  const childIndent = indentStr.repeat(depth + 1);
+
+  if (node.nodeType === Node.TEXT_NODE) {
+    const text = node.textContent.trim();
+    return text ? indent + text : '';
+  }
+  if (node.nodeType === Node.COMMENT_NODE) {
+    return indent + '<!--' + node.textContent + '-->';
+  }
+  if (node.nodeType === Node.CDATA_SECTION_NODE) {
+    return indent + '<![CDATA[' + node.textContent + ']]>';
+  }
+  if (node.nodeType === Node.PROCESSING_INSTRUCTION_NODE) {
+    return indent + '<?' + node.target + ' ' + node.data + '?>';
+  }
+  if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+  const tag = node.tagName;
+  let attrs = '';
+  for (let i = 0; i < node.attributes.length; i++) {
+    const a = node.attributes[i];
+    attrs += ` ${a.name}="${a.value.replace(/"/g,'&quot;')}"`;
+  }
+
+  const children = Array.from(node.childNodes);
+  const nonEmpty = children.filter(c => {
+    if (c.nodeType === Node.TEXT_NODE) return c.textContent.trim() !== '';
+    return true;
+  });
+
+  if (nonEmpty.length === 0) return indent + `<${tag}${attrs}/>`;
+
+  // Single text child — inline
+  if (nonEmpty.length === 1 && nonEmpty[0].nodeType === Node.TEXT_NODE) {
+    return indent + `<${tag}${attrs}>${nonEmpty[0].textContent.trim()}</${tag}>`;
+  }
+
+  const lines = nonEmpty.map(c => serializeNode(c, depth + 1, indentStr)).filter(Boolean);
+  return indent + `<${tag}${attrs}>\n${lines.join('\n')}\n${indent}</${tag}>`;
+}
+
+function countElements(node) {
+  if (node.nodeType !== Node.ELEMENT_NODE) return 0;
+  let count = 1;
+  for (const c of node.childNodes) count += countElements(c);
+  return count;
+}
+
+function countAttrs(node) {
+  if (node.nodeType !== Node.ELEMENT_NODE) return 0;
+  let count = node.attributes.length;
+  for (const c of node.childNodes) count += countAttrs(c);
+  return count;
+}
+
+function getDepth(node, d=0) {
+  if (node.nodeType !== Node.ELEMENT_NODE) return d;
+  let max = d;
+  for (const c of node.childNodes) max = Math.max(max, getDepth(c, d+1));
+  return max;
+}
+
+function formatXML() {
+  const raw = document.getElementById('xmlIn').value.trim();
+  if (!raw) { showErr('st','No input provided'); return; }
+  hideStatus('st');
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(raw, 'application/xml');
+  const parseErr = doc.querySelector('parsererror');
+  if (parseErr) {
+    const msg = parseErr.textContent.split('\n')[0].trim().substring(0,120);
+    showErr('st', msg);
+    document.getElementById('xmlOut').value = '';
+    document.getElementById('stats').innerHTML = '';
+    return;
+  }
+
+  const indentStr = getIndentStr();
+  const lines = [];
+
+  // XML declaration
+  if (raw.startsWith('<?xml')) {
+    lines.push('<?xml version="1.0" encoding="UTF-8"?>');
+  }
+
+  for (const child of doc.childNodes) {
+    if (child.nodeType === Node.PROCESSING_INSTRUCTION_NODE && child.target === 'xml') continue;
+    const s = serializeNode(child, 0, indentStr);
+    if (s) lines.push(s);
+  }
+
+  const out = lines.join('\n');
+  document.getElementById('xmlOut').value = out;
+
+  const root = doc.documentElement;
+  const elems = countElements(root);
+  const attrs = countAttrs(root);
+  const depth = getDepth(root);
+  const bytes = new TextEncoder().encode(out).length;
+
+  document.getElementById('stats').innerHTML = `
+    <span class="meta-item"><i class="bi bi-code-square"></i> ${elems} elements</span>
+    <span class="meta-item"><i class="bi bi-tag"></i> ${attrs} attributes</span>
+    <span class="meta-item"><i class="bi bi-layers"></i> Depth: ${depth}</span>
+    <span class="meta-item"><i class="bi bi-file-earmark"></i> ${bytes} bytes</span>
+  `;
+  showOk('st', 'Valid XML');
+}
+
+function copyOut() {
+  const v = document.getElementById('xmlOut').value;
+  if (!v) return;
+  copyText(v, document.querySelector('[onclick="copyOut()"]'));
+}
+
+function downloadOut() {
+  const v = document.getElementById('xmlOut').value;
+  if (!v) return;
+  downloadText(v, 'formatted.xml', 'application/xml');
+}
+
+function clearAll() {
+  document.getElementById('xmlIn').value = '';
+  document.getElementById('xmlOut').value = '';
+  document.getElementById('stats').innerHTML = '';
+  hideStatus('st');
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); formatXML(); }
+});
+</script>
+{% endblock %}

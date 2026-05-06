@@ -1,0 +1,290 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:768px){.tool-row{grid-template-columns:1fr}}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.warn{display:flex;background:rgba(255,193,7,.08);color:#FFC107;border:1px solid rgba(255,193,7,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.mode-tabs{display:flex;gap:4px}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.diff-output{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.6;max-height:500px;overflow-y:auto}
+.diff-line{display:flex;min-height:24px}
+.diff-line-num{min-width:40px;padding:2px 8px;text-align:right;color:rgba(255,255,255,.2);font-size:.72rem;user-select:none;border-right:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.diff-line-content{padding:2px 12px;flex:1;white-space:pre-wrap;word-break:break-all}
+.diff-add{background:rgba(0,200,100,.08)}
+.diff-add .diff-line-num{background:rgba(0,200,100,.05);color:rgba(0,200,100,.5)}
+.diff-add .diff-line-content{color:#4ade80}
+.diff-add .diff-line-content::before{content:'+';margin-right:6px;opacity:.7}
+.diff-del{background:rgba(255,107,107,.08)}
+.diff-del .diff-line-num{background:rgba(255,107,107,.05);color:rgba(255,107,107,.5)}
+.diff-del .diff-line-content{color:#f87171}
+.diff-del .diff-line-content::before{content:'-';margin-right:6px;opacity:.7}
+.diff-eq .diff-line-content::before{content:' ';margin-right:6px}
+.diff-eq .diff-line-content{color:var(--muted)}
+.diff-side{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.diff-side-col{overflow:hidden}
+.diff-side-col:first-child{border-right:1px solid rgba(255,255,255,.06)}
+.diff-side-head{padding:8px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.stat-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700}
+.stat-add{background:rgba(0,200,100,.1);color:#4ade80;border:1px solid rgba(0,200,100,.2)}
+.stat-del{background:rgba(255,107,107,.1);color:#f87171;border:1px solid rgba(255,107,107,.2)}
+.stat-eq{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid rgba(255,255,255,.1)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div class="tool-row">
+    <div>
+      <div class="tool-label">Original (A)</div>
+      <textarea class="tool-code" id="textA" placeholder="Paste original text here..."></textarea>
+    </div>
+    <div>
+      <div class="tool-label">Modified (B)</div>
+      <textarea class="tool-code" id="textB" placeholder="Paste modified text here..."></textarea>
+    </div>
+  </div>
+
+  <div class="chips">
+    <span class="chip" onclick="loadEx('code')">Code diff</span>
+    <span class="chip" onclick="loadEx('text')">Text diff</span>
+    <span class="chip" onclick="loadEx('json')">JSON diff</span>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="runDiff()"><i class="bi bi-file-diff"></i> Compare</button>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setView(this,'unified')">Unified</button>
+      <button class="mode-tab" onclick="setView(this,'side')">Side by Side</button>
+    </div>
+    <button class="btn-sm" id="btnCopy" onclick="copyDiff()"><i class="bi bi-clipboard"></i> Copy Diff</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="statsRow" style="display:none;gap:8px" class="act-row">
+    <span class="stat-badge stat-add" id="statAdd"></span>
+    <span class="stat-badge stat-del" id="statDel"></span>
+    <span class="stat-badge stat-eq" id="statEq"></span>
+  </div>
+
+  <div id="diffOut" style="display:none">
+    <div class="tool-label">Diff Result</div>
+    <div class="diff-output" id="diffContent"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let viewMode = 'unified';
+let lastDiff = null;
+
+const EXAMPLES = {
+  code: {
+    a: `function greet(name) {\n  console.log("Hello, " + name);\n  return true;\n}\n\nconst user = "Alice";\ngreet(user);`,
+    b: `function greet(name, greeting = "Hello") {\n  console.log(\`\${greeting}, \${name}!\`);\n  console.log("Greeted at: " + new Date().toISOString());\n  return true;\n}\n\nconst user = "Bob";\ngreet(user, "Hi");`
+  },
+  text: {
+    a: `The quick brown fox jumps over the lazy dog.\nThis is the second line of text.\nAnd here is the third line.\nFourth line stays the same.`,
+    b: `The quick brown fox leaps over the lazy cat.\nThis is the second line of text.\nHere is a completely new third line.\nFourth line stays the same.\nA new fifth line was added.`
+  },
+  json: {
+    a: `{\n  "name": "Alice",\n  "age": 30,\n  "role": "user",\n  "active": true\n}`,
+    b: `{\n  "name": "Alice",\n  "age": 31,\n  "role": "admin",\n  "active": true,\n  "email": "alice@example.com"\n}`
+  }
+};
+
+function loadEx(k) {
+  document.getElementById('textA').value = EXAMPLES[k].a;
+  document.getElementById('textB').value = EXAMPLES[k].b;
+  runDiff();
+}
+
+function setView(btn, mode) {
+  viewMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (lastDiff) renderDiff(lastDiff);
+}
+
+// Myers diff algorithm
+function myersDiff(a, b) {
+  const n = a.length, m = b.length;
+  const max = n + m;
+  const v = new Array(2 * max + 1).fill(0);
+  const trace = [];
+
+  for (let d = 0; d <= max; d++) {
+    trace.push([...v]);
+    for (let k = -d; k <= d; k += 2) {
+      let x;
+      if (k === -d || (k !== d && v[k - 1 + max] < v[k + 1 + max])) {
+        x = v[k + 1 + max];
+      } else {
+        x = v[k - 1 + max] + 1;
+      }
+      let y = x - k;
+      while (x < n && y < m && a[x] === b[y]) { x++; y++; }
+      v[k + max] = x;
+      if (x >= n && y >= m) {
+        return backtrack(trace, a, b, max);
+      }
+    }
+  }
+  return backtrack(trace, a, b, max);
+}
+
+function backtrack(trace, a, b, max) {
+  const ops = [];
+  let x = a.length, y = b.length;
+  for (let d = trace.length - 1; d >= 0; d--) {
+    const v = trace[d];
+    const k = x - y;
+    let prevK;
+    if (k === -d || (k !== d && v[k - 1 + max] < v[k + 1 + max])) {
+      prevK = k + 1;
+    } else {
+      prevK = k - 1;
+    }
+    const prevX = v[prevK + max];
+    const prevY = prevX - prevK;
+    while (x > prevX && y > prevY) { ops.unshift({type:'eq', a:a[x-1], b:b[y-1]}); x--; y--; }
+    if (d > 0) {
+      if (x === prevX) { ops.unshift({type:'ins', b:b[y-1]}); y--; }
+      else { ops.unshift({type:'del', a:a[x-1]}); x--; }
+    }
+  }
+  return ops;
+}
+
+function runDiff() {
+  const a = document.getElementById('textA').value;
+  const b = document.getElementById('textB').value;
+  if (!a && !b) { showWarn('st','Both inputs are empty'); return; }
+  hideStatus('st');
+
+  const linesA = a.split('\n');
+  const linesB = b.split('\n');
+  const ops = myersDiff(linesA, linesB);
+  lastDiff = ops;
+
+  let added = 0, deleted = 0, equal = 0;
+  ops.forEach(op => {
+    if (op.type === 'ins') added++;
+    else if (op.type === 'del') deleted++;
+    else equal++;
+  });
+
+  document.getElementById('statAdd').innerHTML = `<i class="bi bi-plus-circle-fill"></i> +${added} added`;
+  document.getElementById('statDel').innerHTML = `<i class="bi bi-dash-circle-fill"></i> -${deleted} removed`;
+  document.getElementById('statEq').innerHTML = `<i class="bi bi-circle-fill"></i> ${equal} unchanged`;
+  document.getElementById('statsRow').style.display = 'flex';
+
+  renderDiff(ops);
+  document.getElementById('diffOut').style.display = '';
+
+  if (added === 0 && deleted === 0) {
+    showWarn('st', 'Files are identical');
+  } else {
+    showOk('st', `${added + deleted} change${added + deleted !== 1 ? 's' : ''} found`);
+  }
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderDiff(ops) {
+  const container = document.getElementById('diffContent');
+  if (viewMode === 'unified') {
+    let lineNum = 1;
+    container.className = 'diff-output';
+    container.innerHTML = ops.map(op => {
+      const cls = op.type === 'ins' ? 'diff-add' : op.type === 'del' ? 'diff-del' : 'diff-eq';
+      const text = op.type === 'ins' ? op.b : op.a;
+      const num = op.type !== 'ins' ? lineNum++ : '';
+      if (op.type === 'eq') lineNum;
+      return `<div class="diff-line ${cls}"><span class="diff-line-num">${num || ''}</span><span class="diff-line-content">${escHtml(text)}</span></div>`;
+    }).join('');
+  } else {
+    // Side by side
+    const leftLines = [], rightLines = [];
+    ops.forEach(op => {
+      if (op.type === 'eq') { leftLines.push({type:'eq',text:op.a}); rightLines.push({type:'eq',text:op.b}); }
+      else if (op.type === 'del') { leftLines.push({type:'del',text:op.a}); rightLines.push({type:'empty',text:''}); }
+      else { leftLines.push({type:'empty',text:''}); rightLines.push({type:'ins',text:op.b}); }
+    });
+    const makeCol = (lines, label) => {
+      const rows = lines.map((l, i) => {
+        const cls = l.type === 'ins' ? 'diff-add' : l.type === 'del' ? 'diff-del' : l.type === 'empty' ? 'diff-del' : 'diff-eq';
+        const prefix = l.type === 'ins' ? '+' : l.type === 'del' ? '-' : ' ';
+        return `<div class="diff-line ${cls}"><span class="diff-line-num">${i+1}</span><span class="diff-line-content" style="white-space:pre">${escHtml(l.text)}</span></div>`;
+      }).join('');
+      return `<div class="diff-side-col"><div class="diff-side-head">${label}</div>${rows}</div>`;
+    };
+    container.className = 'diff-output diff-side';
+    container.innerHTML = makeCol(leftLines, 'Original (A)') + makeCol(rightLines, 'Modified (B)');
+  }
+}
+
+function copyDiff() {
+  if (!lastDiff) return;
+  const text = lastDiff.map(op => {
+    const prefix = op.type === 'ins' ? '+ ' : op.type === 'del' ? '- ' : '  ';
+    return prefix + (op.type === 'ins' ? op.b : op.a);
+  }).join('\n');
+  const btn = document.getElementById('btnCopy');
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function clearAll() {
+  document.getElementById('textA').value = '';
+  document.getElementById('textB').value = '';
+  document.getElementById('diffOut').style.display = 'none';
+  document.getElementById('statsRow').style.display = 'none';
+  lastDiff = null;
+  hideStatus('st');
+}
+
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function showWarn(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status warn';
+  el.innerHTML = '<i class="bi bi-exclamation-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runDiff(); }
+});
+</script>
+{% endblock %}

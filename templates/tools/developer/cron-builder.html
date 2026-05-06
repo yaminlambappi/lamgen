@@ -1,0 +1,418 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.cron-display{display:flex;align-items:center;gap:8px;padding:16px 20px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:14px;font-family:'JetBrains Mono',monospace;font-size:1.4rem;letter-spacing:2px;flex-wrap:wrap}
+.cron-part{padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .2s;border:2px solid transparent}
+.cron-part:hover{background:rgba(255,255,255,.05)}
+.cron-part.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.cron-sep{color:rgba(255,255,255,.2);user-select:none}
+.field-editor{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;display:none}
+.field-editor.show{display:block}
+.field-title{font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:12px}
+.field-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+.field-tab{padding:5px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.78rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.field-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.field-content{display:none}
+.field-content.show{display:block}
+.value-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto}
+.val-btn{padding:5px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:.78rem;cursor:pointer;color:var(--muted);transition:all .15s;font-family:'JetBrains Mono',monospace}
+.val-btn:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.val-btn.sel{background:rgba(108,99,255,.2);border-color:var(--primary);color:var(--primary)}
+.range-row,.step-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mini-input{width:70px;padding:6px 10px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;outline:none;text-align:center}
+.mini-input:focus{border-color:var(--primary)}
+.human-desc{padding:14px 18px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:12px;font-size:.95rem;color:var(--text);line-height:1.5}
+.next-times{display:flex;flex-direction:column;gap:4px}
+.next-time{display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(0,0,0,.2);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:.8rem}
+.next-time-num{color:var(--muted);min-width:20px}
+.next-time-val{color:var(--text)}
+.next-time-rel{color:var(--muted);font-size:.72rem;margin-left:auto}
+.cron-input-wrap{display:flex;align-items:center;gap:8px}
+.cron-raw-input{flex:1;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:1rem;outline:none;letter-spacing:1px}
+.cron-raw-input:focus{border-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <!-- Presets -->
+  <div>
+    <div class="tool-label">Presets</div>
+    <div class="chips" id="presets"></div>
+  </div>
+
+  <!-- Visual cron display -->
+  <div>
+    <div class="tool-label">Expression</div>
+    <div class="cron-display" id="cronDisplay">
+      <span class="cron-part" id="p-min" onclick="selectField('min')">*</span>
+      <span class="cron-sep">·</span>
+      <span class="cron-part" id="p-hour" onclick="selectField('hour')">*</span>
+      <span class="cron-sep">·</span>
+      <span class="cron-part" id="p-dom" onclick="selectField('dom')">*</span>
+      <span class="cron-sep">·</span>
+      <span class="cron-part" id="p-mon" onclick="selectField('mon')">*</span>
+      <span class="cron-sep">·</span>
+      <span class="cron-part" id="p-dow" onclick="selectField('dow')">*</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:.5rem;font-size:.72rem;color:var(--muted)">
+      <span style="min-width:40px;text-align:center">Minute</span>
+      <span style="min-width:8px"></span>
+      <span style="min-width:40px;text-align:center">Hour</span>
+      <span style="min-width:8px"></span>
+      <span style="min-width:40px;text-align:center">Day</span>
+      <span style="min-width:8px"></span>
+      <span style="min-width:40px;text-align:center">Month</span>
+      <span style="min-width:8px"></span>
+      <span style="min-width:40px;text-align:center">Weekday</span>
+    </div>
+  </div>
+
+  <!-- Raw input -->
+  <div>
+    <div class="tool-label">Raw Expression</div>
+    <div class="cron-input-wrap">
+      <input type="text" class="cron-raw-input" id="cronRaw" value="* * * * *" oninput="parseRaw()">
+      <button class="btn-sm" id="btnCopy" onclick="copyCron()"><i class="bi bi-clipboard"></i> Copy</button>
+      <div class="status" id="st"></div>
+    </div>
+  </div>
+
+  <!-- Field editor -->
+  <div class="field-editor" id="fieldEditor">
+    <div class="field-title" id="fieldTitle">Edit Field</div>
+    <div class="field-tabs">
+      <button class="field-tab active" onclick="setFieldMode(this,'any')">Any (*)</button>
+      <button class="field-tab" onclick="setFieldMode(this,'specific')">Specific Values</button>
+      <button class="field-tab" onclick="setFieldMode(this,'range')">Range</button>
+      <button class="field-tab" onclick="setFieldMode(this,'step')">Step (*/n)</button>
+    </div>
+    <div class="field-content show" id="fc-any">
+      <p style="color:var(--muted);font-size:.85rem">Every possible value — wildcard <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">*</code></p>
+    </div>
+    <div class="field-content" id="fc-specific">
+      <div class="value-grid" id="valueGrid"></div>
+    </div>
+    <div class="field-content" id="fc-range">
+      <div class="range-row">
+        <span style="color:var(--muted);font-size:.85rem">From</span>
+        <input type="number" class="mini-input" id="rangeFrom" oninput="buildFromEditor()">
+        <span style="color:var(--muted);font-size:.85rem">to</span>
+        <input type="number" class="mini-input" id="rangeTo" oninput="buildFromEditor()">
+      </div>
+    </div>
+    <div class="field-content" id="fc-step">
+      <div class="step-row">
+        <span style="color:var(--muted);font-size:.85rem">Every</span>
+        <input type="number" class="mini-input" id="stepVal" value="5" min="1" oninput="buildFromEditor()">
+        <span style="color:var(--muted);font-size:.85rem" id="stepUnit">minutes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Human description -->
+  <div>
+    <div class="tool-label">Description</div>
+    <div class="human-desc" id="humanDesc">Select a field above to start building your cron expression.</div>
+  </div>
+
+  <!-- Next executions -->
+  <div id="nextSection">
+    <div class="tool-label">Next 5 Executions</div>
+    <div class="next-times" id="nextTimes"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const FIELDS = {
+  min:  {label:'Minute',    min:0,  max:59, names:null},
+  hour: {label:'Hour',      min:0,  max:23, names:null},
+  dom:  {label:'Day of Month', min:1, max:31, names:null},
+  mon:  {label:'Month',     min:1,  max:12, names:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']},
+  dow:  {label:'Day of Week', min:0, max:6, names:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']}
+};
+
+const PRESETS_LIST = [
+  {label:'Every minute',  expr:'* * * * *'},
+  {label:'Every 5 min',   expr:'*/5 * * * *'},
+  {label:'Every 15 min',  expr:'*/15 * * * *'},
+  {label:'Every 30 min',  expr:'*/30 * * * *'},
+  {label:'Hourly',        expr:'0 * * * *'},
+  {label:'Daily midnight',expr:'0 0 * * *'},
+  {label:'Daily noon',    expr:'0 12 * * *'},
+  {label:'Weekdays 9am',  expr:'0 9 * * 1-5'},
+  {label:'Weekly Sunday', expr:'0 0 * * 0'},
+  {label:'Monthly 1st',   expr:'0 0 1 * *'},
+  {label:'Yearly Jan 1',  expr:'0 0 1 1 *'},
+];
+
+let parts = {min:'*', hour:'*', dom:'*', mon:'*', dow:'*'};
+let activeField = null;
+let fieldMode = 'any';
+let selectedValues = new Set();
+
+// Render presets
+document.getElementById('presets').innerHTML = PRESETS_LIST.map(p =>
+  `<span class="chip" onclick="loadPreset('${p.expr}')">${p.label}</span>`
+).join('');
+
+function loadPreset(expr) {
+  document.getElementById('cronRaw').value = expr;
+  parseRaw();
+}
+
+function parseRaw() {
+  const raw = document.getElementById('cronRaw').value.trim();
+  const tokens = raw.split(/\s+/);
+  if (tokens.length !== 5) { showErr('st','Expression must have 5 fields'); return; }
+  hideStatus('st');
+  const keys = ['min','hour','dom','mon','dow'];
+  keys.forEach((k,i) => { parts[k] = tokens[i]; });
+  updateDisplay();
+  updateDescription();
+  updateNextTimes();
+}
+
+function updateDisplay() {
+  const keys = ['min','hour','dom','mon','dow'];
+  keys.forEach(k => {
+    document.getElementById('p-'+k).textContent = parts[k];
+    document.getElementById('p-'+k).classList.toggle('active', k === activeField);
+  });
+  document.getElementById('cronRaw').value = Object.values(parts).join(' ');
+}
+
+function selectField(field) {
+  activeField = field;
+  fieldMode = 'any';
+  selectedValues = new Set();
+  updateDisplay();
+
+  const f = FIELDS[field];
+  document.getElementById('fieldTitle').textContent = `Edit: ${f.label}`;
+  document.getElementById('fieldEditor').classList.add('show');
+
+  // Reset tabs
+  document.querySelectorAll('.field-tab').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.querySelectorAll('.field-content').forEach(c => c.classList.remove('show'));
+  document.getElementById('fc-any').classList.add('show');
+
+  // Build value grid
+  const grid = document.getElementById('valueGrid');
+  grid.innerHTML = '';
+  for (let v = f.min; v <= f.max; v++) {
+    const label = f.names ? `${v}<br><small>${f.names[v-f.min]}</small>` : v;
+    const btn = document.createElement('button');
+    btn.className = 'val-btn';
+    btn.innerHTML = label;
+    btn.dataset.val = v;
+    btn.onclick = () => toggleValue(v, btn);
+    grid.appendChild(btn);
+  }
+
+  // Range inputs
+  document.getElementById('rangeFrom').min = f.min;
+  document.getElementById('rangeFrom').max = f.max;
+  document.getElementById('rangeFrom').value = f.min;
+  document.getElementById('rangeTo').min = f.min;
+  document.getElementById('rangeTo').max = f.max;
+  document.getElementById('rangeTo').value = f.max;
+
+  // Step unit
+  const units = {min:'minutes',hour:'hours',dom:'days',mon:'months',dow:'weekdays'};
+  document.getElementById('stepUnit').textContent = units[field];
+  document.getElementById('stepVal').value = field === 'min' ? 5 : 1;
+
+  // Parse current value
+  parseCurrent(parts[field]);
+}
+
+function parseCurrent(val) {
+  if (val === '*') {
+    setFieldMode(document.querySelector('.field-tab'), 'any');
+  } else if (val.startsWith('*/')) {
+    const tabs = document.querySelectorAll('.field-tab');
+    setFieldMode(tabs[3], 'step');
+    document.getElementById('stepVal').value = val.slice(2);
+  } else if (val.includes('-') && !val.includes(',')) {
+    const [from, to] = val.split('-');
+    const tabs = document.querySelectorAll('.field-tab');
+    setFieldMode(tabs[2], 'range');
+    document.getElementById('rangeFrom').value = from;
+    document.getElementById('rangeTo').value = to;
+  } else if (/^[\d,]+$/.test(val)) {
+    const tabs = document.querySelectorAll('.field-tab');
+    setFieldMode(tabs[1], 'specific');
+    val.split(',').forEach(v => {
+      selectedValues.add(parseInt(v));
+      const btn = document.querySelector(`.val-btn[data-val="${v}"]`);
+      if (btn) btn.classList.add('sel');
+    });
+  }
+}
+
+function setFieldMode(btn, mode) {
+  fieldMode = mode;
+  document.querySelectorAll('.field-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.field-content').forEach(c => c.classList.remove('show'));
+  document.getElementById('fc-'+mode).classList.add('show');
+  buildFromEditor();
+}
+
+function toggleValue(v, btn) {
+  if (selectedValues.has(v)) { selectedValues.delete(v); btn.classList.remove('sel'); }
+  else { selectedValues.add(v); btn.classList.add('sel'); }
+  buildFromEditor();
+}
+
+function buildFromEditor() {
+  if (!activeField) return;
+  let val = '*';
+  if (fieldMode === 'any') {
+    val = '*';
+  } else if (fieldMode === 'specific') {
+    if (selectedValues.size === 0) val = '*';
+    else val = [...selectedValues].sort((a,b)=>a-b).join(',');
+  } else if (fieldMode === 'range') {
+    const from = document.getElementById('rangeFrom').value;
+    const to = document.getElementById('rangeTo').value;
+    val = `${from}-${to}`;
+  } else if (fieldMode === 'step') {
+    const step = document.getElementById('stepVal').value || 1;
+    val = `*/${step}`;
+  }
+  parts[activeField] = val;
+  updateDisplay();
+  updateDescription();
+  updateNextTimes();
+}
+
+// Human-readable description
+function describeField(val, field) {
+  const f = FIELDS[field];
+  const units = {min:'minute',hour:'hour',dom:'day of month',mon:'month',dow:'day of week'};
+  if (val === '*') return `every ${units[field]}`;
+  if (val.startsWith('*/')) return `every ${val.slice(2)} ${units[field]}${val.slice(2)>1?'s':''}`;
+  if (val.includes('-')) {
+    const [a,b] = val.split('-');
+    const na = f.names ? f.names[parseInt(a)-f.min] : a;
+    const nb = f.names ? f.names[parseInt(b)-f.min] : b;
+    return `from ${na} to ${nb}`;
+  }
+  if (val.includes(',')) {
+    const vals = val.split(',').map(v => f.names ? f.names[parseInt(v)-f.min] : v);
+    return vals.join(', ');
+  }
+  return f.names ? f.names[parseInt(val)-f.min] : `at ${val}`;
+}
+
+function updateDescription() {
+  const min = parts.min, hour = parts.hour, dom = parts.dom, mon = parts.mon, dow = parts.dow;
+  let desc = 'Runs ';
+  if (min === '*' && hour === '*') desc += 'every minute';
+  else if (min.startsWith('*/') && hour === '*') desc += `every ${min.slice(2)} minutes`;
+  else if (hour === '*') desc += `at minute ${min} of every hour`;
+  else desc += `at ${hour.padStart ? hour : hour}:${min === '0' ? '00' : min}`;
+
+  if (dom !== '*') desc += `, on day ${dom} of the month`;
+  if (mon !== '*') desc += `, in ${describeField(mon,'mon')}`;
+  if (dow !== '*') desc += `, on ${describeField(dow,'dow')}`;
+
+  document.getElementById('humanDesc').textContent = desc;
+}
+
+// Next execution times
+function matchesCron(date, parts) {
+  const min = date.getMinutes(), hour = date.getHours();
+  const dom = date.getDate(), mon = date.getMonth()+1, dow = date.getDay();
+  return matchField(min, parts.min, 0, 59) &&
+         matchField(hour, parts.hour, 0, 23) &&
+         matchField(dom, parts.dom, 1, 31) &&
+         matchField(mon, parts.mon, 1, 12) &&
+         matchField(dow, parts.dow, 0, 6);
+}
+
+function matchField(val, expr, min, max) {
+  if (expr === '*') return true;
+  if (expr.startsWith('*/')) return val % parseInt(expr.slice(2)) === 0;
+  if (expr.includes('-')) {
+    const [a,b] = expr.split('-').map(Number);
+    return val >= a && val <= b;
+  }
+  if (expr.includes(',')) return expr.split(',').map(Number).includes(val);
+  return parseInt(expr) === val;
+}
+
+function updateNextTimes() {
+  const container = document.getElementById('nextTimes');
+  const now = new Date();
+  now.setSeconds(0, 0);
+  const times = [];
+  let d = new Date(now.getTime() + 60000);
+  let attempts = 0;
+  while (times.length < 5 && attempts < 100000) {
+    if (matchesCron(d, parts)) times.push(new Date(d));
+    d = new Date(d.getTime() + 60000);
+    attempts++;
+  }
+
+  if (times.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:8px">Could not compute next executions</div>';
+    return;
+  }
+
+  container.innerHTML = times.map((t, i) => {
+    const diff = t - now;
+    const mins = Math.floor(diff/60000);
+    const hrs = Math.floor(mins/60);
+    const days = Math.floor(hrs/24);
+    let rel = mins < 60 ? `in ${mins}m` : hrs < 24 ? `in ${hrs}h ${mins%60}m` : `in ${days}d`;
+    return `<div class="next-time">
+      <span class="next-time-num">${i+1}</span>
+      <span class="next-time-val">${t.toLocaleString()}</span>
+      <span class="next-time-rel">${rel}</span>
+    </div>`;
+  }).join('');
+}
+
+function copyCron() {
+  const expr = document.getElementById('cronRaw').value;
+  const btn = document.getElementById('btnCopy');
+  navigator.clipboard.writeText(expr).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+// Init
+updateDescription();
+updateNextTimes();
+</script>
+{% endblock %}

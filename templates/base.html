@@ -3,512 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LamGen — AI Thesis Platform{% endblock %}</title>
+    <title>{% block title %}{{ page_title|default:"LamGen — Free Online Tools" }}{% endblock %}</title>
+    <!-- Metadata Engine -->
+    {% if meta_description %}<meta name="description" content="{{ meta_description }}">{% endif %}
+    {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% else %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
+    <!-- OpenGraph -->
+    <meta property="og:title" content="{{ page_title|default:'LamGen — Free Online Tools' }}">
+    {% if meta_description %}<meta property="og:description" content="{{ meta_description }}">{% endif %}
+    <meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}">
+    <meta property="og:type" content="{{ og_type|default:'website' }}">
+    <meta property="og:site_name" content="LamGen Tools">
+    {% load static %}
+    <meta property="og:image" content="{% block og_image %}{% static 'img/og-default.png' %}{% endblock %}">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ page_title|default:'LamGen — Free Online Tools' }}">
+    {% if meta_description %}<meta name="twitter:description" content="{{ meta_description }}">{% endif %}
+    <!-- JSON-LD Schema -->
+    {% if schema_json %}<script type="application/ld+json">{{ schema_json|safe }}</script>{% endif %}
+    {% block extra_schema %}{% endblock %}
+    <!-- Edge Cache & PWA -->
+    <meta http-equiv="Cache-Control" content="public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400">
+    <meta name="theme-color" content="#0b0c18">
+    <!-- Core Web Vitals Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"></noscript>
     {% load static %}
-    <style>
-        :root {
-            --bg: #0A0A0F;
-            --surface: rgba(255,255,255,0.04);
-            --border: rgba(255,255,255,0.08);
-            --primary: #6C63FF;
-            --accent: #00F5D4;
-            --danger: #FF6B6B;
-            --text: #F0F0F5;
-            --muted: rgba(240,240,245,0.5);
-            --glow: 0 0 40px rgba(108,99,255,0.25);
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%;
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 15px;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* ── Animated mesh background ── */
-        .mesh-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            overflow: hidden;
-        }
-        .mesh-bg::before,
-        .mesh-bg::after,
-        .mesh-bg span {
-            content: '';
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.18;
-        }
-        .mesh-bg::before {
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, #6C63FF 0%, transparent 70%);
-            top: -150px; left: -150px;
-            animation: meshMove1 18s ease-in-out infinite alternate;
-        }
-        .mesh-bg::after {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, #00F5D4 0%, transparent 70%);
-            bottom: -100px; right: -100px;
-            animation: meshMove2 22s ease-in-out infinite alternate;
-        }
-        .mesh-bg span {
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, #FF6B6B 0%, transparent 70%);
-            top: 40%; left: 50%;
-            transform: translate(-50%, -50%);
-            animation: meshMove3 26s ease-in-out infinite alternate;
-        }
-        @keyframes meshMove1 { from { transform: translate(0,0); } to { transform: translate(120px, 80px); } }
-        @keyframes meshMove2 { from { transform: translate(0,0); } to { transform: translate(-100px, -60px); } }
-        @keyframes meshMove3 { from { transform: translate(-50%,-50%); } to { transform: translate(-30%,-60%); } }
-
-        /* ── Navbar ── */
-        .nexus-nav {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 1000;
-            height: 68px;
-            display: flex;
-            align-items: center;
-            padding: 0 2rem;
-            background: rgba(10,10,15,0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-        }
-        .nexus-nav .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: var(--text);
-            flex-shrink: 0;
-        }
-        .nexus-nav .nav-brand .brand-icon {
-            width: 34px; height: 34px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem;
-        }
-        .nexus-nav .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            margin-left: auto;
-            list-style: none;
-        }
-        .nexus-nav .nav-links a {
-            color: var(--muted);
-            text-decoration: none;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .nexus-nav .nav-links a:hover { color: var(--text); background: var(--surface); }
-        .nexus-nav .nav-links a.active { color: var(--primary); }
-
-        /* Dropdown */
-        .nav-dropdown { position: relative; }
-        .nav-dropdown-toggle {
-            display: flex; align-items: center; gap: 6px;
-            color: var(--muted);
-            background: none; border: none; cursor: pointer;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .nav-dropdown-toggle:hover { color: var(--text); background: var(--surface); }
-        .nav-dropdown-menu {
-            display: none;
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            min-width: 180px;
-            background: rgba(15,15,22,0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 6px;
-            box-shadow: var(--glow);
-        }
-        .nav-dropdown:hover .nav-dropdown-menu,
-        .nav-dropdown.open .nav-dropdown-menu { display: block; }
-        .nav-dropdown-menu a,
-        .nav-dropdown-menu button {
-            display: flex; align-items: center; gap: 8px;
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 0.875rem;
-            background: none; border: none; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.2s;
-        }
-        .nav-dropdown-menu a:hover,
-        .nav-dropdown-menu button:hover { color: var(--text); background: var(--surface); }
-        .nav-dropdown-menu .danger-item { color: var(--danger) !important; }
-        .nav-dropdown-menu .divider { height: 1px; background: var(--border); margin: 4px 0; }
-        .nav-dropdown-menu .menu-label {
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-
-        /* Mobile hamburger */
-        .nav-hamburger {
-            display: none;
-            background: none; border: none; cursor: pointer;
-            color: var(--text); font-size: 1.4rem;
-            margin-left: auto;
-        }
-        .nav-mobile-menu {
-            display: none;
-            position: fixed;
-            top: 68px; left: 0; right: 0;
-            background: rgba(10,10,15,0.97);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            padding: 1rem;
-            z-index: 999;
-        }
-        .nav-mobile-menu.open { display: block; }
-        .nav-mobile-menu a,
-        .nav-mobile-menu button {
-            display: flex; align-items: center; gap: 8px;
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 8px;
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            background: none; border: none; cursor: pointer;
-            font-family: 'DM Sans', sans-serif;
-            transition: all 0.2s;
-        }
-        .nav-mobile-menu a:hover,
-        .nav-mobile-menu button:hover { color: var(--text); background: var(--surface); }
-        .nav-mobile-menu .danger-item { color: var(--danger) !important; }
-        .nav-mobile-menu .divider { height: 1px; background: var(--border); margin: 6px 0; }
-
-        @media (max-width: 768px) {
-            .nexus-nav .nav-links { display: none; }
-            .nav-hamburger { display: block; }
-        }
-
-        /* ── Main ── */
-        main { padding-top: 80px; min-height: 100vh; }
-
-        /* ── Toast ── */
-        .toast-container {
-            position: fixed;
-            top: 80px; right: 1.5rem;
-            z-index: 9999;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        .nexus-toast {
-            display: flex; align-items: center; gap: 10px;
-            padding: 12px 16px;
-            background: rgba(15,15,22,0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 0.875rem;
-            color: var(--text);
-            box-shadow: var(--glow);
-            animation: fadeUp 0.3s ease forwards;
-            min-width: 260px;
-        }
-        .nexus-toast.success { border-color: rgba(0,245,212,0.3); }
-        .nexus-toast.danger  { border-color: rgba(255,107,107,0.3); }
-        .nexus-toast .toast-close {
-            margin-left: auto; background: none; border: none;
-            color: var(--muted); cursor: pointer; font-size: 1rem;
-        }
-
-        /* ── Cards ── */
-        .glass-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        /* ── Buttons ── */
-        .btn-primary-nexus {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 10px 24px;
-            background: linear-gradient(135deg, var(--primary), #8B85FF);
-            color: #fff;
-            border: none; border-radius: 50px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 600; font-size: 0.9rem;
-            cursor: pointer; text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: 0 0 20px rgba(108,99,255,0.35);
-        }
-        .btn-primary-nexus:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 35px rgba(108,99,255,0.55);
-            color: #fff;
-        }
-        .btn-ghost-nexus {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 10px 24px;
-            background: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 500; font-size: 0.9rem;
-            cursor: pointer; text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .btn-ghost-nexus:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: rgba(108,99,255,0.08);
-        }
-        .btn-danger-nexus {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 8px 18px;
-            background: rgba(255,107,107,0.12);
-            color: var(--danger);
-            border: 1px solid rgba(255,107,107,0.3);
-            border-radius: 8px;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 500; font-size: 0.875rem;
-            cursor: pointer; text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .btn-danger-nexus:hover { background: rgba(255,107,107,0.22); color: var(--danger); }
-
-        /* ── Inputs ── */
-        .nexus-input {
-            width: 100%;
-            padding: 10px 14px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.9rem;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-            outline: none;
-        }
-        .nexus-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
-        .nexus-input::placeholder { color: var(--muted); }
-        .nexus-input option { background: #0F0F1A; color: var(--text); }
-
-        /* ── Animations ── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50%       { transform: translateY(-10px); }
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .fade-up { animation: fadeUp 0.6s ease forwards; opacity: 0; }
-        .stagger-1 { animation-delay: 0.1s; }
-        .stagger-2 { animation-delay: 0.2s; }
-        .stagger-3 { animation-delay: 0.3s; }
-        .stagger-4 { animation-delay: 0.4s; }
-
-        /* ── Footer ── */
-        .nexus-footer {
-            border-top: 1px solid var(--border);
-            padding: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
-        .nexus-footer .footer-brand {
-            display: flex; align-items: center; gap: 8px;
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            color: var(--text);
-            text-decoration: none;
-        }
-        .nexus-footer .footer-links { display: flex; gap: 1.5rem; }
-        .nexus-footer .footer-links a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
-        .nexus-footer .footer-links a:hover { color: var(--text); }
-
-        /* ── Status badges ── */
-        .badge-nexus {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 4px 10px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .badge-completed { background: rgba(0,245,212,0.12); color: var(--accent); border: 1px solid rgba(0,245,212,0.25); }
-        .badge-processing { background: rgba(255,193,7,0.12); color: #FFC107; border: 1px solid rgba(255,193,7,0.25); }
-        .badge-pending    { background: rgba(240,240,245,0.08); color: var(--muted); border: 1px solid var(--border); }
-        .badge-failed     { background: rgba(255,107,107,0.12); color: var(--danger); border: 1px solid rgba(255,107,107,0.25); }
-        .pulse-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: pulse-dot 1.4s ease-in-out infinite;
-        }
-
-        /* ── Modal overlay ── */
-        .nexus-modal-overlay {
-            display: none;
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 2000;
-            align-items: center; justify-content: center;
-        }
-        .nexus-modal-overlay.open { display: flex; }
-        .nexus-modal {
-            background: #0F0F1A;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
-            max-width: 440px;
-            width: 90%;
-            box-shadow: var(--glow);
-            animation: fadeUp 0.3s ease forwards;
-        }
-        .nexus-modal h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem; }
-        .nexus-modal p  { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
-        .nexus-modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-        /* ── Bootstrap form-control override (Django renders these) ── */
-        .form-control, .form-control-lg {
-            width: 100%;
-            padding: 10px 14px;
-            background: rgba(255,255,255,0.05) !important;
-            border: 1px solid var(--border) !important;
-            border-radius: 10px !important;
-            color: var(--text) !important;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.9rem;
-            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-            outline: none;
-            box-shadow: none !important;
-        }
-        .form-control:focus, .form-control-lg:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 3px rgba(108,99,255,0.15) !important;
-            background: rgba(255,255,255,0.07) !important;
-        }
-        .form-control::placeholder { color: var(--muted); }
-        .form-control option { background: #0F0F1A; color: var(--text); }
-        textarea.form-control { resize: vertical; }
-
-        /* ── Scrollbar ── */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-
-        /* ── Utility ── */
-        .text-accent { color: var(--accent); }
-        .text-primary-nexus { color: var(--primary); }
-        .text-muted-nexus { color: var(--muted); }
-        .section-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1.8rem;
-            color: var(--text);
-        }
-        .invalid-msg { color: var(--danger); font-size: 0.8rem; margin-top: 4px; }
-        .form-label-nexus { font-size: 0.85rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; display: block; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <!-- Animated mesh background -->
-    <div class="mesh-bg"><span></span></div>
+    <!-- Cinematic Alien-World Environment -->
+    <div class="space-bg">
+        <div class="alien-grid"></div>
+        <div class="ambient-pulse"></div>
+        <div class="light-beams"></div>
+        <div class="galaxy-cluster"></div>
+        <div class="planet"></div>
+        <div class="stars"></div>
+        <div class="nebula fog-1"></div>
+        <div class="nebula fog-2"></div>
+        <div class="nebula fog-3"></div>
+        <div class="rune-particles"></div>
+        <div class="particles"></div>
+    </div>
 
-    <!-- Navbar -->
-    <nav class="nexus-nav">
-        <a href="{% url 'home' %}" class="nav-brand">
-            <div class="brand-icon">✦</div>
-            LamGen
+    <!-- Global Top Nav -->
+    <div class="top-nav-wrapper">
+      <div class="top-nav-inner">
+
+        <!-- LEFT: Quick actions + profile -->
+        <div class="nav-left">
+          <!-- All Tools shortcut -->
+          <a href="{% url 'tools:index' %}" class="nav-action-btn" title="All Tools" aria-label="All Tools">
+            <i class="bi bi-grid-3x3-gap"></i>
+          </a>
+
+          <!-- Profile dropdown -->
+          <div class="nav-dropdown">
+            <button class="profile-btn nav-dropdown-toggle"
+                    onclick="this.closest('.nav-dropdown').classList.toggle('open')"
+                    aria-label="Account menu"
+                    aria-haspopup="true">
+              {% if user.is_authenticated %}
+              <i class="bi bi-person-fill"></i>
+              {% else %}
+              <i class="bi bi-person"></i>
+              {% endif %}
+            </button>
+            <div class="nav-dropdown-menu" role="menu">
+              {% if user.is_authenticated %}
+              <div class="menu-label">{{ user.username }}</div>
+              <div class="divider"></div>
+              <a href="{% url 'home' %}" role="menuitem"><i class="bi bi-person-fill"></i> Account</a>
+              <div class="divider"></div>
+              <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
+                {% csrf_token %}
+                <button type="submit" class="danger-item" role="menuitem">
+                  <i class="bi bi-box-arrow-right"></i> Sign Out
+                </button>
+              </form>
+              {% else %}
+              <a href="{% url 'accounts:login' %}" role="menuitem"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
+              <a href="{% url 'accounts:register' %}" role="menuitem"><i class="bi bi-person-plus"></i> Join LamGen</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER: Search (suppressed on pages with dedicated search) -->
+        <div class="nav-center">
+          {% block nav_search %}
+          <div class="global-search-pill" style="position:relative;overflow:visible;">
+            <i class="bi bi-search" style="color:var(--muted);font-size:0.95rem;flex-shrink:0;"></i>
+            <input type="text" id="inlineSearchInput"
+                   placeholder="Search LamGen…"
+                   style="background:transparent;border:none;color:var(--text);flex:1;outline:none;font-size:0.88rem;font-family:'DM Sans',sans-serif;"
+                   autocomplete="off">
+            <div style="display:flex;gap:3px;flex-shrink:0;">
+              <span class="kbd">⌘</span><span class="kbd">K</span>
+            </div>
+            <!-- Inline results -->
+            <div id="inlineSearchResults"
+                 style="display:none;position:absolute;top:calc(100% + 8px);left:0;width:100%;min-width:280px;background:rgba(10,12,24,0.96);backdrop-filter:blur(28px);border:1px solid rgba(130,120,255,0.20);border-radius:16px;padding:0.4rem;max-height:380px;overflow-y:auto;box-shadow:0 24px 56px rgba(0,0,0,0.50),inset 0 1px 0 rgba(120,110,255,0.12);z-index:2000;">
+            </div>
+          </div>
+          {% endblock nav_search %}
+        </div>
+
+        <!-- RIGHT: Brand (anchored) -->
+        <a href="{% url 'home' %}" class="nav-brand" aria-label="LamGen Home">
+          <span class="nav-brand-name">LamGen</span>
+          <div class="nav-brand-mark"><i class="bi bi-cpu"></i></div>
         </a>
 
-        <ul class="nav-links">
-            {% if user.is_authenticated %}
-            <li><a href="{% url 'dashboard' %}"><i class="bi bi-grid-1x2"></i> Dashboard</a></li>
-            <li><a href="{% url 'thesis:upload' %}"><i class="bi bi-upload"></i> Upload</a></li>
-            <li class="nav-dropdown">
-                <button class="nav-dropdown-toggle" onclick="this.closest('.nav-dropdown').classList.toggle('open')">
-                    <i class="bi bi-person-circle"></i> {{ user.username }} <i class="bi bi-chevron-down" style="font-size:0.7rem;"></i>
-                </button>
-                <div class="nav-dropdown-menu">
-                    <span class="menu-label">{{ user.university }}</span>
-                    <div class="divider"></div>
-                    <a href="{% url 'dashboard' %}"><i class="bi bi-grid"></i> Dashboard</a>
-                    <div class="divider"></div>
-                    <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
-                        {% csrf_token %}
-                        <button type="submit" class="danger-item"><i class="bi bi-box-arrow-right"></i> Logout</button>
-                    </form>
-                </div>
-            </li>
-            {% else %}
-            <li><a href="{% url 'accounts:login' %}">Sign In</a></li>
-            <li><a href="{% url 'accounts:register' %}" style="color:var(--primary);font-weight:600;">Get Started</a></li>
-            {% endif %}
-        </ul>
-
-        <button class="nav-hamburger" id="hamburgerBtn" aria-label="Menu">
-            <i class="bi bi-list"></i>
-        </button>
-    </nav>
-
-    <!-- Mobile menu -->
-    <div class="nav-mobile-menu" id="mobileMenu">
-        {% if user.is_authenticated %}
-        <a href="{% url 'dashboard' %}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
-        <a href="{% url 'thesis:upload' %}"><i class="bi bi-upload"></i> Upload PDF</a>
-        <div class="divider"></div>
-        <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
-            {% csrf_token %}
-            <button type="submit" class="danger-item"><i class="bi bi-box-arrow-right"></i> Logout</button>
-        </form>
-        {% else %}
-        <a href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
-        <a href="{% url 'accounts:register' %}"><i class="bi bi-person-plus"></i> Get Started</a>
-        {% endif %}
+      </div>
     </div>
+
+    <!-- Main content Wrapper -->
+    <main class="tools-shell">
+
+
+        <!-- Center Tools Content -->
+        <div class="tools-main">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Default Right Sidebar: Navigation -->
+        <aside class="spatial-panel tools-actions" style="padding:1.25rem 1rem; justify-content:flex-start; overflow-y:auto; display:flex; flex-direction:column; gap:1.5rem;">
+            {% block right_sidebar %}
+
+            <!-- Home -->
+            <a href="{% url 'home' %}"
+               style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:12px; text-decoration:none; color:var(--lg-text); background:{% if request.path == '/' %}rgba(139,127,255,0.16){% else %}transparent{% endif %}; border:1px solid {% if request.path == '/' %}rgba(139,127,255,0.30){% else %}transparent{% endif %}; transition:all 0.18s;"
+               onmouseover="if(!this.style.background.includes('139'))this.style.background='rgba(120,110,255,0.11)'"
+               onmouseout="if(!this.style.background.includes('139'))this.style.background='transparent'">
+                <div style="width:32px; height:32px; border-radius:9px; background:{% if request.path == '/' %}rgba(139,127,255,0.28){% else %}rgba(120,110,255,0.12){% endif %}; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid {% if request.path == '/' %}rgba(139,127,255,0.40){% else %}rgba(120,110,255,0.14){% endif %};">
+                    <i class="bi bi-cpu" style="color:{% if request.path == '/' %}#fff{% else %}var(--lg-violet){% endif %}; font-size:0.95rem;"></i>
+                </div>
+                <span style="font-weight:700; font-size:0.92rem; letter-spacing:0.2px;">Home</span>
+            </a>
+
+            <!-- All Tools -->
+            <a href="{% url 'tools:index' %}"
+               style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:12px; text-decoration:none; color:var(--lg-text); background:{% if request.path == '/tools/' %}rgba(139,127,255,0.12){% else %}transparent{% endif %}; border:1px solid {% if request.path == '/tools/' %}rgba(139,127,255,0.22){% else %}transparent{% endif %}; transition:all 0.18s;"
+               onmouseover="if(!this.style.background.includes('139'))this.style.background='rgba(120,110,255,0.11)'"
+               onmouseout="if(!this.style.background.includes('139'))this.style.background='transparent'">
+                <div style="width:32px; height:32px; border-radius:9px; background:rgba(120,110,255,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid rgba(120,110,255,0.14);">
+                    <i class="bi bi-grid" style="color:var(--lg-text-muted); font-size:0.9rem;"></i>
+                </div>
+                <span style="font-weight:600; font-size:0.88rem; color:var(--lg-text-muted);">All Tools</span>
+            </a>
+
+            <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(120,110,255,0.14) 30%,rgba(120,110,255,0.14) 70%,transparent); margin:0 0.25rem;"></div>
+
+            <!-- Category nav -->
+            <div style="display:flex; flex-direction:column; gap:3px;">
+                <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--lg-text-helper); padding:0 12px; margin-bottom:4px;">Categories</div>
+                {% for cat in nav_categories %}
+                <a href="{{ cat.get_absolute_url }}"
+                   style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:11px; text-decoration:none; color:var(--lg-text); background:{% if request.path == cat.get_absolute_url %}rgba(120,110,255,0.14){% else %}transparent{% endif %}; border:1px solid {% if request.path == cat.get_absolute_url %}rgba(130,120,255,0.20){% else %}transparent{% endif %}; transition:all 0.18s;"
+                   onmouseover="if(!this.style.background.includes('0.09'))this.style.background='rgba(120,110,255,0.10)'"
+                   onmouseout="if(!this.style.background.includes('0.09'))this.style.background='transparent'">
+                    <div style="width:28px; height:28px; border-radius:8px; background:{{ cat.color_from }}18; border:1px solid {{ cat.color_from }}33; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="{{ cat.icon }}" style="color:{{ cat.color_from }}; font-size:0.82rem;"></i>
+                    </div>
+                    <span style="font-weight:600; font-size:0.86rem;">{{ cat.name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% endblock %}
+        </aside>
+    </main>
+
+    <!-- Floating OS Dock -->
+    <nav class="os-dock">
+        <a href="{% url 'home' %}" class="dock-item {% if request.path == '/' %}active{% endif %}" data-tooltip="Home">
+            <i class="bi bi-cpu-fill" style="color: {% if request.path == '/' %}#fff{% else %}var(--primary){% endif %};"></i>
+        </a>
+        <a href="{% url 'tools:index' %}" class="dock-item {% if request.path == '/tools/' %}active{% endif %}" data-tooltip="All Tools">
+            <i class="bi bi-grid-fill"></i>
+        </a>
+        <a href="javascript:void(0)" class="dock-item" data-tooltip="Search (⌘K)" onclick="toggleInlineSearch(true)">
+            <i class="bi bi-search"></i>
+        </a>
+        {% for cat in nav_categories %}
+        <a href="{{ cat.get_absolute_url }}" class="dock-item cat-dock-link {% if request.path == cat.get_absolute_url %}active{% endif %}" data-tooltip="{{ cat.name }}" style="color: {{ cat.color_from }};">
+            <i class="{{ cat.icon }}"></i>
+        </a>
+        {% endfor %}
+        <div class="dock-divider"></div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'home' %}" class="dock-item {% if request.path == '/' %}active{% endif %}" data-tooltip="User Account">
+            <i class="bi bi-person-fill"></i>
+        </a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="dock-item" data-tooltip="Login">
+            <i class="bi bi-box-arrow-in-right"></i>
+        </a>
+        {% endif %}
+    </nav>
 
     <!-- Toast container -->
     <div class="toast-container" id="toastContainer">
@@ -523,32 +222,21 @@
         {% endfor %}
     </div>
 
-    <!-- Main content -->
-    <main>
-        {% block content %}{% endblock %}
-    </main>
 
-    <!-- Footer -->
-    <footer class="nexus-footer">
-        <a href="{% url 'home' %}" class="footer-brand">
-            <div class="brand-icon" style="width:24px;height:24px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;">✦</div>
-            LamGen
-        </a>
-        <div class="footer-links">
-            <a href="{% url 'home' %}">Home</a>
-            {% if user.is_authenticated %}
-            <a href="{% url 'dashboard' %}">Dashboard</a>
-            <a href="{% url 'thesis:upload' %}">Upload</a>
-            {% endif %}
-        </div>
-        <span>&copy; 2025 LamGen. All rights reserved.</span>
-    </footer>
+
+
 
     <script>
-        // Hamburger toggle
-        document.getElementById('hamburgerBtn').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.toggle('open');
-        });
+        // Service Worker Registration for Edge Caching & Offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js').catch(err => {
+                    console.log('SW registration failed: ', err);
+                });
+            });
+        }
+        
+
         // Close dropdown on outside click
         document.addEventListener('click', (e) => {
             document.querySelectorAll('.nav-dropdown.open').forEach(d => {
@@ -559,7 +247,240 @@
         document.querySelectorAll('.nexus-toast[data-autohide]').forEach(t => {
             setTimeout(() => t.remove(), parseInt(t.dataset.autohide));
         });
+
+        // Inline Search Logic
+        const inlineInput = document.getElementById('inlineSearchInput');
+        const inlineResults = document.getElementById('inlineSearchResults');
+
+        function toggleInlineSearch(show) {
+            if (show) {
+                inlineResults.style.display = 'block';
+                inlineInput.focus();
+            } else {
+                inlineResults.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                toggleInlineSearch(true);
+            }
+            if (e.key === 'Escape') {
+                toggleInlineSearch(false);
+                inlineInput.blur();
+            }
+        });
+
+        // Hide results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!inlineInput.contains(e.target) && !inlineResults.contains(e.target)) {
+                toggleInlineSearch(false);
+            }
+        });
+
+        inlineInput.addEventListener('focus', () => {
+            if (inlineInput.value.trim().length > 0) {
+                toggleInlineSearch(true);
+            }
+        });
+
+        let cmdTimeout;
+        inlineInput.addEventListener('input', () => {
+            clearTimeout(cmdTimeout);
+            const q = inlineInput.value.trim();
+            if (q.length < 2) {
+                inlineResults.style.display = 'block';
+                inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Type at least 2 characters to search...</div>';
+                return;
+            }
+
+            inlineResults.style.display = 'block';
+            inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Searching...</div>';
+
+            cmdTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/tools/search/?q=${encodeURIComponent(q)}`);
+                    const data = await res.json();
+                    
+                    if (data.results.length === 0) {
+                        inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">No results found.</div>';
+                        return;
+                    }
+
+                    inlineResults.innerHTML = data.results.map(r => `
+                        <a href="${r.url}" style="display:flex; align-items:center; gap:12px; padding:9px 10px; border-radius:10px; text-decoration:none; color:var(--lg-text); transition:background 0.15s;" onmouseover="this.style.background='rgba(120,110,255,0.12)'" onmouseout="this.style.background='transparent'">
+                            <div style="width:32px; height:32px; background:${r.category_color_from}22; border:1px solid ${r.category_color_from}44; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="${r.icon}" style="color:${r.category_color_from}; font-size:0.95rem;"></i>
+                            </div>
+                            <div style="flex:1; overflow:hidden;">
+                                <div style="font-weight:600; font-size:0.88rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; color:var(--lg-text);">${r.name}</div>
+                                <div style="font-size:0.74rem; color:var(--lg-text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${r.category} &bull; ${r.short_desc}</div>
+                            </div>
+                        </a>
+                    `).join('');
+                } catch (e) {
+                    inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--danger); font-size: 0.9rem;">Search failed.</div>';
+                }
+            }, 200);
+        });
     </script>
     {% block extra_js %}{% endblock %}
+    {% load static %}
+    <script src="{% static 'js/core/gen-engine.js' %}"></script>
+    {% block tool_js %}{% endblock %}
+
+    <!-- ── Command Palette ── -->
+    <div id="cmd-palette-overlay"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Command palette — search tools"
+         style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(4,5,16,0.65); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); align-items:flex-start; justify-content:center; padding-top:14vh;">
+      <div style="width:100%; max-width:580px; margin:0 1rem; background:rgba(10,12,24,0.96); border:1px solid rgba(130,120,255,0.24); border-radius:22px; overflow:hidden; box-shadow:0 48px 96px rgba(0,0,0,0.65), inset 0 1px 0 rgba(120,110,255,0.13);">
+        <!-- Search input -->
+        <div style="display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid rgba(120,110,255,0.14);">
+          <i class="bi bi-search" style="color:var(--lg-text-muted); font-size:1.05rem; flex-shrink:0;"></i>
+          <input id="cmd-input"
+                 type="text"
+                 placeholder="Search tools…"
+                 autocomplete="off"
+                 spellcheck="false"
+                 aria-label="Search tools"
+                 style="flex:1; background:transparent; border:none; outline:none; color:var(--lg-text); font-size:1rem; font-family:'DM Sans',sans-serif; caret-color:var(--lg-cyan);">
+          <kbd style="font-size:0.68rem; color:var(--lg-text-muted); background:rgba(120,110,255,0.13); padding:3px 7px; border-radius:5px; font-family:monospace; flex-shrink:0; border:1px solid rgba(120,110,255,0.14);">Esc</kbd>
+        </div>
+        <!-- Results -->
+        <div id="cmd-results"
+             role="listbox"
+             style="max-height:380px; overflow-y:auto; padding:8px;">
+          <div style="padding:2rem; text-align:center; color:var(--lg-text-muted); font-size:0.88rem;">
+            <i class="bi bi-command" style="font-size:1.5rem; display:block; margin-bottom:8px; opacity:0.35;"></i>
+            Type to search 100+ tools
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="padding:10px 18px; border-top:1px solid rgba(120,110,255,0.12); display:flex; gap:16px; font-size:0.72rem; color:var(--lg-text-helper);">
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">↑↓</kbd> Navigate</span>
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">↵</kbd> Open</span>
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">Esc</kbd> Close</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      const overlay = document.getElementById('cmd-palette-overlay');
+      const input   = document.getElementById('cmd-input');
+      const results = document.getElementById('cmd-results');
+      if (!overlay || !input || !results) return;
+
+      let debounceTimer, selectedIdx = -1, resultItems = [];
+
+      function openPalette() {
+        overlay.style.display = 'flex';
+        input.value = '';
+        selectedIdx = -1;
+        results.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--muted); font-size:0.9rem;"><i class="bi bi-command" style="font-size:1.5rem; display:block; margin-bottom:8px; opacity:0.4;"></i>Type to search 100+ tools</div>';
+        requestAnimationFrame(() => input.focus());
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closePalette() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        selectedIdx = -1;
+        resultItems = [];
+      }
+
+      // Keyboard triggers
+      document.addEventListener('keydown', (e) => {
+        const tag = document.activeElement?.tagName;
+        const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable;
+
+        if ((e.key === '/' && !isEditable) || (e.ctrlKey && e.key === 'k')) {
+          e.preventDefault();
+          overlay.style.display === 'flex' ? closePalette() : openPalette();
+          return;
+        }
+        if (overlay.style.display !== 'flex') return;
+
+        if (e.key === 'Escape') { closePalette(); return; }
+        if (e.key === 'ArrowDown') { e.preventDefault(); moveSelection(1); return; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); moveSelection(-1); return; }
+        if (e.key === 'Enter' && selectedIdx >= 0) {
+          e.preventDefault();
+          resultItems[selectedIdx]?.click();
+          return;
+        }
+      });
+
+      // Click outside to close
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closePalette(); });
+
+      // Debounced search
+      input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const q = input.value.trim();
+        selectedIdx = -1;
+        if (q.length < 2) {
+          results.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--muted); font-size:0.85rem;">Type at least 2 characters…</div>';
+          resultItems = [];
+          return;
+        }
+        results.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--muted); font-size:0.85rem;"><i class="bi bi-hourglass-split" style="margin-right:6px;"></i>Searching…</div>';
+        debounceTimer = setTimeout(() => doSearch(q), 250);
+      });
+
+      async function doSearch(q) {
+        try {
+          const res  = await fetch(`/tools/search/?q=${encodeURIComponent(q)}`);
+          const data = await res.json();
+          renderResults(data.results || []);
+        } catch {
+          results.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--danger); font-size:0.85rem;">Search unavailable.</div>';
+        }
+      }
+
+      function renderResults(items) {
+        if (!items.length) {
+          results.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--muted); font-size:0.85rem;">No tools found.</div>';
+          resultItems = [];
+          return;
+        }
+        results.innerHTML = items.map((r, i) => `
+          <a href="${r.url}"
+             role="option"
+             data-idx="${i}"
+             style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; text-decoration:none; color:var(--text); transition:background 0.15s; outline:none;"
+             onmouseover="this.style.background='rgba(120,110,255,0.11)'"
+             onmouseout="this.style.background=''"
+             onclick="closePaletteGlobal()">
+            <div style="width:34px; height:34px; border-radius:8px; background:${r.category_color_from}22; border:1px solid ${r.category_color_from}44; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+              <i class="${r.icon}" style="color:${r.category_color_from};"></i>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.name}</div>
+              <div style="font-size:0.75rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.category} · ${r.short_desc}</div>
+            </div>
+            <i class="bi bi-arrow-right" style="color:var(--muted); font-size:0.8rem; flex-shrink:0;"></i>
+          </a>
+        `).join('');
+        resultItems = Array.from(results.querySelectorAll('a[data-idx]'));
+      }
+
+      function moveSelection(dir) {
+        if (!resultItems.length) return;
+        if (selectedIdx >= 0) resultItems[selectedIdx].style.background = '';
+        selectedIdx = Math.max(0, Math.min(resultItems.length - 1, selectedIdx + dir));
+        const el = resultItems[selectedIdx];
+        el.style.background = 'rgba(108,99,255,0.15)';
+        el.scrollIntoView({ block: 'nearest' });
+      }
+
+      // Expose close for inline onclick
+      window.closePaletteGlobal = closePalette;
+    })();
+    </script>
+    {% include "partials/auth_prompt.html" %}
 </body>
 </html>

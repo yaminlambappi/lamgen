@@ -1,0 +1,154 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.check-row{display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;user-select:none}
+.check-row input{accent-color:var(--primary);width:16px;height:16px}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.meta-item{display:flex;align-items:center;gap:5px}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Input Paragraph</div>
+      <textarea class="tool-code" id="input-text" placeholder="Enter a short paragraph to expand..."></textarea>
+    </div>
+    <div>
+      <div class="tool-label">Expanded Output</div>
+      <textarea class="tool-code out" id="output-text" readonly placeholder="Expanded text will appear here..."></textarea>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <label class="check-row"><input type="checkbox" id="opt-transitions" checked> Add transition words</label>
+    <label class="check-row"><input type="checkbox" id="opt-examples" checked> Add example phrases</label>
+    <label class="check-row"><input type="checkbox" id="opt-elaboration" checked> Add elaboration sentences</label>
+    <label class="check-row"><input type="checkbox" id="opt-abbrev"> Expand common abbreviations</label>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="expandText()"><i class="bi bi-arrows-expand"></i> Expand Paragraph</button>
+    <button class="btn-sm" onclick="copyResult()"><i class="bi bi-clipboard"></i> Copy Result</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="meta-row" id="stats" style="display:none">
+    <span class="meta-item"><i class="bi bi-file-text"></i> <span id="orig-words">0</span> → <span id="new-words">0</span> words</span>
+    <span class="meta-item"><i class="bi bi-graph-up"></i> <span id="increase-pct">0</span>% increase</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+const TRANSITIONS = ['Furthermore,','Moreover,','In addition,','Additionally,','As a result,','Consequently,','Therefore,','Nevertheless,','On the other hand,','It is worth noting that','This is particularly important because','Building on this idea,'];
+const EXAMPLES = ['For example,','For instance,','To illustrate,','As an example,','Consider the case where','A practical example of this is','This can be seen in situations where'];
+const ELABORATIONS = [
+  'This concept is fundamental to understanding the broader context.',
+  'The implications of this extend far beyond the immediate scope.',
+  'Research consistently supports this perspective.',
+  'This approach has been validated through numerous real-world applications.',
+  'The significance of this cannot be overstated.',
+  'This principle applies across a wide range of scenarios.',
+];
+const ABBREVS = {
+  'e.g.':'for example','i.e.':'that is','etc.':'and so on','vs.':'versus','approx.':'approximately','dept.':'department','govt.':'government','info':'information','tech':'technology','app':'application'
+};
+
+function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
+function expandText() {
+  const text = document.getElementById('input-text').value.trim();
+  if (!text) { showErr('status', 'Please enter a paragraph to expand'); return; }
+
+  let sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  const origWords = text.split(/\s+/).length;
+  let expanded = [];
+
+  let abbrevText = text;
+  if (document.getElementById('opt-abbrev').checked) {
+    for (const [abbr, full] of Object.entries(ABBREVS)) {
+      abbrevText = abbrevText.replace(new RegExp(abbr.replace('.','\\.'),'gi'), full);
+    }
+    sentences = abbrevText.match(/[^.!?]+[.!?]+/g) || [abbrevText];
+  }
+
+  sentences.forEach((sent, i) => {
+    expanded.push(sent.trim());
+    if (document.getElementById('opt-transitions').checked && i < sentences.length - 1 && Math.random() > 0.4) {
+      const nextSent = sentences[i+1];
+      if (nextSent) {
+        const transition = rnd(TRANSITIONS);
+        sentences[i+1] = transition + ' ' + nextSent.trim().charAt(0).toLowerCase() + nextSent.trim().slice(1);
+      }
+    }
+    if (document.getElementById('opt-examples').checked && Math.random() > 0.5) {
+      expanded.push(rnd(EXAMPLES) + ' this demonstrates the key principle at work.');
+    }
+    if (document.getElementById('opt-elaboration').checked && Math.random() > 0.6) {
+      expanded.push(rnd(ELABORATIONS));
+    }
+  });
+
+  const result = expanded.join(' ');
+  document.getElementById('output-text').value = result;
+  const newWords = result.split(/\s+/).length;
+  const increase = origWords > 0 ? Math.round(((newWords - origWords) / origWords) * 100) : 0;
+  document.getElementById('orig-words').textContent = origWords;
+  document.getElementById('new-words').textContent = newWords;
+  document.getElementById('increase-pct').textContent = increase;
+  document.getElementById('stats').style.display = 'flex';
+  showOk('status', `Expanded by ${increase}% (${origWords} → ${newWords} words)`);
+}
+
+function copyResult() {
+  const result = document.getElementById('output-text').value;
+  if (!result) return;
+  const btn = event.target.closest('button');
+  copyText(result, btn);
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') expandText();
+});
+</script>
+{% endblock %}

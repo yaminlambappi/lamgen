@@ -1,0 +1,249 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:160px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.25rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.meta-item{display:flex;align-items:center;gap:5px}
+.mode-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.img-preview{max-width:100%;max-height:200px;border-radius:10px;border:1px solid rgba(255,255,255,.1);display:none;margin-top:.5rem}
+.file-drop{border:2px dashed rgba(255,255,255,.12);border-radius:12px;padding:24px;text-align:center;color:var(--muted);cursor:pointer;transition:all .2s;font-size:.9rem}
+.file-drop:hover,.file-drop.drag{border-color:var(--primary);background:rgba(108,99,255,.05);color:var(--text)}
+.file-drop input{display:none}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div class="mode-tabs" style="margin-bottom:.25rem">
+    <button class="mode-tab active" onclick="switchTab(this,'text')"><i class="bi bi-type"></i> Text</button>
+    <button class="mode-tab" onclick="switchTab(this,'file')"><i class="bi bi-file-image"></i> File / Image</button>
+  </div>
+
+  <!-- Text tab -->
+  <div id="tabText">
+    <div class="tool-label">Input</div>
+    <textarea class="tool-code" id="textIn" placeholder="Enter text to encode, or Base64 to decode..."></textarea>
+    <div class="chips">
+      <span class="chip" onclick="loadEx('hello')">Hello World</span>
+      <span class="chip" onclick="loadEx('json')">JSON string</span>
+      <span class="chip" onclick="loadEx('b64')">Base64 → decode</span>
+      <span class="chip" onclick="loadEx('url')">Data URI</span>
+    </div>
+  </div>
+
+  <!-- File tab -->
+  <div id="tabFile" style="display:none">
+    <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()"
+         ondragover="event.preventDefault();this.classList.add('drag')"
+         ondragleave="this.classList.remove('drag')"
+         ondrop="handleDrop(event)">
+      <i class="bi bi-cloud-upload" style="font-size:2rem;display:block;margin-bottom:.5rem"></i>
+      Drop a file here or click to browse
+      <input type="file" id="fileInput" onchange="handleFile(this.files[0])">
+    </div>
+    <img id="imgPreview" class="img-preview" alt="Preview">
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="doEncode()"><i class="bi bi-arrow-right-circle"></i> Encode</button>
+    <button class="btn-go" style="background:linear-gradient(135deg,#00b4d8,#0077b6)" onclick="doDecode()"><i class="bi bi-arrow-left-circle"></i> Decode</button>
+    <button class="btn-sm" onclick="autoDetect()"><i class="bi bi-magic"></i> Auto-detect</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Output</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" id="btnCopy" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <textarea class="tool-code out" id="textOut" readonly placeholder="Output will appear here..."></textarea>
+    <div class="meta-row" id="stats" style="margin-top:.5rem"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const EXAMPLES = {
+  hello: 'Hello, World! 🌍',
+  json: '{"user":"alice","role":"admin","token":"abc123"}',
+  b64: 'SGVsbG8sIFdvcmxkISA=',
+  url: 'data:text/plain;base64,SGVsbG8gZnJvbSBkYXRhIFVSSQ=='
+};
+
+function loadEx(k) {
+  document.getElementById('textIn').value = EXAMPLES[k];
+}
+
+function switchTab(btn, tab) {
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tabText').style.display = tab === 'text' ? '' : 'none';
+  document.getElementById('tabFile').style.display = tab === 'file' ? '' : 'none';
+}
+
+// UTF-8 safe encode
+function encodeB64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary);
+}
+
+// UTF-8 safe decode
+function decodeB64(b64) {
+  // strip data URI prefix if present
+  const stripped = b64.replace(/^data:[^;]+;base64,/, '').trim();
+  const binary = atob(stripped);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function isBase64(str) {
+  const s = str.replace(/^data:[^;]+;base64,/, '').trim().replace(/\s/g,'');
+  return /^[A-Za-z0-9+/]*={0,2}$/.test(s) && s.length % 4 === 0 && s.length > 0;
+}
+
+function doEncode() {
+  const input = document.getElementById('textIn').value;
+  if (!input) { showErr('st','No input'); return; }
+  hideStatus('st');
+  try {
+    const out = encodeB64(input);
+    document.getElementById('textOut').value = out;
+    setStats(input.length, out.length);
+    showOk('st','Encoded successfully');
+  } catch(e) { showErr('st', e.message); }
+}
+
+function doDecode() {
+  const input = document.getElementById('textIn').value.trim();
+  if (!input) { showErr('st','No input'); return; }
+  hideStatus('st');
+  try {
+    const out = decodeB64(input);
+    document.getElementById('textOut').value = out;
+    setStats(input.length, out.length);
+    showOk('st','Decoded successfully');
+  } catch(e) { showErr('st','Invalid Base64: ' + e.message); }
+}
+
+function autoDetect() {
+  const input = document.getElementById('textIn').value.trim();
+  if (!input) { showErr('st','No input'); return; }
+  if (isBase64(input)) doDecode(); else doEncode();
+}
+
+function setStats(inLen, outLen) {
+  document.getElementById('stats').innerHTML = `
+    <span class="meta-item"><i class="bi bi-arrow-right"></i> Input: ${inLen} chars</span>
+    <span class="meta-item"><i class="bi bi-arrow-left"></i> Output: ${outLen} chars</span>
+    <span class="meta-item"><i class="bi bi-percent"></i> Ratio: ${(outLen/inLen*100).toFixed(1)}%</span>
+  `;
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const b64 = dataUrl.split(',')[1];
+    document.getElementById('textOut').value = dataUrl;
+    if (file.type.startsWith('image/')) {
+      const img = document.getElementById('imgPreview');
+      img.src = dataUrl;
+      img.style.display = 'block';
+    }
+    document.getElementById('fileDrop').innerHTML = `<i class="bi bi-check-circle" style="color:var(--accent)"></i> ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+    setStats(file.size, b64.length);
+    showOk('st', `File encoded: ${file.name}`);
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('fileDrop').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+
+function copyOut() {
+  const v = document.getElementById('textOut').value;
+  if (!v) return;
+  copyText(v, document.getElementById('btnCopy'));
+}
+
+function downloadOut() {
+  const v = document.getElementById('textOut').value;
+  if (!v) return;
+  downloadText(v, 'base64-output.txt');
+}
+
+function clearAll() {
+  document.getElementById('textIn').value = '';
+  document.getElementById('textOut').value = '';
+  document.getElementById('stats').innerHTML = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  hideStatus('st');
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); autoDetect(); }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+textarea.num-input { resize: vertical; min-height: 80px; }
+.input-grp { margin-bottom: 1rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.faq-item { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; margin-bottom: 0.8rem; position: relative; }
+.faq-item:hover { border-color: rgba(108,99,255,0.4); }
+.btn-remove { position: absolute; top: 0.8rem; right: 0.8rem; background: rgba(255,107,107,0.1); color: var(--danger); border: 1px solid rgba(255,107,107,0.3); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+.char-badge { font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 20px; }
+.char-green { background: rgba(0,200,100,0.15); color: #00c864; }
+.char-yellow { background: rgba(255,200,0,0.15); color: #ffc800; }
+.char-red { background: rgba(255,107,107,0.15); color: var(--danger); }
+.output-area { background: #0A0A0F; border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; position: relative; margin-top: 1.5rem; }
+.output-code { font-family: 'JetBrains Mono', monospace; color: var(--accent); white-space: pre-wrap; word-break: break-all; font-size: 0.82rem; max-height: 400px; overflow-y: auto; }
+/* FAQ Preview */
+.faq-preview { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; margin-top: 1.5rem; }
+.faq-preview-item { border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0.8rem 0; }
+.faq-preview-q { font-weight: 700; color: var(--text); margin-bottom: 0.4rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.faq-preview-a { color: var(--muted); font-size: 0.9rem; line-height: 1.6; display: none; }
+.faq-preview-a.open { display: block; }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+  <span class="tool-label" style="margin:0;">FAQ Items <span id="faq-count" style="color:var(--primary);">(1)</span></span>
+  <span style="font-size:0.75rem;color:var(--muted);">Google recommends answers &lt;300 chars</span>
+</div>
+<div id="faq-list"></div>
+<div style="display:flex;gap:0.8rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+  <button class="btn-sm" id="btn-add"><i class="bi bi-plus-lg"></i> Add Question</button>
+  <button class="btn-go" id="btn-generate">⚡ Generate FAQ Schema</button>
+</div>
+
+<div class="faq-preview" id="faq-preview" style="display:none;">
+  <span class="tool-label">FAQ Preview</span>
+  <div id="preview-items"></div>
+</div>
+
+<div class="output-area" id="output-area" style="display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+    <span class="tool-label" style="margin:0;">JSON-LD Output</span>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn-sm" id="btn-copy"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn-sm" id="btn-download"><i class="bi bi-download"></i> Download</button>
+    </div>
+  </div>
+  <div class="output-code" id="output-code"></div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let faqs = [{ q: '', a: '' }];
+  const MAX = 20;
+
+  function charClass(n) {
+    if (n <= 200) return 'char-green';
+    if (n <= 300) return 'char-yellow';
+    return 'char-red';
+  }
+
+  function render() {
+    document.getElementById('faq-count').textContent = `(${faqs.length})`;
+    document.getElementById('faq-list').innerHTML = faqs.map((faq, i) => `
+      <div class="faq-item">
+        ${faqs.length > 1 ? `<button class="btn-remove" onclick="removeFaq(${i})"><i class="bi bi-trash"></i></button>` : ''}
+        <div class="input-grp" style="margin-right:2.5rem;">
+          <span class="tool-label">Question ${i + 1}</span>
+          <input type="text" class="num-input faq-q" data-i="${i}" value="${faq.q.replace(/"/g,'&quot;')}" placeholder="e.g. What is your return policy?">
+        </div>
+        <div class="input-grp" style="margin-bottom:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+            <span class="tool-label" style="margin:0;">Answer ${i + 1}</span>
+            <span class="char-badge ${charClass(faq.a.length)}" id="ac-${i}">${faq.a.length}/300</span>
+          </div>
+          <textarea class="num-input faq-a" data-i="${i}" placeholder="Provide a clear, concise answer…" rows="3">${faq.a}</textarea>
+        </div>
+      </div>`).join('');
+
+    document.querySelectorAll('.faq-q').forEach(el => {
+      el.addEventListener('input', e => { faqs[e.target.dataset.i].q = e.target.value; });
+    });
+    document.querySelectorAll('.faq-a').forEach(el => {
+      el.addEventListener('input', e => {
+        const i = e.target.dataset.i;
+        faqs[i].a = e.target.value;
+        const badge = document.getElementById('ac-' + i);
+        if (badge) { badge.textContent = e.target.value.length + '/300'; badge.className = 'char-badge ' + charClass(e.target.value.length); }
+      });
+    });
+  }
+
+  window.removeFaq = (i) => { faqs.splice(i, 1); render(); };
+
+  document.getElementById('btn-add').addEventListener('click', () => {
+    if (faqs.length >= MAX) { alert(`Maximum ${MAX} FAQ items allowed.`); return; }
+    faqs.push({ q: '', a: '' });
+    render();
+  });
+
+  document.getElementById('btn-generate').addEventListener('click', () => {
+    const valid = faqs.filter(f => f.q.trim() && f.a.trim());
+    if (!valid.length) { alert('Please add at least one complete Q&A pair.'); return; }
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": valid.map(f => ({
+        "@type": "Question",
+        "name": f.q.trim(),
+        "acceptedAnswer": { "@type": "Answer", "text": f.a.trim() }
+      }))
+    };
+
+    const jsonld = `<script type="application/ld+json">\n${JSON.stringify(schema, null, 2)}\n<\/script>`;
+    document.getElementById('output-code').textContent = jsonld;
+    document.getElementById('output-area').style.display = 'block';
+
+    // Preview
+    document.getElementById('faq-preview').style.display = 'block';
+    document.getElementById('preview-items').innerHTML = valid.map((f, i) => `
+      <div class="faq-preview-item">
+        <div class="faq-preview-q" onclick="toggleFaq(${i})">
+          <span>${f.q}</span>
+          <i class="bi bi-chevron-down" id="faq-icon-${i}"></i>
+        </div>
+        <div class="faq-preview-a" id="faq-ans-${i}">${f.a}</div>
+      </div>`).join('');
+
+    document.getElementById('output-area').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  window.toggleFaq = (i) => {
+    const ans = document.getElementById('faq-ans-' + i);
+    const icon = document.getElementById('faq-icon-' + i);
+    ans.classList.toggle('open');
+    icon.className = ans.classList.contains('open') ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+  };
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(document.getElementById('output-code').textContent);
+    const btn = document.getElementById('btn-copy');
+    btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 1500);
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const blob = new Blob([document.getElementById('output-code').textContent], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'faq-schema.json';
+    a.click();
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') document.getElementById('btn-generate').click(); });
+  render();
+});
+</script>
+{% endblock %}
