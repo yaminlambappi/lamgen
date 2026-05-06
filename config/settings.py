@@ -167,7 +167,7 @@ except Exception:
 
 # SEO settings
 SITE_NAME = 'LamGen Tools'
-SITE_URL = env('SITE_URL', default='https://lamgen.tools')
+SITE_URL = env('SITE_URL', default='https://lamgen.lamlab.me')
 
 # Tools ecosystem settings
 TOOLS_PER_PAGE = 24
