@@ -310,6 +310,84 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 @keyframes pulseOpacity { 0% { opacity: 0.4; } 100% { opacity: 0.85; } }
 @keyframes beamsDrift { from { transform: translate3d(-5vw,0,0); } to { transform: translate3d(5vw,0,0); } }
 
+/* Spatial panels — real depth, real contrast */
+.spatial-panel {
+    position: relative;
+    background:
+        radial-gradient(600px 300px at 10% 0%, rgba(100,90,255,0.14), transparent 55%),
+        radial-gradient(500px 260px at 90% 10%, rgba(62,236,216,0.08), transparent 52%),
+        var(--lg-panel-bg);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid var(--lg-panel-border);
+    border-radius: 38px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: var(--lg-panel-shadow);
+    transition: transform 0.45s cubic-bezier(0.22,1,0.36,1), box-shadow 0.45s, border-color 0.45s;
+    isolation: isolate;
+}
+
+/* Energy Border — Circulating Amber Glow */
+.app-sidebar::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    padding: 1.5px; /* Border thickness */
+    background: conic-gradient(
+        from var(--border-angle, 0deg),
+        transparent 0deg,
+        transparent 280deg,
+        rgba(255, 184, 0, 0.2) 310deg,
+        rgba(255, 215, 0, 0.8) 345deg,
+        rgba(255, 184, 0, 1) 360deg
+    );
+    border-radius: inherit;
+    mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, 
+        linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
+    animation: borderRotate 4s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Outer Soft Glow Layer */
+.app-sidebar::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: conic-gradient(
+        from var(--border-angle, 0deg),
+        transparent 300deg,
+        rgba(255, 184, 0, 0.15) 340deg,
+        transparent 360deg
+    );
+    border-radius: inherit;
+    filter: blur(10px);
+    animation: borderRotate 4s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.6;
+}
+
+@property --border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@keyframes borderRotate {
+    from { --border-angle: 0deg; }
+    to   { --border-angle: 360deg; }
+}
+
 /* ================================================================
    TOP NAVIGATION
    ================================================================ */
@@ -568,12 +646,72 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     flex-shrink: 0;
     position: sticky;
     top: calc(var(--nav-height) + 2rem);
-    height: fit-content;
+    height: auto;
+    min-height: 100%;
     max-height: calc(100vh - var(--nav-height) - 4rem);
-    overflow-y: auto;
-    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    isolation: isolate;
+    border-radius: 38px;
 }
 .app-sidebar::-webkit-scrollbar { display: none; }
+
+/* Subtle premium golden energy border */
+.app-sidebar::before,
+.app-sidebar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.app-sidebar::before {
+    border: 1px solid rgba(255, 204, 112, 0.20);
+    box-shadow:
+        0 0 0 1px rgba(255, 184, 84, 0.08),
+        0 0 14px rgba(255, 184, 84, 0.08);
+    opacity: 0.95;
+}
+
+.app-sidebar::after {
+    width: 42px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 214, 138, 0.00) 0%,
+        rgba(255, 214, 138, 0.55) 35%,
+        rgba(255, 186, 82, 0.95) 55%,
+        rgba(255, 223, 150, 0.65) 75%,
+        rgba(255, 214, 138, 0.00) 100%
+    );
+    box-shadow:
+        0 0 10px rgba(255, 189, 86, 0.35),
+        0 0 20px rgba(255, 189, 86, 0.14);
+    /* Rounded rectangular orbit path constrained to sidebar perimeter */
+    offset-path: inset(1px round 22px);
+    offset-distance: 0%;
+    offset-rotate: auto;
+    will-change: offset-distance;
+    animation: sidebar-border-orbit 7.8s linear infinite;
+}
+
+.app-sidebar > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes sidebar-border-orbit {
+    to { offset-distance: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-sidebar::after {
+        animation: none;
+    }
+}
 
 /* Responsive Transitions */
 @media (max-width: 1280px) {
@@ -620,7 +758,12 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding: 1.25rem 1rem;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: none;
 }
+.sidebar-nav-v2::-webkit-scrollbar { display: none; }
 
 .sidebar-v2-link {
     display: flex;
