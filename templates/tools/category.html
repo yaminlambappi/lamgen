@@ -332,40 +332,86 @@
     .ct-card-icon { width: 30px; height: 30px; font-size: 0.85rem; border-radius: 9px; }
     .ct-card-name { font-size: 0.78rem; }
 }
+
+/* ── SEO Landing Content ── */
+.cat-seo-wrap {
+    display: flex; flex-direction: column; gap: 1rem;
+    margin-top: 2rem; padding-top: 2rem;
+    border-top: 1px solid rgba(130,120,255,0.12);
+}
+.cat-seo-section {
+    background: var(--lg-card-bg); border: 1px solid var(--lg-card-border);
+    border-radius: 16px; padding: 1.35rem 1.5rem; box-shadow: var(--lg-shadow-sm);
+}
+.cat-seo-section h2 {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    color: var(--lg-text); margin: 0 0 0.75rem;
+    display: flex; align-items: center; gap: 8px;
+}
+.cat-seo-section h2 i { color: var(--cat-color); font-size: 0.9rem; }
+.cat-seo-section p { font-size: 0.86rem; color: var(--lg-text-muted); line-height: 1.65; margin: 0 0 0.5rem; }
+.cat-seo-section p:last-child { margin-bottom: 0; }
+.cat-featured-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.cat-featured-card {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: rgba(100,90,255,0.06); border: 1px solid rgba(130,120,255,0.14);
+    border-radius: 12px; text-decoration: none; color: var(--lg-text); transition: all 0.18s;
+}
+.cat-featured-card:hover { background: rgba(100,90,255,0.12); border-color: rgba(140,130,255,0.26); transform: translateY(-1px); }
+.cat-featured-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.cat-featured-name { font-size: 0.82rem; font-weight: 600; color: var(--lg-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cat-featured-desc { font-size: 0.72rem; color: var(--lg-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.cat-trust-bar {
+    display: flex; flex-wrap: wrap; gap: 10px; padding: 1rem 1.25rem;
+    background: rgba(100,90,255,0.05); border: 1px solid rgba(130,120,255,0.12);
+    border-radius: 14px; align-items: center; justify-content: center;
+}
+.cat-trust-item { display: flex; align-items: center; gap: 6px; font-size: 0.74rem; color: var(--lg-text-helper); font-weight: 500; }
+.cat-trust-item i { color: var(--lg-cyan); font-size: 0.78rem; }
+@media (max-width: 640px) {
+    .cat-seo-wrap { margin-top: 1.5rem; padding-top: 1.5rem; }
+    .cat-seo-section { padding: 1rem; }
+    .cat-featured-grid { grid-template-columns: 1fr; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="cat-shell">
 
-    <!-- Header -->
-    <header class="cat-header">
+    <!-- ── SEO Schemas ── -->
+    {% if breadcrumb_schema %}<script type="application/ld+json">{{ breadcrumb_schema|safe }}</script>{% endif %}
+
+    <!-- ── Category Header ── -->
+    <header class="cat-header" itemscope itemtype="https://schema.org/CollectionPage">
+        <meta itemprop="name" content="{{ category.name }} — Free Online Tools">
+        <meta itemprop="description" content="{{ category.description|default:category.short_desc }}">
         <div class="cat-header-left">
-            <div class="cat-header-icon"><i class="{{ category.icon }}"></i></div>
+            <div class="cat-header-icon" aria-hidden="true"><i class="{{ category.icon }}"></i></div>
             <div class="cat-header-text">
                 <h1>{{ category.name }}</h1>
-                <p>{{ category.description|default:category.short_desc|truncatechars:100 }}</p>
+                <p>{{ category.description|default:category.short_desc|truncatechars:120 }}</p>
             </div>
         </div>
         <div class="cat-header-right">
-            <span class="cat-tool-count">{{ tools|length }} tools</span>
+            <span class="cat-tool-count">{{ tool_count|default:tools|length }} tools</span>
             <a href="{% url 'tools:index' %}" class="cat-back-link">← All Tools</a>
         </div>
     </header>
 
-    <!-- Controls -->
+    <!-- ── Search + Filter Controls ── -->
     <div class="cat-controls">
         <div class="cat-search-wrap">
-            <i class="bi bi-search cat-search-icon"></i>
+            <i class="bi bi-search cat-search-icon" aria-hidden="true"></i>
             <input type="text"
                    id="catSearch"
                    class="cat-search"
-                   placeholder="Search {{ tools|length }} tools…"
+                   placeholder="Search {{ tool_count|default:tools|length }} {{ category.name|lower }} tools…"
                    autocomplete="off"
                    aria-label="Search tools in {{ category.name }}">
         </div>
         {% if tool_groups|length > 1 %}
-        <div class="group-pills" id="groupPills">
+        <div class="group-pills" id="groupPills" role="group" aria-label="Filter by type">
             <button class="group-pill active" data-group="all">All</button>
             {% for group_name, tools_list in tool_groups %}
             <button class="group-pill" data-group="{{ forloop.counter }}">{{ group_name }}</button>
@@ -374,11 +420,49 @@
         {% endif %}
     </div>
 
-    <!-- Meta -->
-    <div class="cat-meta" id="catMeta">{{ tools|length }} tools</div>
+    <!-- ── Results Meta ── -->
+    <div class="cat-meta" id="catMeta" aria-live="polite">{{ tool_count|default:tools|length }} tools</div>
 
-    <!-- Grid -->
-    <div class="cat-tool-grid" id="catGrid" role="list"></div>
+    <!-- ── Tool Grid ── -->
+    <div class="cat-tool-grid" id="catGrid" role="list" aria-label="{{ category.name }} tools"></div>
+
+    <!-- ── SEO Landing Content ── -->
+    <div class="cat-seo-wrap">
+
+        <section class="cat-seo-section" aria-labelledby="cat-about-heading">
+            <h2 id="cat-about-heading"><i class="{{ category.icon }}"></i> About {{ category.name }}</h2>
+            <p>{{ category.description|default:category.short_desc }} All {{ tool_count|default:tools|length }} tools are completely free, browser-based, and require no signup or installation. Everything runs locally in your browser for maximum privacy and speed.</p>
+            <p>Whether you're a professional, student, or hobbyist, these tools are designed to save you time and deliver instant, accurate results. No ads, no paywalls, no data collection — ever.</p>
+        </section>
+
+        {% if featured_tools %}
+        <section class="cat-seo-section" aria-labelledby="cat-featured-heading">
+            <h2 id="cat-featured-heading"><i class="bi bi-star"></i> Featured {{ category.name }}</h2>
+            <div class="cat-featured-grid">
+                {% for tool in featured_tools %}
+                <a href="{{ tool.get_absolute_url }}" class="cat-featured-card">
+                    <div class="cat-featured-icon" style="background:{{ category.color_from }}18;border:1px solid {{ category.color_from }}33;color:{{ category.color_from }};">
+                        <i class="{{ tool.icon }}"></i>
+                    </div>
+                    <div>
+                        <div class="cat-featured-name">{{ tool.name }}</div>
+                        <div class="cat-featured-desc">{{ tool.short_desc|truncatechars:60 }}</div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <div class="cat-trust-bar" aria-label="Trust indicators">
+            <div class="cat-trust-item"><i class="bi bi-cpu"></i> Runs in your browser</div>
+            <div class="cat-trust-item"><i class="bi bi-shield-lock"></i> Zero data collection</div>
+            <div class="cat-trust-item"><i class="bi bi-lightning-charge"></i> Instant results</div>
+            <div class="cat-trust-item"><i class="bi bi-person-x"></i> No account needed</div>
+            <div class="cat-trust-item"><i class="bi bi-gift"></i> Always free</div>
+        </div>
+
+    </div>
 
 </div>
 
@@ -395,13 +479,17 @@
 {% block tool_js %}
 <script>
 (function() {
-    const ALL = JSON.parse(document.getElementById('catToolData').textContent);
+    const dataEl = document.getElementById('catToolData');
+    if (!dataEl) return;
+    const ALL = JSON.parse(dataEl.textContent);
     let query = '';
     let activeGroup = 'all';
 
+    // Guard: elements must exist before attaching listeners
     const grid     = document.getElementById('catGrid');
     const metaEl   = document.getElementById('catMeta');
     const searchEl = document.getElementById('catSearch');
+    if (!searchEl || !grid || !metaEl) return;
 
     const groupMap = {};
     {% for group_name, tools_list in tool_groups %}
