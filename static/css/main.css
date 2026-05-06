@@ -105,6 +105,13 @@
     --field-shadow-focus: var(--lg-field-shadow-focus);
     --surface-2: var(--lg-surface-2);
     --surface-3: var(--lg-surface-3);
+
+    /* ── Responsive breakpoints ── */
+    --breakpoint-xs: 320px;
+    --breakpoint-sm: 480px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
 }
 
 /* ================================================================
@@ -120,11 +127,15 @@ html, body {
     font-size: 15px;
     line-height: 1.6;
     overflow-x: hidden;
+    width: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Subtle indigo body tint so even the base feels atmospheric */
     background-image: radial-gradient(ellipse 100% 50% at 50% 0%, rgba(100,90,255,0.12) 0%, transparent 65%);
 }
+
+/* Ensure no horizontal scroll across any platform */
+html { overflow-x: hidden; width: 100%; height: 100%; }
 
 /* ================================================================
    CINEMATIC BACKGROUND ENVIRONMENT
@@ -368,13 +379,19 @@ html, body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.06);
     transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
     cursor: text;
+    user-select: none;
 }
 .global-search-pill:hover,
 .global-search-pill:focus-within {
     background: rgba(12,10,30,0.92);
     border-color: rgba(139,127,255,0.45);
     box-shadow: 0 8px 28px rgba(0,0,12,0.40), 0 0 0 3px rgba(139,127,255,0.14);
-    width: 440px;
+}
+@media (min-width: 641px) {
+    .global-search-pill:hover,
+    .global-search-pill:focus-within {
+        width: 440px;
+    }
 }
 .global-search-pill input {
     background: transparent;
@@ -531,9 +548,11 @@ html, body {
     gap: 2rem;
     min-height: calc(100vh - 100px);
     max-width: 1440px;
+    width: 100%;
     margin: 0 auto;
     padding: 56px 1.5rem 56px;
     perspective: 2000px;
+    box-sizing: border-box;
 }
 
 /* Spatial panels — real depth, real contrast */
@@ -636,9 +655,9 @@ html, body {
     .tools-actions { display: none; }
 }
 @media (max-width: 992px) {
-    .tools-shell { grid-template-columns: 1fr; padding: 54px 0.9rem 92px; overflow-x: hidden; }
+    .tools-shell { grid-template-columns: 1fr; padding: 54px 0.9rem 92px; overflow-x: hidden; width: 100%; }
     .tools-sidebar { display: none; }
-    .tools-main { transform: none; min-width: 0; max-width: 100vw; }
+    .tools-main { transform: none; min-width: 0; max-width: 100%; width: 100%; }
 }
 
 /* Dock items */
@@ -1332,5 +1351,49 @@ textarea.form-control { resize: vertical; }
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         box-shadow: 0 12px 32px rgba(0,0,0,0.40);
+    }
+}
+
+/* ================================================================
+   RESPONSIVE UTILITIES
+   ================================================================ */
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1.5rem;
+}
+.table-responsive::-webkit-scrollbar {
+    height: 4px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--lg-border-2);
+    border-radius: 4px;
+}
+
+/* Fluid Typography */
+h1 { font-size: clamp(1.8rem, 5vw, 3.5rem); }
+h2 { font-size: clamp(1.4rem, 4vw, 2.2rem); }
+h3 { font-size: clamp(1.1rem, 3vw, 1.6rem); }
+
+@media (max-width: 480px) {
+    .tools-shell {
+        padding: 40px 0.75rem 80px;
+    }
+    .spatial-panel {
+        padding: 1.25rem 1rem;
+        border-radius: 18px;
+    }
+}
+
+/* Touch Usability */
+@media (max-pointer: coarse) {
+    .nav-action-btn, .profile-btn, .dock-item {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    input, select, textarea {
+        font-size: 16px !important; /* Prevent iOS zoom */
     }
 }

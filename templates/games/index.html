@@ -14,12 +14,16 @@
     }
     .games-hero h1 {
         font-family: 'Syne', sans-serif;
-        font-size: 3rem;
+        font-size: clamp(2rem, 8vw, 3rem);
         font-weight: 800;
         margin-bottom: 12px;
         background: linear-gradient(135deg, #fff 0%, var(--lg-violet-bright) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        line-height: 1.1;
+    }
+    @media (max-width: 480px) {
+        .games-hero { padding: 2.5rem 1rem; border-radius: 20px; }
     }
     .games-hero p {
         font-size: 1.1rem;
@@ -29,8 +33,12 @@
     }
     .games-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
         gap: 1.5rem;
+    }
+    @media (max-width: 480px) {
+        .games-grid { gap: 1rem; }
+        .game-card { padding: 1.5rem; }
     }
     .game-card {
         background: var(--lg-card-bg);
