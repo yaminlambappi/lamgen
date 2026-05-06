@@ -19,8 +19,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-change-me-in-production'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = env('ALLOWED_HOSTS')
-
+ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
