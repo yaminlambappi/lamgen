@@ -1,0 +1,155 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.dice-types{display:flex;gap:8px;flex-wrap:wrap}
+.dice-btn{padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:.9rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif;font-weight:600}
+.dice-btn.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.dice-btn:hover{background:rgba(255,255,255,.08)}
+.dice-results{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding:24px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:16px;min-height:80px}
+.die{width:60px;height:60px;background:rgba(108,99,255,.1);border:2px solid rgba(108,99,255,.3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);animation:die-roll .3s ease-out}
+@keyframes die-roll{0%{transform:rotate(-20deg) scale(.7);opacity:.3}100%{transform:rotate(0) scale(1);opacity:1}}
+.die.max{border-color:#00F5D4;color:#00F5D4;background:rgba(0,245,212,.1)}
+.die.min{border-color:#FF6B6B;color:#FF6B6B;background:rgba(255,107,107,.1)}
+.total-display{text-align:center;font-size:2.5rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent)}
+.total-label{text-align:center;font-size:.8rem;color:var(--muted);margin-top:4px}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:.82rem}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Dice Type</div>
+    <div class="dice-types">
+      <button class="dice-btn" onclick="selectDice(4,this)">d4</button>
+      <button class="dice-btn active" onclick="selectDice(6,this)">d6</button>
+      <button class="dice-btn" onclick="selectDice(8,this)">d8</button>
+      <button class="dice-btn" onclick="selectDice(10,this)">d10</button>
+      <button class="dice-btn" onclick="selectDice(12,this)">d12</button>
+      <button class="dice-btn" onclick="selectDice(20,this)">d20</button>
+      <button class="dice-btn" onclick="selectDice(100,this)">d100</button>
+      <button class="dice-btn" onclick="selectDice('custom',this)">Custom</button>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Number of Dice</div>
+      <input type="number" class="num-input" id="dice-count" value="1" min="1" max="20">
+    </div>
+    <div id="custom-sides-wrap" style="display:none">
+      <div class="tool-label">Custom Sides</div>
+      <input type="number" class="num-input" id="custom-sides" value="6" min="2" max="1000" placeholder="Number of sides">
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="rollDice()"><i class="bi bi-dice-5"></i> Roll!</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="results-section" style="display:none">
+    <div class="dice-results" id="dice-display"></div>
+    <div style="margin-top:12px">
+      <div class="total-display" id="total-display">—</div>
+      <div class="total-label" id="total-label">Total</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="tool-label">Roll History</div>
+    <div id="roll-history" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+let selectedSides = 6;
+let rollHistory = [];
+
+function selectDice(sides, btn) {
+  selectedSides = sides;
+  document.querySelectorAll('.dice-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('custom-sides-wrap').style.display = sides === 'custom' ? 'block' : 'none';
+}
+
+function cryptoRandInt(max) {
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return (arr[0] % max) + 1;
+}
+
+function rollDice() {
+  let sides = selectedSides === 'custom' ? parseInt(document.getElementById('custom-sides').value) : selectedSides;
+  if (!sides || sides < 2) { showErr('status', 'Dice must have at least 2 sides'); return; }
+  const count = Math.min(20, Math.max(1, parseInt(document.getElementById('dice-count').value) || 1));
+  hideStatus('status');
+
+  const results = [];
+  for (let i = 0; i < count; i++) results.push(cryptoRandInt(sides));
+
+  const maxVal = Math.max(...results);
+  const minVal = Math.min(...results);
+  const total = results.reduce((a,b) => a+b, 0);
+
+  const display = document.getElementById('dice-display');
+  display.innerHTML = results.map(r => {
+    const cls = r === maxVal && count > 1 ? 'die max' : r === minVal && count > 1 ? 'die min' : 'die';
+    return `<div class="${cls}">${r}</div>`;
+  }).join('');
+
+  document.getElementById('total-display').textContent = total;
+  document.getElementById('total-label').textContent = count > 1 ? `Total of ${count}d${sides}` : `d${sides} result`;
+  document.getElementById('results-section').style.display = 'block';
+
+  rollHistory.unshift({notation: `${count}d${sides}`, results, total, time: new Date().toLocaleTimeString()});
+  if (rollHistory.length > 15) rollHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const container = document.getElementById('roll-history');
+  if (!rollHistory.length) { container.innerHTML = ''; return; }
+  container.innerHTML = rollHistory.map(h => `
+    <div class="history-item">
+      <span style="color:var(--primary);font-weight:600">${h.notation}</span>
+      <span style="color:var(--muted)">[${h.results.join(', ')}]</span>
+      <span style="color:var(--accent);font-weight:700">= ${h.total}</span>
+      <span style="color:var(--muted);font-size:.72rem">${h.time}</span>
+    </div>
+  `).join('');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') rollDice();
+  if (e.code === 'Space' && e.target.tagName !== 'INPUT') { e.preventDefault(); rollDice(); }
+});
+</script>
+{% endblock %}

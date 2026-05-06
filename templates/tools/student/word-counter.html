@@ -1,0 +1,127 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:220px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.result-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;text-align:center}
+.result-big{font-size:2rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);margin-bottom:.25rem}
+.result-label{font-size:.75rem;color:var(--muted)}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+@media(max-width:640px){.grid-3,.grid-2{grid-template-columns:1fr 1fr}}
+.freq-item{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(255,255,255,.03);border-radius:6px;font-size:.82rem}
+.freq-word{color:var(--text)}
+.freq-count{color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace}
+.freq-bar{height:3px;background:rgba(108,99,255,.2);border-radius:2px;margin-top:2px}
+.freq-fill{height:100%;background:var(--primary);border-radius:2px}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Text</div>
+    <textarea class="tool-code" id="text-input" placeholder="Start typing or paste your text here..." oninput="countWords()"></textarea>
+  </div>
+
+  <div class="grid-3">
+    <div class="result-card"><div class="result-big" id="word-count">0</div><div class="result-label">Words</div></div>
+    <div class="result-card"><div class="result-big" id="char-count">0</div><div class="result-label">Characters</div></div>
+    <div class="result-card"><div class="result-big" id="char-no-space">0</div><div class="result-label">Chars (no spaces)</div></div>
+  </div>
+
+  <div class="grid-3">
+    <div class="result-card"><div class="result-big" id="sent-count">0</div><div class="result-label">Sentences</div></div>
+    <div class="result-card"><div class="result-big" id="para-count">0</div><div class="result-label">Paragraphs</div></div>
+    <div class="result-card"><div class="result-big" id="line-count">0</div><div class="result-label">Lines</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="result-card">
+      <div class="result-big" id="read-time">0 min</div>
+      <div class="result-label">Reading Time (200 wpm)</div>
+    </div>
+    <div class="result-card">
+      <div class="result-big" id="speak-time">0 min</div>
+      <div class="result-label">Speaking Time (130 wpm)</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="result-card">
+      <div class="result-big" id="unique-words">0</div>
+      <div class="result-label">Unique Words</div>
+    </div>
+    <div class="result-card">
+      <div class="result-big" id="avg-word-len">0</div>
+      <div class="result-label">Avg Word Length</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="tool-label">Most Frequent Words</div>
+    <div id="freq-list" style="display:flex;flex-direction:column;gap:4px"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const STOP_WORDS = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','this','that','these','those','i','you','he','she','it','we','they','me','him','her','us','them','my','your','his','its','our','their','what','which','who','when','where','why','how','all','each','every','both','few','more','most','other','some','such','no','not','only','same','so','than','too','very','just','as','if','then','there','here','about','into','through','during','before','after','above','below','between','out','off','over','under','again','further','once','any','also','up','down','now']);
+
+function formatTime(words, wpm) {
+  const mins = words / wpm;
+  if (mins < 1) return Math.round(mins * 60) + ' sec';
+  return Math.round(mins) + ' min';
+}
+
+function countWords() {
+  const text = document.getElementById('text-input').value;
+  const words = text.trim() ? text.trim().split(/\s+/) : [];
+  const wordCount = words.length;
+  const charCount = text.length;
+  const charNoSpace = text.replace(/\s/g,'').length;
+  const sentences = text.trim() ? (text.match(/[^.!?]+[.!?]+/g) || [text]).length : 0;
+  const paragraphs = text.trim() ? text.split(/\n\s*\n/).filter(p => p.trim()).length : 0;
+  const lines = text.split('\n').length;
+
+  document.getElementById('word-count').textContent = wordCount.toLocaleString();
+  document.getElementById('char-count').textContent = charCount.toLocaleString();
+  document.getElementById('char-no-space').textContent = charNoSpace.toLocaleString();
+  document.getElementById('sent-count').textContent = sentences;
+  document.getElementById('para-count').textContent = paragraphs;
+  document.getElementById('line-count').textContent = lines;
+  document.getElementById('read-time').textContent = formatTime(wordCount, 200);
+  document.getElementById('speak-time').textContent = formatTime(wordCount, 130);
+
+  const uniqueWords = new Set(words.map(w => w.toLowerCase().replace(/[^a-z]/g,''))).size;
+  document.getElementById('unique-words').textContent = uniqueWords;
+  const avgLen = words.length ? (words.reduce((a,w) => a + w.replace(/[^a-zA-Z]/g,'').length, 0) / words.length).toFixed(1) : 0;
+  document.getElementById('avg-word-len').textContent = avgLen;
+
+  // Frequency
+  const freq = {};
+  for (const w of words) {
+    const clean = w.toLowerCase().replace(/[^a-z]/g,'');
+    if (clean.length >= 3 && !STOP_WORDS.has(clean)) freq[clean] = (freq[clean]||0)+1;
+  }
+  const top10 = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const maxFreq = top10[0]?.[1] || 1;
+  const freqEl = document.getElementById('freq-list');
+  freqEl.innerHTML = top10.map(([w,c]) => `
+    <div class="freq-item">
+      <span class="freq-word">${w}</span>
+      <div style="flex:1;margin:0 12px">
+        <div class="freq-bar"><div class="freq-fill" style="width:${(c/maxFreq)*100}%"></div></div>
+      </div>
+      <span class="freq-count">${c}</span>
+    </div>
+  `).join('');
+}
+</script>
+{% endblock %}

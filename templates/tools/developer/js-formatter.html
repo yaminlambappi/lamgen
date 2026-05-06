@@ -1,0 +1,231 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:220px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.tool-code.out{background:rgba(0,0,0,.4)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.info{display:flex;background:rgba(108,99,255,.08);color:var(--primary);border:1px solid rgba(108,99,255,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.4rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.opt-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
+.opt-label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);cursor:pointer}
+.opt-label input{accent-color:var(--primary)}
+.select-input{padding:7px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;cursor:pointer}
+.select-input:focus{border-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Input JavaScript</div>
+    <textarea class="tool-code" id="jsIn" placeholder="function hello(name){return 'Hello, '+name+'!';}const greet=hello('World');console.log(greet);"></textarea>
+    <div class="chips">
+      <span class="chip" onclick="loadEx('func')">Functions</span>
+      <span class="chip" onclick="loadEx('class')">Class</span>
+      <span class="chip" onclick="loadEx('async')">Async/Await</span>
+    </div>
+  </div>
+
+  <div class="opt-row">
+    <div>
+      <span style="font-size:.85rem;color:var(--muted);margin-right:.5rem">Indent:</span>
+      <select class="select-input" id="indentSize">
+        <option value="2" selected>2 spaces</option>
+        <option value="4">4 spaces</option>
+        <option value="tab">Tab</option>
+      </select>
+    </div>
+    <div>
+      <span style="font-size:.85rem;color:var(--muted);margin-right:.5rem">Quotes:</span>
+      <select class="select-input" id="quoteStyle">
+        <option value="single" selected>Single</option>
+        <option value="double">Double</option>
+        <option value="keep">Keep as-is</option>
+      </select>
+    </div>
+    <label class="opt-label"><input type="checkbox" id="addSemis" checked> Ensure semicolons</label>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" id="btnFormat" onclick="formatJS()"><i class="bi bi-code-slash"></i> Format JS</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Formatted Output</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" id="btnCopy" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <textarea class="tool-code out" id="jsOut" readonly placeholder="Formatted JavaScript will appear here..."></textarea>
+    <div class="meta-row" id="stats"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<!-- Load Prettier for full JS formatting -->
+<script src="https://unpkg.com/prettier@3.3.3/standalone.js"></script>
+<script src="https://unpkg.com/prettier@3.3.3/plugins/babel.js"></script>
+<script src="https://unpkg.com/prettier@3.3.3/plugins/estree.js"></script>
+<script>
+let prettierReady = false;
+
+const EXAMPLES = {
+  func: `function calculateTotal(items,taxRate){let subtotal=0;for(const item of items){subtotal+=item.price*item.qty;}const tax=subtotal*taxRate/100;return{subtotal,tax,total:subtotal+tax};}function formatCurrency(amount,currency='USD'){return new Intl.NumberFormat('en-US',{style:'currency',currency}).format(amount);}`,
+  class: `class EventEmitter{constructor(){this.events={};}on(event,listener){if(!this.events[event]){this.events[event]=[];}this.events[event].push(listener);return this;}emit(event,...args){if(this.events[event]){this.events[event].forEach(listener=>listener(...args));}return this;}off(event,listener){if(this.events[event]){this.events[event]=this.events[event].filter(l=>l!==listener);}return this;}}`,
+  async: `async function fetchUserData(userId){try{const response=await fetch(\`https://api.example.com/users/\${userId}\`);if(!response.ok){throw new Error(\`HTTP error! status: \${response.status}\`);}const data=await response.json();return{success:true,data};}catch(error){console.error('Failed to fetch user:',error);return{success:false,error:error.message};}}`
+};
+
+function loadEx(key) {
+  document.getElementById('jsIn').value = EXAMPLES[key];
+  formatJS();
+}
+
+async function formatJS() {
+  const raw = document.getElementById('jsIn').value.trim();
+  if (!raw) { showErr('st','No input provided'); return; }
+  hideStatus('st');
+
+  const indentSize = document.getElementById('indentSize').value;
+  const quoteStyle = document.getElementById('quoteStyle').value;
+  const addSemis = document.getElementById('addSemis').checked;
+
+  // Try Prettier first
+  if (typeof prettier !== 'undefined' && typeof prettierPlugins !== 'undefined') {
+    try {
+      const formatted = await prettier.format(raw, {
+        parser: 'babel',
+        plugins: prettierPlugins,
+        tabWidth: indentSize === 'tab' ? 2 : parseInt(indentSize),
+        useTabs: indentSize === 'tab',
+        singleQuote: quoteStyle === 'single',
+        semi: addSemis,
+        printWidth: 80
+      });
+      document.getElementById('jsOut').value = formatted;
+      const lines = formatted.split('\n').length;
+      document.getElementById('stats').innerHTML = `<span><i class="bi bi-list-ol"></i> ${lines} lines</span><span><i class="bi bi-file-earmark"></i> ${formatted.length} chars</span><span style="color:var(--accent)"><i class="bi bi-check-circle"></i> Formatted with Prettier</span>`;
+      showOk('st','Formatted with Prettier');
+      return;
+    } catch(e) {
+      // Fall through to basic formatter
+    }
+  }
+
+  // Basic formatter fallback
+  try {
+    const formatted = basicFormat(raw, indentSize, quoteStyle, addSemis);
+    document.getElementById('jsOut').value = formatted;
+    const lines = formatted.split('\n').length;
+    document.getElementById('stats').innerHTML = `<span><i class="bi bi-list-ol"></i> ${lines} lines</span><span><i class="bi bi-file-earmark"></i> ${formatted.length} chars</span>`;
+    showOk('st','Formatted (basic mode)');
+  } catch(e) {
+    showErr('st', 'Error: ' + e.message);
+  }
+}
+
+function basicFormat(code, indentSize, quoteStyle, addSemis) {
+  const indent = indentSize === 'tab' ? '\t' : ' '.repeat(parseInt(indentSize));
+  let result = '';
+  let depth = 0;
+  let i = 0;
+  let inString = false;
+  let stringChar = '';
+
+  // Normalize quotes if needed
+  if (quoteStyle !== 'keep') {
+    const target = quoteStyle === 'single' ? "'" : '"';
+    const other = quoteStyle === 'single' ? '"' : "'";
+    // Simple quote replacement (won't handle all edge cases)
+    code = code.replace(new RegExp(other + '([^' + other + '\\\\]*(\\\\.[^' + other + '\\\\]*)*)' + other, 'g'), (m, inner) => target + inner + target);
+  }
+
+  // Remove trailing whitespace from lines
+  code = code.split('\n').map(l => l.trimEnd()).join('\n');
+
+  // Re-indent based on braces
+  const lines = code.split('\n');
+  const out = [];
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) { out.push(''); return; }
+    // Decrease indent for closing braces
+    if (/^[}\])]/.test(trimmed)) depth = Math.max(0, depth - 1);
+    out.push(indent.repeat(depth) + trimmed);
+    // Increase indent after opening braces
+    const opens = (trimmed.match(/[{[(]/g) || []).length;
+    const closes = (trimmed.match(/[}\])]/g) || []).length;
+    depth = Math.max(0, depth + opens - closes);
+  });
+
+  let formatted = out.join('\n');
+
+  // Ensure semicolons at end of statements (basic)
+  if (addSemis) {
+    formatted = formatted.split('\n').map(line => {
+      const t = line.trim();
+      if (!t || t.endsWith('{') || t.endsWith('}') || t.endsWith(',') || t.endsWith(';') || t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return line;
+      if (/^(if|else|for|while|switch|try|catch|finally|function|class|=>)/.test(t)) return line;
+      return line + ';';
+    }).join('\n');
+  }
+
+  return formatted;
+}
+
+function copyOut() {
+  const v = document.getElementById('jsOut').value;
+  if (!v) return;
+  navigator.clipboard.writeText(v).then(() => {
+    const btn = document.getElementById('btnCopy');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function downloadOut() {
+  const v = document.getElementById('jsOut').value;
+  if (!v) return;
+  const blob = new Blob([v], {type:'text/javascript'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'formatted.js'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearAll() {
+  document.getElementById('jsIn').value = '';
+  document.getElementById('jsOut').value = '';
+  document.getElementById('stats').innerHTML = '';
+  hideStatus('st');
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatJS(); }
+});
+</script>
+{% endblock %}

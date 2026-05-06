@@ -1,0 +1,101 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border); }
+    .input-grp { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .input-grp label { color: var(--muted); font-size: 0.9rem; }
+    .input-num { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.5rem; border-radius: 6px; width: 80px; text-align: center; }
+    .select-type { background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.5rem; border-radius: 6px; outline: none; }
+    .btn-gen { background: var(--primary); color: #fff; padding: 0.6rem 1.5rem; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; margin-left: auto; }
+    .btn-gen:hover { background: #5a52d5; }
+    
+    .output-area { width: 100%; height: 400px; background: #0A0A0F; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem; line-height: 1.8; resize: none; outline: none; }
+    .action-bar { display: flex; justify-content: flex-end; margin-top: 1rem; }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="controls">
+    <div class="input-grp">
+        <label>Count:</label>
+        <input type="number" id="count" class="input-num" value="5" min="1" max="100">
+    </div>
+    <div class="input-grp">
+        <label>Type:</label>
+        <select id="type" class="select-type">
+            <option value="paragraphs">Paragraphs</option>
+            <option value="words">Words</option>
+            <option value="sentences">Sentences</option>
+        </select>
+    </div>
+    <div class="input-grp" style="margin-left: 1rem;">
+        <label><input type="checkbox" id="start-lorem" checked> Start with 'Lorem ipsum...'</label>
+    </div>
+    <button class="btn-gen" id="btn-gen">Generate</button>
+</div>
+
+<textarea id="output" class="output-area" readonly placeholder="Text will appear here..."></textarea>
+
+<div class="action-bar">
+    <button class="btn-ghost-nexus" id="btn-copy"><i class="bi bi-clipboard"></i> Copy Text</button>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const words = ["lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore", "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud", "exercitation", "ullamco", "laboris", "nisi", "ut", "aliquip", "ex", "ea", "commodo", "consequat", "duis", "aute", "irure", "dolor", "in", "reprehenderit", "in", "voluptate", "velit", "esse", "cillum", "dolore", "eu", "fugiat", "nulla", "pariatur", "excepteur", "sint", "occaecat", "cupidatat", "non", "proident", "sunt", "in", "culpa", "qui", "officia", "deserunt", "mollit", "anim", "id", "est", "laborum"];
+
+        function getWord() { return words[Math.floor(Math.random() * words.length)]; }
+        
+        function getSentence(startLorem) {
+            if(startLorem) return "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+            let len = Math.floor(Math.random() * 10) + 5;
+            let s = [];
+            for(let i=0; i<len; i++) s.push(getWord());
+            let res = s.join(" ") + ".";
+            return res.charAt(0).toUpperCase() + res.slice(1);
+        }
+        
+        function getParagraph(startLorem) {
+            let len = Math.floor(Math.random() * 5) + 3;
+            let p = [];
+            for(let i=0; i<len; i++) p.push(getSentence(i===0 && startLorem));
+            return p.join(" ");
+        }
+
+        function generate() {
+            let count = parseInt(document.getElementById('count').value) || 1;
+            let type = document.getElementById('type').value;
+            let start = document.getElementById('start-lorem').checked;
+            
+            let res = [];
+            if (type === 'paragraphs') {
+                for(let i=0; i<count; i++) res.push(getParagraph(i===0 && start));
+                document.getElementById('output').value = res.join("\n\n");
+            } else if (type === 'sentences') {
+                for(let i=0; i<count; i++) res.push(getSentence(i===0 && start));
+                document.getElementById('output').value = res.join(" ");
+            } else if (type === 'words') {
+                if(start) { res.push("Lorem", "ipsum"); count = Math.max(0, count-2); }
+                for(let i=0; i<count; i++) res.push(getWord());
+                document.getElementById('output').value = res.join(" ");
+            }
+        }
+
+        document.getElementById('btn-gen').addEventListener('click', generate);
+        
+        document.getElementById('btn-copy').addEventListener('click', async () => {
+            const val = document.getElementById('output').value;
+            if(!val) return;
+            await navigator.clipboard.writeText(val);
+            const btn = document.getElementById('btn-copy');
+            btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+            setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy Text', 2000);
+        });
+
+        generate(); // initial
+    });
+</script>
+{% endblock %}

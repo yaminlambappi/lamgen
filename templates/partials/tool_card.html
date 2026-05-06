@@ -1,0 +1,36 @@
+{% load tool_tags %}
+{% with is_bm=tool.slug|is_bookmarked:bookmarked_slugs %}
+<a href="{{ tool.get_absolute_url }}"
+   class="tool-card"
+   aria-label="{{ tool.name }}: {{ tool.short_desc }}"
+   style="display:flex; flex-direction:column; gap:10px; padding:1.1rem 1.15rem;
+          background:var(--lg-card-bg);
+          border:1px solid var(--lg-card-border);
+          border-radius:16px; text-decoration:none; color:var(--lg-text);
+          transition:transform 0.22s cubic-bezier(0.22,1,0.36,1), background 0.22s, border-color 0.22s, box-shadow 0.22s;
+          position:relative; overflow:hidden;
+          box-shadow:var(--lg-card-shadow);"
+   onmouseover="this.style.background='var(--lg-card-hover-bg)'; this.style.borderColor='var(--lg-card-hover-border)'; this.style.transform='translateY(-3px)'; this.style.boxShadow='var(--lg-card-hover-shadow)';"
+   onmouseout="this.style.background='var(--lg-card-bg)'; this.style.borderColor='var(--lg-card-border)'; this.style.transform='translateY(0)'; this.style.boxShadow='var(--lg-card-shadow)';">
+
+  <!-- Subtle category tint overlay -->
+  <div style="position:absolute; inset:0; background:linear-gradient(135deg, {{ tool.category.color_from }}06, transparent 60%); pointer-events:none;"></div>
+
+  {% if tool.is_new %}
+    <span style="position:absolute; top:10px; right:10px; font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; background:rgba(62,236,216,0.14); color:var(--lg-cyan); border:1px solid rgba(62,236,216,0.30); border-radius:50px; padding:2px 8px;">New</span>
+  {% elif tool.is_featured %}
+    <span style="position:absolute; top:10px; right:10px; font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; background:rgba(139,127,255,0.14); color:var(--lg-violet-bright); border:1px solid rgba(139,127,255,0.30); border-radius:50px; padding:2px 8px;">Featured</span>
+  {% endif %}
+
+  <div style="display:flex; align-items:center; gap:10px;">
+    <div style="width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.15rem; flex-shrink:0; background:{{ tool.category.color_from }}18; border:1px solid {{ tool.category.color_from }}33;">
+      <i class="{{ tool.icon }}" style="color:{{ tool.category.color_from }};"></i>
+    </div>
+    <div style="min-width:0;">
+      <div style="font-weight:700; font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--lg-text);">{{ tool.name }}</div>
+    </div>
+  </div>
+
+  <p style="font-size:0.78rem; color:var(--lg-text-muted); line-height:1.45; margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">{{ tool.short_desc }}</p>
+</a>
+{% endwith %}

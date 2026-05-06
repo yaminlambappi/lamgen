@@ -1,0 +1,180 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.result-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;text-align:center}
+.result-big{font-size:2.5rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);margin-bottom:.25rem}
+.result-label{font-size:.8rem;color:var(--muted)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.num-input,.select-input,.text-input{width:100%;padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.course-table{width:100%;border-collapse:collapse}
+.course-table th{text-align:left;padding:8px 10px;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.course-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04)}
+.course-table tr:last-child td{border-bottom:none}
+.mode-tabs{display:flex;gap:4px;margin-bottom:.5rem}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.82rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">GPA Scale</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setScale('4.0',this)">4.0 Scale</button>
+      <button class="mode-tab" onclick="setScale('5.0',this)">5.0 Scale</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="tool-label">Courses</div>
+    <div style="overflow-x:auto">
+      <table class="course-table">
+        <thead><tr><th>Course Name</th><th>Grade</th><th>Credits</th><th></th></tr></thead>
+        <tbody id="course-tbody"></tbody>
+      </table>
+    </div>
+    <button class="btn-sm" onclick="addRow()" style="margin-top:8px"><i class="bi bi-plus"></i> Add Course</button>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="calcGPA()"><i class="bi bi-calculator"></i> Calculate GPA</button>
+    <button class="btn-sm" onclick="exportGPA()"><i class="bi bi-download"></i> Export</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="gpa-results" style="display:none">
+    <div class="grid-3">
+      <div class="result-card"><div class="result-big" id="gpa-val">—</div><div class="result-label">GPA</div></div>
+      <div class="result-card"><div class="result-big" id="total-credits">—</div><div class="result-label">Total Credits</div></div>
+      <div class="result-card"><div style="font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:.25rem" id="letter-grade">—</div><div class="result-label">Letter Grade</div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+let scale = '4.0';
+let rowCount = 0;
+
+const GRADES_4 = {'A+':4.0,'A':4.0,'A-':3.7,'B+':3.3,'B':3.0,'B-':2.7,'C+':2.3,'C':2.0,'C-':1.7,'D+':1.3,'D':1.0,'D-':0.7,'F':0.0};
+const GRADES_5 = {'A+':5.0,'A':5.0,'A-':4.7,'B+':4.3,'B':4.0,'B-':3.7,'C+':3.3,'C':3.0,'C-':2.7,'D+':2.3,'D':2.0,'D-':1.7,'F':0.0};
+
+function setScale(s, btn) {
+  scale = s;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  // Update all grade selects
+  document.querySelectorAll('.grade-select').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = gradeOptions();
+    sel.value = cur;
+  });
+}
+
+function gradeOptions() {
+  const grades = scale === '4.0' ? GRADES_4 : GRADES_5;
+  return Object.keys(grades).map(g => `<option value="${g}">${g}</option>`).join('');
+}
+
+function addRow() {
+  rowCount++;
+  const tbody = document.getElementById('course-tbody');
+  const tr = document.createElement('tr');
+  tr.id = 'row-' + rowCount;
+  tr.innerHTML = `
+    <td><input type="text" class="text-input" placeholder="Course ${rowCount}" style="min-width:120px"></td>
+    <td><select class="select-input grade-select" style="min-width:80px">${gradeOptions()}</select></td>
+    <td><input type="number" class="num-input" value="3" min="0.5" max="12" step="0.5" style="min-width:70px"></td>
+    <td><button class="btn-sm" style="padding:5px 8px;color:#FF6B6B" onclick="this.closest('tr').remove()"><i class="bi bi-trash"></i></button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function calcGPA() {
+  const rows = document.querySelectorAll('#course-tbody tr');
+  if (!rows.length) { showErr('status', 'Add at least one course'); return; }
+  const grades = scale === '4.0' ? GRADES_4 : GRADES_5;
+  let totalPoints = 0, totalCredits = 0;
+  for (const row of rows) {
+    const grade = row.querySelector('.grade-select').value;
+    const credits = parseFloat(row.querySelectorAll('input')[1].value) || 0;
+    totalPoints += grades[grade] * credits;
+    totalCredits += credits;
+  }
+  if (!totalCredits) { showErr('status', 'Total credits cannot be zero'); return; }
+  const gpa = totalPoints / totalCredits;
+  document.getElementById('gpa-val').textContent = gpa.toFixed(2);
+  document.getElementById('total-credits').textContent = totalCredits;
+  let letter;
+  if (gpa >= 3.7) letter = 'A';
+  else if (gpa >= 3.3) letter = 'A-/B+';
+  else if (gpa >= 3.0) letter = 'B';
+  else if (gpa >= 2.7) letter = 'B-';
+  else if (gpa >= 2.3) letter = 'C+';
+  else if (gpa >= 2.0) letter = 'C';
+  else if (gpa >= 1.0) letter = 'D';
+  else letter = 'F';
+  document.getElementById('letter-grade').textContent = letter;
+  document.getElementById('gpa-results').style.display = 'block';
+  showOk('status', 'GPA calculated');
+}
+
+function exportGPA() {
+  const rows = document.querySelectorAll('#course-tbody tr');
+  if (!rows.length) return;
+  const grades = scale === '4.0' ? GRADES_4 : GRADES_5;
+  let csv = 'Course,Grade,Credits,Points\n';
+  for (const row of rows) {
+    const name = row.querySelector('input[type=text]').value || 'Course';
+    const grade = row.querySelector('.grade-select').value;
+    const credits = parseFloat(row.querySelectorAll('input')[1].value) || 0;
+    csv += `${name},${grade},${credits},${(grades[grade]*credits).toFixed(2)}\n`;
+  }
+  const gpaEl = document.getElementById('gpa-val');
+  if (gpaEl.textContent !== '—') csv += `\nGPA,${gpaEl.textContent}`;
+  downloadText(csv, 'gpa.csv', 'text/csv');
+}
+
+// Add 3 default rows
+for (let i = 0; i < 3; i++) addRow();
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') calcGPA();
+});
+</script>
+{% endblock %}

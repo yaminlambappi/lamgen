@@ -1,0 +1,195 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.meta-item{display:flex;align-items:center;gap:5px}
+.tabs-row{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.note-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.82rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px}
+.note-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.note-tab .del-tab{font-size:.7rem;opacity:.5;cursor:pointer;padding:0 2px}
+.note-tab .del-tab:hover{opacity:1;color:#FF6B6B}
+.note-area{width:100%;min-height:300px;padding:16px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.95rem;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.note-area:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.find-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.find-row input{flex:1;min-width:120px;padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none}
+.find-row input:focus{border-color:var(--primary)}
+.save-indicator{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:4px}
+.save-indicator.saved{color:var(--accent)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tabs-row" id="tabs-row">
+      <button class="btn-sm" onclick="addNote()" style="padding:6px 10px"><i class="bi bi-plus"></i></button>
+    </div>
+  </div>
+
+  <div>
+    <textarea class="note-area" id="note-area" placeholder="Start typing your note here...&#10;&#10;Auto-saves every 2 seconds." oninput="onNoteInput()"></textarea>
+  </div>
+
+  <div class="meta-row" id="note-stats">
+    <span class="meta-item"><i class="bi bi-file-text"></i> <span id="word-count">0</span> words</span>
+    <span class="meta-item"><i class="bi bi-fonts"></i> <span id="char-count">0</span> chars</span>
+    <span class="meta-item"><i class="bi bi-list"></i> <span id="line-count">0</span> lines</span>
+    <span class="save-indicator" id="save-indicator"><i class="bi bi-cloud-check"></i> Saved</span>
+  </div>
+
+  <div>
+    <div class="tool-label">Find & Replace</div>
+    <div class="find-row">
+      <input type="text" id="find-input" placeholder="Find...">
+      <input type="text" id="replace-input" placeholder="Replace with...">
+      <button class="btn-sm" onclick="findReplace()"><i class="bi bi-arrow-repeat"></i> Replace All</button>
+      <span id="replace-count" style="font-size:.78rem;color:var(--muted)"></span>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-sm" onclick="downloadNote()"><i class="bi bi-download"></i> Download .txt</button>
+    <button class="btn-sm" onclick="clearNote()" style="color:#FF6B6B"><i class="bi bi-trash"></i> Clear</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+let notes = JSON.parse(localStorage.getItem('notepad_notes') || 'null') || [{id:1,name:'Note 1',content:'',saved:Date.now()}];
+let activeId = notes[0].id;
+let saveTimer = null;
+let nextId = Math.max(...notes.map(n=>n.id)) + 1;
+
+function getNote(id) { return notes.find(n => n.id === id); }
+
+function renderTabs() {
+  const row = document.getElementById('tabs-row');
+  const addBtn = row.querySelector('.btn-sm');
+  row.innerHTML = '';
+  notes.forEach(n => {
+    const tab = document.createElement('div');
+    tab.className = 'note-tab' + (n.id === activeId ? ' active' : '');
+    tab.innerHTML = `<span onclick="switchNote(${n.id})">${n.name}</span>${notes.length > 1 ? `<span class="del-tab" onclick="deleteNote(${n.id})">✕</span>` : ''}`;
+    row.appendChild(tab);
+  });
+  row.appendChild(addBtn);
+}
+
+function switchNote(id) {
+  saveCurrentNote();
+  activeId = id;
+  const note = getNote(id);
+  document.getElementById('note-area').value = note ? note.content : '';
+  renderTabs();
+  updateStats();
+}
+
+function addNote() {
+  saveCurrentNote();
+  const note = {id: nextId++, name: 'Note ' + nextId, content: '', saved: Date.now()};
+  notes.push(note);
+  activeId = note.id;
+  document.getElementById('note-area').value = '';
+  renderTabs();
+  updateStats();
+  persistNotes();
+}
+
+function deleteNote(id) {
+  if (notes.length <= 1) return;
+  notes = notes.filter(n => n.id !== id);
+  if (activeId === id) activeId = notes[0].id;
+  switchNote(activeId);
+  persistNotes();
+}
+
+function saveCurrentNote() {
+  const note = getNote(activeId);
+  if (note) {
+    note.content = document.getElementById('note-area').value;
+    note.saved = Date.now();
+  }
+}
+
+function persistNotes() {
+  saveCurrentNote();
+  localStorage.setItem('notepad_notes', JSON.stringify(notes));
+  const ind = document.getElementById('save-indicator');
+  ind.className = 'save-indicator saved';
+  ind.innerHTML = '<i class="bi bi-cloud-check-fill"></i> Saved ' + new Date().toLocaleTimeString();
+}
+
+function onNoteInput() {
+  updateStats();
+  const ind = document.getElementById('save-indicator');
+  ind.className = 'save-indicator';
+  ind.innerHTML = '<i class="bi bi-cloud"></i> Unsaved...';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persistNotes, 2000);
+}
+
+function updateStats() {
+  const text = document.getElementById('note-area').value;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  const lines = text.split('\n').length;
+  document.getElementById('word-count').textContent = words;
+  document.getElementById('char-count').textContent = chars;
+  document.getElementById('line-count').textContent = lines;
+}
+
+function findReplace() {
+  const find = document.getElementById('find-input').value;
+  const replace = document.getElementById('replace-input').value;
+  if (!find) return;
+  const area = document.getElementById('note-area');
+  const orig = area.value;
+  const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'g');
+  const count = (orig.match(regex) || []).length;
+  area.value = orig.replace(regex, replace);
+  document.getElementById('replace-count').textContent = count + ' replacement(s)';
+  onNoteInput();
+}
+
+function downloadNote() {
+  const note = getNote(activeId);
+  const content = document.getElementById('note-area').value;
+  downloadText(content, (note ? note.name : 'note') + '.txt');
+}
+
+function clearNote() {
+  if (!confirm('Clear this note? This cannot be undone.')) return;
+  document.getElementById('note-area').value = '';
+  onNoteInput();
+}
+
+// Init
+renderTabs();
+const activeNote = getNote(activeId);
+document.getElementById('note-area').value = activeNote ? activeNote.content : '';
+updateStats();
+</script>
+{% endblock %}

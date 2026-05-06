@@ -1,0 +1,94 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:200px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.result-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;text-align:center}
+.result-big{font-size:2rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);margin-bottom:.25rem}
+.result-label{font-size:.75rem;color:var(--muted)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem}
+@media(max-width:640px){.grid-2,.grid-4{grid-template-columns:1fr 1fr}}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.slider-row{display:flex;align-items:center;gap:12px}
+.slider-row input[type=range]{flex:1;accent-color:var(--primary)}
+.speed-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;text-align:center}
+.speed-name{font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.speed-time{font-size:1.4rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent)}
+.speed-wpm{font-size:.75rem;color:var(--muted);margin-top:2px}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Text</div>
+    <textarea class="tool-code" id="text-input" placeholder="Paste your text here..." oninput="estimate()"></textarea>
+  </div>
+
+  <div>
+    <div class="tool-label">Your Reading Speed: <span id="wpm-display">200</span> WPM</div>
+    <div class="slider-row">
+      <span style="font-size:.75rem;color:var(--muted)">100</span>
+      <input type="range" id="wpm-slider" min="100" max="600" value="200" oninput="document.getElementById('wpm-display').textContent=this.value;estimate()">
+      <span style="font-size:.75rem;color:var(--muted)">600</span>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="result-card"><div class="result-big" id="main-time">—</div><div class="result-label">Your Reading Time</div></div>
+    <div class="result-card"><div class="result-big" id="word-count">0</div><div class="result-label">Word Count</div></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="result-card"><div class="result-big" id="page-count">0</div><div class="result-label">Pages (250 words/page)</div></div>
+    <div class="result-card"><div class="result-big" id="char-count">0</div><div class="result-label">Characters</div></div>
+  </div>
+
+  <div>
+    <div class="tool-label">Reading Speed Comparison</div>
+    <div class="grid-4">
+      <div class="speed-card"><div class="speed-name">Slow</div><div class="speed-time" id="slow-time">—</div><div class="speed-wpm">150 WPM</div></div>
+      <div class="speed-card"><div class="speed-name">Average</div><div class="speed-time" id="avg-time">—</div><div class="speed-wpm">200 WPM</div></div>
+      <div class="speed-card"><div class="speed-name">Fast</div><div class="speed-time" id="fast-time">—</div><div class="speed-wpm">300 WPM</div></div>
+      <div class="speed-card"><div class="speed-name">Speed Read</div><div class="speed-time" id="speed-time">—</div><div class="speed-wpm">600 WPM</div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function formatTime(words, wpm) {
+  const totalSec = Math.round((words / wpm) * 60);
+  if (totalSec < 60) return totalSec + 's';
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  if (mins < 60) return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return remMins > 0 ? `${hours}h ${remMins}m` : `${hours}h`;
+}
+
+function estimate() {
+  const text = document.getElementById('text-input').value;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const wpm = parseInt(document.getElementById('wpm-slider').value);
+
+  document.getElementById('word-count').textContent = words.toLocaleString();
+  document.getElementById('char-count').textContent = text.length.toLocaleString();
+  document.getElementById('page-count').textContent = Math.ceil(words / 250);
+  document.getElementById('main-time').textContent = words ? formatTime(words, wpm) : '—';
+  document.getElementById('slow-time').textContent = words ? formatTime(words, 150) : '—';
+  document.getElementById('avg-time').textContent = words ? formatTime(words, 200) : '—';
+  document.getElementById('fast-time').textContent = words ? formatTime(words, 300) : '—';
+  document.getElementById('speed-time').textContent = words ? formatTime(words, 600) : '—';
+}
+</script>
+{% endblock %}

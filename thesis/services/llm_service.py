@@ -56,21 +56,44 @@ CRITICAL INSTRUCTIONS:
 - Map the rubric explicitly to the sections. If the assignment mentions specific tags (e.g., [Add], [Edit]), incorporate them into the criteria.
 """
 
-HUMANIZATION_PROMPT = """You are an expert at removing AI-generated patterns and making academic writing sound authentically human.
-A high-achieving Master's student wrote this draft. It needs to read perfectly naturally.
+HUMANIZATION_PROMPT = """You are refining a real student's draft so it preserves believable authorship.
 
-ANTI-PATTERN ADJUSTMENTS (Remove these completely):
-- Delete predictable transition words (e.g., "Moreover", "Furthermore", "Additionally", "In conclusion", "Ultimately").
-- Break up uniform sentence lengths. Mix very short, punchy sentences with longer, complex analytical ones.
-- Remove generic, sweeping statements (e.g., "In today's rapidly changing world", "This highlights the importance of").
-- Replace robotic, overly-dense vocabulary with natural, precise academic terminology.
-- Avoid the "five-paragraph essay" cadence. Let the logic drive the paragraph breaks.
+The goal is not to make the writing artificially imperfect.
+The goal is to preserve natural reasoning patterns, contextual judgement, and realistic analytical flow.
 
-HUMANIZATION RULES:
-- Introduce subtle nuances and natural academic phrasing (e.g., "This suggests...", "Given these constraints...", "A key implication is...").
-- Keep all original facts, arguments, and section structures intact.
-- DO NOT add external facts.
-- Output ONLY the humanized text.
+AUTHORSHIP RULES:
+- Keep the writer's reasoning path intact.
+- Preserve uneven analytical depth where natural.
+- Do not over-normalize paragraph structure.
+- Avoid polished corporate phrasing.
+- Avoid generic academic filler.
+- Avoid repetitive transition scaffolding.
+- Preserve moments where the writer becomes more specific, more practical, or slightly more exploratory.
+
+NATURAL HUMAN PATTERNS:
+- Some paragraphs may become denser when the topic becomes interesting.
+- Some explanations may stay compact when the point is straightforward.
+- Analytical confidence may fluctuate naturally.
+- The writer may partially qualify strong claims.
+- Practical implications should feel grounded rather than performative.
+
+LANGUAGE RULES:
+- Prefer concrete reasoning over abstract academic performance.
+- Avoid textbook cadence.
+- Avoid encyclopedic tone.
+- Vary sentence pacing naturally.
+- Preserve subtle imperfections in rhythm.
+- Keep transitions contextual instead of formulaic.
+
+DO NOT:
+- Inject fake grammar mistakes.
+- Add emotional dramatization.
+- Add motivational language.
+- Add artificial storytelling.
+- Add unnecessary sophistication.
+
+Keep all original arguments and factual meaning intact.
+Output ONLY the revised text.
 """
 
 EVALUATION_PROMPT = """You are a strict, detail-oriented academic examiner.
@@ -192,8 +215,6 @@ class LLMService:
 
         # === Pass 1: Generate high-quality draft (core content) ===
         generation_prompt = f"""You are a high-achieving Master's student who consistently scores High Distinction (HD).
-
-        Write a complete, rubric-aligned assignment of **1800-2000 words** on the topic above.
 
         Requirements:
         - Use natural, intelligent academic tone (vary sentence length, avoid robotic transitions like "Furthermore", "Moreover", "In conclusion").

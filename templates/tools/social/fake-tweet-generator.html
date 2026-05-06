@@ -1,0 +1,183 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 2rem; }
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 0.9rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+textarea.num-input { resize: vertical; min-height: 80px; }
+.input-grp { margin-bottom: 1rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; width: 100%; }
+.btn-go:hover { transform: translateY(-2px); }
+.theme-toggle { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.theme-btn { flex: 1; padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.theme-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+/* Tweet card */
+.tweet-wrap { border-radius: 16px; overflow: hidden; max-width: 500px; }
+.tweet-dark { background: #000; color: #fff; border: 1px solid #2f3336; }
+.tweet-light { background: #fff; color: #0f1419; border: 1px solid #cfd9de; }
+.tweet-inner { padding: 1.2rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+.tweet-header { display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.8rem; }
+.tweet-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+.tweet-name-col { flex: 1; }
+.tweet-name { font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 0.3rem; }
+.tweet-handle { font-size: 0.9rem; opacity: 0.6; }
+.tweet-text { font-size: 1.3rem; line-height: 1.4; margin-bottom: 0.8rem; white-space: pre-wrap; word-break: break-word; }
+.tweet-meta { font-size: 0.9rem; opacity: 0.6; padding-bottom: 0.8rem; border-bottom: 1px solid rgba(128,128,128,0.3); margin-bottom: 0.8rem; }
+.tweet-stats { display: flex; gap: 1.5rem; font-size: 0.9rem; }
+.tweet-stat span { font-weight: 700; }
+.tweet-stat { opacity: 0.7; }
+.verified-icon { color: #1d9bf0; font-size: 1rem; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+@media (max-width: 768px) { .dev-tool-wrap { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="grid-2">
+      <div class="input-grp">
+        <span class="tool-label">Display Name</span>
+        <input type="text" id="in-name" class="num-input" value="Elon Musk">
+      </div>
+      <div class="input-grp">
+        <span class="tool-label">@Username</span>
+        <input type="text" id="in-handle" class="num-input" value="elonmusk">
+      </div>
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Avatar Color</span>
+      <input type="color" id="in-color" value="#1d9bf0" style="width:60px;height:40px;border:none;border-radius:8px;cursor:pointer;background:transparent;">
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Tweet Text</span>
+      <textarea id="in-text" class="num-input">Just shipped the new LamGen tools ecosystem. It's incredibly fast! 🚀</textarea>
+    </div>
+    <div class="grid-2">
+      <div class="input-grp">
+        <span class="tool-label">Timestamp</span>
+        <input type="text" id="in-time" class="num-input" value="10:42 AM · May 4, 2026">
+      </div>
+      <div class="input-grp">
+        <span class="tool-label">Views</span>
+        <input type="text" id="in-views" class="num-input" value="42.5M">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="input-grp">
+        <span class="tool-label">Retweets</span>
+        <input type="text" id="in-rt" class="num-input" value="124K">
+      </div>
+      <div class="input-grp">
+        <span class="tool-label">Likes</span>
+        <input type="text" id="in-likes" class="num-input" value="1.2M">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="input-grp">
+        <span class="tool-label">Replies</span>
+        <input type="text" id="in-replies" class="num-input" value="8.4K">
+      </div>
+      <div class="input-grp">
+        <span class="tool-label">Bookmarks</span>
+        <input type="text" id="in-bookmarks" class="num-input" value="22K">
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;color:var(--text);margin-bottom:1rem;">
+      <input type="checkbox" id="in-verified" checked style="accent-color:var(--primary);width:16px;height:16px;"> Verified Badge
+    </label>
+  </div>
+  <div>
+    <div class="theme-toggle">
+      <button class="theme-btn active" id="btn-dark" onclick="setTheme('dark')">🌙 Dark</button>
+      <button class="theme-btn" id="btn-light" onclick="setTheme('light')">☀️ Light</button>
+    </div>
+    <div id="tweet-wrap" class="tweet-wrap tweet-dark">
+      <div class="tweet-inner" id="tweet-inner">
+        <div class="tweet-header">
+          <div class="tweet-avatar" id="out-avatar" style="background:#1d9bf0;">E</div>
+          <div class="tweet-name-col">
+            <div class="tweet-name">
+              <span id="out-name">Elon Musk</span>
+              <span class="verified-icon" id="out-verified">✓</span>
+            </div>
+            <div class="tweet-handle">@<span id="out-handle">elonmusk</span></div>
+          </div>
+        </div>
+        <div class="tweet-text" id="out-text">Just shipped the new LamGen tools ecosystem. It's incredibly fast! 🚀</div>
+        <div class="tweet-meta"><span id="out-time">10:42 AM · May 4, 2026</span> · <strong id="out-views">42.5M</strong> Views</div>
+        <div class="tweet-stats">
+          <div class="tweet-stat"><span id="out-replies">8.4K</span> Replies</div>
+          <div class="tweet-stat"><span id="out-rt">124K</span> Reposts</div>
+          <div class="tweet-stat"><span id="out-likes">1.2M</span> Likes</div>
+          <div class="tweet-stat"><span id="out-bookmarks">22K</span> Bookmarks</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-go" id="btn-download" style="margin-top:1rem;"><i class="bi bi-camera"></i> Download as PNG</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let theme = 'dark';
+
+  window.setTheme = (t) => {
+    theme = t;
+    const wrap = document.getElementById('tweet-wrap');
+    wrap.className = 'tweet-wrap ' + (t === 'dark' ? 'tweet-dark' : 'tweet-light');
+    document.getElementById('btn-dark').classList.toggle('active', t === 'dark');
+    document.getElementById('btn-light').classList.toggle('active', t === 'light');
+    // Update text colors
+    const inner = document.getElementById('tweet-inner');
+    inner.style.color = t === 'dark' ? '#fff' : '#0f1419';
+  };
+
+  function update() {
+    const name = document.getElementById('in-name').value || 'Name';
+    const handle = document.getElementById('in-handle').value || 'username';
+    const text = document.getElementById('in-text').value || '...';
+    const color = document.getElementById('in-color').value;
+    const verified = document.getElementById('in-verified').checked;
+
+    document.getElementById('out-name').textContent = name;
+    document.getElementById('out-handle').textContent = handle;
+    document.getElementById('out-text').textContent = text;
+    document.getElementById('out-time').textContent = document.getElementById('in-time').value;
+    document.getElementById('out-views').textContent = document.getElementById('in-views').value;
+    document.getElementById('out-rt').textContent = document.getElementById('in-rt').value;
+    document.getElementById('out-likes').textContent = document.getElementById('in-likes').value;
+    document.getElementById('out-replies').textContent = document.getElementById('in-replies').value;
+    document.getElementById('out-bookmarks').textContent = document.getElementById('in-bookmarks').value;
+    document.getElementById('out-verified').style.display = verified ? 'inline' : 'none';
+
+    const avatar = document.getElementById('out-avatar');
+    avatar.style.background = color;
+    avatar.textContent = name.charAt(0).toUpperCase();
+  }
+
+  ['in-name','in-handle','in-text','in-time','in-views','in-rt','in-likes','in-replies','in-bookmarks'].forEach(id => {
+    document.getElementById(id).addEventListener('input', update);
+  });
+  document.getElementById('in-color').addEventListener('input', update);
+  document.getElementById('in-verified').addEventListener('change', update);
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    html2canvas(document.getElementById('tweet-wrap'), { backgroundColor: null, scale: 2, useCORS: true }).then(canvas => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `tweet-${document.getElementById('in-handle').value || 'fake'}.png`;
+      a.click();
+    });
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') update(); });
+  update();
+});
+</script>
+{% endblock %}

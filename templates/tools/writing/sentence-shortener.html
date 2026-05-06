@@ -1,0 +1,150 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.sent-item{padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:10px;margin-bottom:8px}
+.sent-original{font-size:.85rem;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.sent-shortened{font-size:.9rem;color:var(--text);line-height:1.5}
+.sent-meta{display:flex;gap:12px;margin-top:8px;font-size:.75rem;color:var(--muted)}
+.sent-meta .reduction{color:var(--accent);font-weight:700}
+.sent-ok{border-left:3px solid rgba(0,245,212,.3)}
+.sent-long{border-left:3px solid rgba(108,99,255,.4)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Input Text</div>
+    <textarea class="tool-code" id="input-text" placeholder="Paste your text here. Long sentences (20+ words) will be shortened..."></textarea>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="shortenText()"><i class="bi bi-scissors"></i> Shorten Sentences</button>
+    <button class="btn-sm" onclick="copyAll()"><i class="bi bi-clipboard"></i> Copy All Shortened</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="tool-label">Results</div>
+    <div id="sentences-list"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+const FILLERS = /\b(very|really|quite|just|that|which|actually|basically|literally|simply|certainly|definitely|absolutely|completely|totally|entirely|rather|somewhat|fairly|pretty|extremely|incredibly|amazingly|obviously|clearly|apparently|seemingly|arguably|essentially|fundamentally|generally|typically|usually|normally|often|sometimes|always|never|already|still|yet|also|too|even|only|merely|merely|indeed|perhaps|maybe|probably|possibly|certainly|surely|truly|honestly|frankly|seriously|obviously)\b/gi;
+
+const PASSIVE = /\b(is|are|was|were|be|been|being)\s+(being\s+)?\w+ed\b/gi;
+
+function shortenSentence(sentence) {
+  let s = sentence.trim();
+  // Remove filler words
+  s = s.replace(FILLERS, '').replace(/\s{2,}/g,' ').trim();
+  // Remove "that which" constructions
+  s = s.replace(/\s+that\s+/gi,' ').replace(/\s{2,}/g,' ').trim();
+  // Remove redundant phrases
+  s = s.replace(/\bin order to\b/gi,'to');
+  s = s.replace(/\bdue to the fact that\b/gi,'because');
+  s = s.replace(/\bat this point in time\b/gi,'now');
+  s = s.replace(/\bin the event that\b/gi,'if');
+  s = s.replace(/\bfor the purpose of\b/gi,'to');
+  s = s.replace(/\bwith regard to\b/gi,'about');
+  s = s.replace(/\bin spite of the fact that\b/gi,'although');
+  s = s.replace(/\bthe fact that\b/gi,'that');
+  s = s.replace(/\bit is important to note that\b/gi,'');
+  s = s.replace(/\bit should be noted that\b/gi,'');
+  s = s.replace(/\bplease be advised that\b/gi,'');
+  s = s.replace(/\s{2,}/g,' ').trim();
+  // Capitalize first letter
+  if (s.length > 0) s = s.charAt(0).toUpperCase() + s.slice(1);
+  return s;
+}
+
+let allShortened = [];
+
+function shortenText() {
+  const text = document.getElementById('input-text').value.trim();
+  if (!text) { showErr('status', 'Please enter some text'); return; }
+
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  allShortened = [];
+  const container = document.getElementById('sentences-list');
+  container.innerHTML = '';
+
+  let totalOrig = 0, totalShort = 0;
+
+  sentences.forEach(sent => {
+    const origWords = sent.trim().split(/\s+/).length;
+    totalOrig += origWords;
+    const isLong = origWords > 20;
+    const shortened = isLong ? shortenSentence(sent) : sent.trim();
+    const shortWords = shortened.split(/\s+/).length;
+    totalShort += shortWords;
+    allShortened.push(shortened);
+
+    const reduction = origWords > 0 ? Math.round((1 - shortWords/origWords)*100) : 0;
+    const div = document.createElement('div');
+    div.className = 'sent-item ' + (isLong ? 'sent-long' : 'sent-ok');
+    div.innerHTML = `
+      ${isLong ? `<div class="sent-original"><i class="bi bi-arrow-right" style="color:var(--muted)"></i> <em>Original:</em> ${sent.trim()}</div>` : ''}
+      <div class="sent-shortened">${shortened}</div>
+      <div class="sent-meta">
+        <span>${origWords} words → ${shortWords} words</span>
+        ${isLong && reduction > 0 ? `<span class="reduction">-${reduction}% shorter</span>` : ''}
+        <button class="btn-sm" style="padding:3px 8px;font-size:.72rem" onclick="copyText(${JSON.stringify(shortened)},this)"><i class="bi bi-clipboard"></i></button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  document.getElementById('results').style.display = 'block';
+  const totalReduction = totalOrig > 0 ? Math.round((1 - totalShort/totalOrig)*100) : 0;
+  showOk('status', `${sentences.length} sentences processed · ${totalReduction}% shorter overall`);
+}
+
+function copyAll() {
+  if (!allShortened.length) return;
+  const btn = event.target.closest('button');
+  copyText(allShortened.join(' '), btn);
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') shortenText();
+});
+</script>
+{% endblock %}

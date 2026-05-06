@@ -1,0 +1,198 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.tool-textarea{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;resize:vertical;min-height:80px;box-sizing:border-box}
+.tool-textarea:focus{border-color:var(--primary)}
+.tool-textarea::placeholder{color:rgba(255,255,255,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.summary-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.2rem;transition:border-color .2s}
+.summary-card:hover{border-color:rgba(108,99,255,.3)}
+.summary-type{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem}
+.summary-text{font-size:.92rem;line-height:1.7;color:var(--text)}
+.summary-meta{font-size:.75rem;color:var(--muted);margin-top:.5rem}
+.select-input{width:100%;padding:11px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;cursor:pointer;box-sizing:border-box}
+.select-input:focus{border-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Target Role</div>
+      <input class="tool-input" id="role" placeholder="e.g. Full Stack Developer" />
+    </div>
+    <div>
+      <div class="tool-label">Industry</div>
+      <input class="tool-input" id="industry" placeholder="e.g. FinTech, Healthcare" />
+    </div>
+    <div>
+      <div class="tool-label">Years of Experience</div>
+      <input class="tool-input" id="years" type="number" min="0" max="50" placeholder="e.g. 5" />
+    </div>
+    <div>
+      <div class="tool-label">Career Stage</div>
+      <select class="select-input" id="stage">
+        <option value="entry">Entry Level (0-2 years)</option>
+        <option value="mid" selected>Mid Level (3-6 years)</option>
+        <option value="senior">Senior Level (7+ years)</option>
+        <option value="change">Career Change</option>
+      </select>
+    </div>
+  </div>
+  <div>
+    <div class="tool-label">Top 3 Skills (comma-separated)</div>
+    <input class="tool-input" id="skills" placeholder="e.g. React, Node.js, PostgreSQL" />
+  </div>
+  <div>
+    <div class="tool-label">Key Achievement (optional)</div>
+    <input class="tool-input" id="achievement" placeholder="e.g. Reduced load time by 60%, Led team of 8 engineers" />
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generateSummaries()"><i class="bi bi-file-person-fill"></i> Generate Summaries</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="results" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <div class="tool-label" style="margin-bottom:0">8 Resume Summary Variations</div>
+      <button class="btn-sm" onclick="copyAll()"><i class="bi bi-clipboard"></i> Copy All</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.75rem" id="summaryList"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function generateSummaries() {
+  const role = document.getElementById('role').value.trim();
+  const industry = document.getElementById('industry').value.trim();
+  const years = document.getElementById('years').value.trim();
+  const stage = document.getElementById('stage').value;
+  const skillsRaw = document.getElementById('skills').value.trim();
+  const achievement = document.getElementById('achievement').value.trim();
+
+  if (!role || !skillsRaw) { showErr('st','Role and Skills are required'); return; }
+  hideStatus('st');
+
+  const skills = skillsRaw.split(',').map(s=>s.trim()).filter(Boolean);
+  const s1 = skills[0] || '';
+  const s2 = skills[1] || '';
+  const s3 = skills[2] || '';
+  const yrs = years ? `${years}-year` : 'experienced';
+  const ind = industry ? ` ${industry}` : '';
+  const ach = achievement || '';
+
+  const summaries = [
+    {
+      type: 'Achievement-Focused',
+      icon: 'bi-trophy-fill',
+      text: `Results-driven ${role} with ${years || 'proven'} years of experience in${ind} environments. ${ach ? ach + '. ' : ''}Skilled in ${skills.join(', ')}, consistently delivering high-impact solutions that drive measurable business outcomes.`
+    },
+    {
+      type: 'Skills-Focused',
+      icon: 'bi-tools',
+      text: `Versatile ${role} with deep expertise in ${s1}${s2 ? ', ' + s2 : ''}${s3 ? ', and ' + s3 : ''}. ${years ? years + ' years of' : 'Extensive'} hands-on experience building scalable, maintainable solutions in${ind} settings. Passionate about clean code and continuous improvement.`
+    },
+    {
+      type: 'Career-Change',
+      icon: 'bi-arrow-repeat',
+      text: `Transitioning professional bringing a unique blend of cross-industry experience to the ${role} role. Leveraging transferable skills in ${skills.join(', ')} to deliver fresh perspectives and innovative solutions. ${ach ? ach + '.' : 'Committed to rapid skill development and making an immediate impact.'}`
+    },
+    {
+      type: 'Entry-Level',
+      icon: 'bi-mortarboard-fill',
+      text: `Motivated and detail-oriented ${role} eager to apply academic and project-based experience in ${skills.join(', ')} to real-world challenges. Quick learner with a strong foundation in${ind} principles and a passion for building impactful products.`
+    },
+    {
+      type: 'Senior-Level',
+      icon: 'bi-award-fill',
+      text: `Strategic ${role} with ${years || '10'}+ years of experience leading${ind} initiatives from conception to delivery. Expert in ${skills.join(', ')} with a track record of mentoring teams and architecting solutions at scale. ${ach ? ach + '.' : 'Known for translating complex requirements into elegant, performant systems.'}`
+    },
+    {
+      type: 'Industry-Specific',
+      icon: 'bi-building',
+      text: `${ind ? ind.trim() + '-focused' : 'Industry-focused'} ${role} with ${yrs} experience delivering solutions that meet sector-specific compliance, performance, and scalability requirements. Proficient in ${skills.join(', ')}. ${ach ? ach + '.' : 'Adept at navigating complex stakeholder environments and delivering on time.'}`
+    },
+    {
+      type: 'Concise / ATS-Optimized',
+      icon: 'bi-robot',
+      text: `${role} | ${years ? years + ' years experience' : 'Experienced'} | ${skills.join(' | ')}${ach ? ' | ' + ach : ''}. Proven ability to deliver results in${ind} environments.`
+    },
+    {
+      type: 'Narrative / Story-Driven',
+      icon: 'bi-chat-quote-fill',
+      text: `I started my journey as a ${role} because I believe technology should solve real problems. Over ${years || 'the past several'} years, I've honed my skills in ${skills.join(', ')} and learned that the best solutions come from deeply understanding the people who use them. ${ach ? ach + '.' : 'I bring that same curiosity and commitment to every project I take on.'}`
+    }
+  ];
+
+  const list = document.getElementById('summaryList');
+  list.innerHTML = '';
+  summaries.forEach(s => {
+    const wc = s.text.split(/\s+/).length;
+    const card = document.createElement('div');
+    card.className = 'summary-card';
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div class="summary-type"><i class="bi ${s.icon}"></i>${s.type}</div>
+        <button class="btn-sm" onclick="copySummary(this,'${escAttr(s.text)}')"><i class="bi bi-clipboard"></i> Copy</button>
+      </div>
+      <div class="summary-text">${escHtml(s.text)}</div>
+      <div class="summary-meta">${wc} words</div>
+    `;
+    list.appendChild(card);
+  });
+  document.getElementById('results').style.display = 'block';
+  showOk('st', '8 summaries generated');
+}
+
+function copySummary(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function copyAll() {
+  const cards = document.querySelectorAll('.summary-text');
+  const types = document.querySelectorAll('.summary-type');
+  const text = Array.from(cards).map((c,i) => `[${types[i].textContent.trim()}]\n${c.textContent}`).join('\n\n');
+  navigator.clipboard.writeText(text);
+}
+
+function clearAll() {
+  ['role','industry','years','skills','achievement'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('results').style.display = 'none';
+  hideStatus('st');
+}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ');}
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generateSummaries(); }
+});
+</script>
+{% endblock %}

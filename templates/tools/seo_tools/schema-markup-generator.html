@@ -1,0 +1,336 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input, .select-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus, .select-input:focus { border-color: var(--primary); }
+textarea.num-input { resize: vertical; min-height: 70px; }
+.input-grp { margin-bottom: 1rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.schema-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; }
+.form-panel { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+.output-area { background: #0A0A0F; border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; position: relative; }
+.output-code { font-family: 'JetBrains Mono', monospace; color: var(--accent); white-space: pre-wrap; word-break: break-all; font-size: 0.82rem; max-height: 500px; overflow-y: auto; }
+.btn-copy { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-copy:hover { border-color: var(--primary); }
+.required-star { color: var(--danger); }
+.type-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.5rem; }
+.type-tab { padding: 0.35rem 0.8rem; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.type-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.validation-msg { font-size: 0.8rem; margin-top: 0.5rem; padding: 0.5rem 0.8rem; border-radius: 6px; }
+.val-ok { background: rgba(0,200,100,0.1); color: #00c864; }
+.val-err { background: rgba(255,107,107,0.1); color: var(--danger); }
+@media (max-width: 768px) { .schema-layout { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="type-tabs" id="type-tabs">
+  <button class="type-tab active" data-type="Article">Article</button>
+  <button class="type-tab" data-type="Product">Product</button>
+  <button class="type-tab" data-type="LocalBusiness">LocalBusiness</button>
+  <button class="type-tab" data-type="Person">Person</button>
+  <button class="type-tab" data-type="Organization">Organization</button>
+  <button class="type-tab" data-type="WebPage">WebPage</button>
+  <button class="type-tab" data-type="BreadcrumbList">BreadcrumbList</button>
+  <button class="type-tab" data-type="Event">Event</button>
+</div>
+<div class="schema-layout">
+  <div class="form-panel">
+    <div id="dynamic-form"></div>
+    <div style="display:flex;gap:0.8rem;margin-top:1rem;">
+      <button class="btn-go" id="btn-generate">⚡ Generate Schema</button>
+    </div>
+    <div id="validation-msg"></div>
+  </div>
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+      <span class="tool-label" style="margin:0;">JSON-LD Output</span>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="btn-copy" id="btn-copy"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-copy" id="btn-download"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <div class="output-area">
+      <div class="output-code" id="output-code">// Schema will appear here after generation</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const schemas = {
+    Article: {
+      fields: [
+        { id: 'headline', label: 'Headline', type: 'text', required: true, placeholder: 'Article title' },
+        { id: 'description', label: 'Description', type: 'textarea', required: true, placeholder: 'Brief description' },
+        { id: 'author', label: 'Author Name', type: 'text', required: true, placeholder: 'John Doe' },
+        { id: 'datePublished', label: 'Date Published', type: 'date', required: true },
+        { id: 'dateModified', label: 'Date Modified', type: 'date', required: false },
+        { id: 'url', label: 'Article URL', type: 'url', required: true, placeholder: 'https://example.com/article' },
+        { id: 'image', label: 'Image URL', type: 'url', required: false, placeholder: 'https://example.com/image.jpg' },
+        { id: 'publisher', label: 'Publisher Name', type: 'text', required: false, placeholder: 'My Blog' },
+      ],
+      build: (d) => ({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": d.headline,
+        "description": d.description,
+        "author": { "@type": "Person", "name": d.author },
+        "datePublished": d.datePublished,
+        ...(d.dateModified && { "dateModified": d.dateModified }),
+        "url": d.url,
+        ...(d.image && { "image": d.image }),
+        ...(d.publisher && { "publisher": { "@type": "Organization", "name": d.publisher } }),
+      }),
+    },
+    Product: {
+      fields: [
+        { id: 'name', label: 'Product Name', type: 'text', required: true, placeholder: 'Awesome Widget' },
+        { id: 'description', label: 'Description', type: 'textarea', required: true },
+        { id: 'image', label: 'Image URL', type: 'url', required: false },
+        { id: 'brand', label: 'Brand', type: 'text', required: false },
+        { id: 'sku', label: 'SKU', type: 'text', required: false },
+        { id: 'price', label: 'Price', type: 'text', required: false, placeholder: '29.99' },
+        { id: 'currency', label: 'Currency', type: 'text', required: false, placeholder: 'USD' },
+        { id: 'availability', label: 'Availability', type: 'select', required: false, options: ['InStock','OutOfStock','PreOrder','Discontinued'] },
+        { id: 'ratingValue', label: 'Rating (1-5)', type: 'text', required: false, placeholder: '4.5' },
+        { id: 'reviewCount', label: 'Review Count', type: 'text', required: false, placeholder: '128' },
+      ],
+      build: (d) => ({
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": d.name,
+        "description": d.description,
+        ...(d.image && { "image": d.image }),
+        ...(d.brand && { "brand": { "@type": "Brand", "name": d.brand } }),
+        ...(d.sku && { "sku": d.sku }),
+        ...(d.price && { "offers": { "@type": "Offer", "price": d.price, "priceCurrency": d.currency || 'USD', "availability": `https://schema.org/${d.availability || 'InStock'}` } }),
+        ...(d.ratingValue && { "aggregateRating": { "@type": "AggregateRating", "ratingValue": d.ratingValue, "reviewCount": d.reviewCount || '1' } }),
+      }),
+    },
+    LocalBusiness: {
+      fields: [
+        { id: 'name', label: 'Business Name', type: 'text', required: true },
+        { id: 'description', label: 'Description', type: 'textarea', required: false },
+        { id: 'url', label: 'Website URL', type: 'url', required: false },
+        { id: 'telephone', label: 'Phone', type: 'text', required: false, placeholder: '+1-555-555-5555' },
+        { id: 'email', label: 'Email', type: 'text', required: false },
+        { id: 'streetAddress', label: 'Street Address', type: 'text', required: false },
+        { id: 'city', label: 'City', type: 'text', required: false },
+        { id: 'region', label: 'State/Region', type: 'text', required: false },
+        { id: 'postalCode', label: 'Postal Code', type: 'text', required: false },
+        { id: 'country', label: 'Country Code', type: 'text', required: false, placeholder: 'US' },
+        { id: 'priceRange', label: 'Price Range', type: 'text', required: false, placeholder: '$$' },
+      ],
+      build: (d) => ({
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": d.name,
+        ...(d.description && { "description": d.description }),
+        ...(d.url && { "url": d.url }),
+        ...(d.telephone && { "telephone": d.telephone }),
+        ...(d.email && { "email": d.email }),
+        ...(d.streetAddress && { "address": { "@type": "PostalAddress", "streetAddress": d.streetAddress, "addressLocality": d.city, "addressRegion": d.region, "postalCode": d.postalCode, "addressCountry": d.country } }),
+        ...(d.priceRange && { "priceRange": d.priceRange }),
+      }),
+    },
+    Person: {
+      fields: [
+        { id: 'name', label: 'Full Name', type: 'text', required: true },
+        { id: 'jobTitle', label: 'Job Title', type: 'text', required: false },
+        { id: 'url', label: 'Profile URL', type: 'url', required: false },
+        { id: 'image', label: 'Photo URL', type: 'url', required: false },
+        { id: 'email', label: 'Email', type: 'text', required: false },
+        { id: 'sameAs', label: 'Social URLs (comma-separated)', type: 'text', required: false, placeholder: 'https://twitter.com/..., https://linkedin.com/...' },
+      ],
+      build: (d) => ({
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": d.name,
+        ...(d.jobTitle && { "jobTitle": d.jobTitle }),
+        ...(d.url && { "url": d.url }),
+        ...(d.image && { "image": d.image }),
+        ...(d.email && { "email": d.email }),
+        ...(d.sameAs && { "sameAs": d.sameAs.split(',').map(s => s.trim()).filter(Boolean) }),
+      }),
+    },
+    Organization: {
+      fields: [
+        { id: 'name', label: 'Organization Name', type: 'text', required: true },
+        { id: 'url', label: 'Website URL', type: 'url', required: true },
+        { id: 'logo', label: 'Logo URL', type: 'url', required: false },
+        { id: 'description', label: 'Description', type: 'textarea', required: false },
+        { id: 'email', label: 'Email', type: 'text', required: false },
+        { id: 'telephone', label: 'Phone', type: 'text', required: false },
+        { id: 'sameAs', label: 'Social URLs (comma-separated)', type: 'text', required: false },
+      ],
+      build: (d) => ({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": d.name,
+        "url": d.url,
+        ...(d.logo && { "logo": d.logo }),
+        ...(d.description && { "description": d.description }),
+        ...(d.email && { "email": d.email }),
+        ...(d.telephone && { "telephone": d.telephone }),
+        ...(d.sameAs && { "sameAs": d.sameAs.split(',').map(s => s.trim()).filter(Boolean) }),
+      }),
+    },
+    WebPage: {
+      fields: [
+        { id: 'name', label: 'Page Title', type: 'text', required: true },
+        { id: 'description', label: 'Description', type: 'textarea', required: false },
+        { id: 'url', label: 'Page URL', type: 'url', required: true },
+        { id: 'datePublished', label: 'Date Published', type: 'date', required: false },
+        { id: 'dateModified', label: 'Date Modified', type: 'date', required: false },
+        { id: 'author', label: 'Author Name', type: 'text', required: false },
+      ],
+      build: (d) => ({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": d.name,
+        "url": d.url,
+        ...(d.description && { "description": d.description }),
+        ...(d.datePublished && { "datePublished": d.datePublished }),
+        ...(d.dateModified && { "dateModified": d.dateModified }),
+        ...(d.author && { "author": { "@type": "Person", "name": d.author } }),
+      }),
+    },
+    BreadcrumbList: {
+      fields: [
+        { id: 'item1name', label: 'Item 1 Name', type: 'text', required: true, placeholder: 'Home' },
+        { id: 'item1url', label: 'Item 1 URL', type: 'url', required: true, placeholder: 'https://example.com' },
+        { id: 'item2name', label: 'Item 2 Name', type: 'text', required: false, placeholder: 'Category' },
+        { id: 'item2url', label: 'Item 2 URL', type: 'url', required: false },
+        { id: 'item3name', label: 'Item 3 Name', type: 'text', required: false, placeholder: 'Page' },
+        { id: 'item3url', label: 'Item 3 URL', type: 'url', required: false },
+        { id: 'item4name', label: 'Item 4 Name', type: 'text', required: false },
+        { id: 'item4url', label: 'Item 4 URL', type: 'url', required: false },
+      ],
+      build: (d) => {
+        const items = [];
+        for (let i = 1; i <= 4; i++) {
+          if (d[`item${i}name`] && d[`item${i}url`]) {
+            items.push({ "@type": "ListItem", "position": i, "name": d[`item${i}name`], "item": d[`item${i}url`] });
+          }
+        }
+        return { "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": items };
+      },
+    },
+    Event: {
+      fields: [
+        { id: 'name', label: 'Event Name', type: 'text', required: true },
+        { id: 'description', label: 'Description', type: 'textarea', required: false },
+        { id: 'startDate', label: 'Start Date & Time', type: 'datetime-local', required: true },
+        { id: 'endDate', label: 'End Date & Time', type: 'datetime-local', required: false },
+        { id: 'location', label: 'Location Name', type: 'text', required: false, placeholder: 'Madison Square Garden' },
+        { id: 'locationUrl', label: 'Location URL', type: 'url', required: false },
+        { id: 'organizer', label: 'Organizer Name', type: 'text', required: false },
+        { id: 'url', label: 'Event URL', type: 'url', required: false },
+        { id: 'image', label: 'Event Image URL', type: 'url', required: false },
+        { id: 'eventStatus', label: 'Event Status', type: 'select', required: false, options: ['EventScheduled','EventCancelled','EventPostponed','EventRescheduled'] },
+        { id: 'eventAttendanceMode', label: 'Attendance Mode', type: 'select', required: false, options: ['OfflineEventAttendanceMode','OnlineEventAttendanceMode','MixedEventAttendanceMode'] },
+      ],
+      build: (d) => ({
+        "@context": "https://schema.org",
+        "@type": "Event",
+        "name": d.name,
+        ...(d.description && { "description": d.description }),
+        "startDate": d.startDate,
+        ...(d.endDate && { "endDate": d.endDate }),
+        ...(d.location && { "location": { "@type": "Place", "name": d.location, ...(d.locationUrl && { "url": d.locationUrl }) } }),
+        ...(d.organizer && { "organizer": { "@type": "Organization", "name": d.organizer } }),
+        ...(d.url && { "url": d.url }),
+        ...(d.image && { "image": d.image }),
+        ...(d.eventStatus && { "eventStatus": `https://schema.org/${d.eventStatus}` }),
+        ...(d.eventAttendanceMode && { "eventAttendanceMode": `https://schema.org/${d.eventAttendanceMode}` }),
+      }),
+    },
+  };
+
+  let currentType = 'Article';
+
+  function renderForm(type) {
+    const schema = schemas[type];
+    const form = document.getElementById('dynamic-form');
+    form.innerHTML = schema.fields.map(f => {
+      let input = '';
+      if (f.type === 'textarea') {
+        input = `<textarea id="f-${f.id}" class="num-input" placeholder="${f.placeholder || ''}" rows="3"></textarea>`;
+      } else if (f.type === 'select') {
+        input = `<select id="f-${f.id}" class="select-input"><option value="">-- Select --</option>${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+      } else {
+        input = `<input type="${f.type}" id="f-${f.id}" class="num-input" placeholder="${f.placeholder || ''}">`;
+      }
+      return `<div class="input-grp">
+        <span class="tool-label">${f.label}${f.required ? ' <span class="required-star">*</span>' : ''}</span>
+        ${input}
+      </div>`;
+    }).join('');
+  }
+
+  function generate() {
+    const schema = schemas[currentType];
+    const data = {};
+    let errors = [];
+    schema.fields.forEach(f => {
+      const el = document.getElementById('f-' + f.id);
+      if (el) {
+        data[f.id] = el.value.trim();
+        if (f.required && !data[f.id]) errors.push(f.label);
+      }
+    });
+    const msgEl = document.getElementById('validation-msg');
+    if (errors.length) {
+      msgEl.innerHTML = `<div class="validation-msg val-err">✗ Required fields missing: ${errors.join(', ')}</div>`;
+      return;
+    }
+    msgEl.innerHTML = `<div class="validation-msg val-ok">✓ Valid schema generated</div>`;
+    const obj = schema.build(data);
+    const jsonld = `<script type="application/ld+json">\n${JSON.stringify(obj, null, 2)}\n<\/script>`;
+    document.getElementById('output-code').textContent = jsonld;
+  }
+
+  // Tab switching
+  document.getElementById('type-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.type-tab');
+    if (!tab) return;
+    document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentType = tab.dataset.type;
+    renderForm(currentType);
+    document.getElementById('output-code').textContent = '// Schema will appear here after generation';
+    document.getElementById('validation-msg').innerHTML = '';
+  });
+
+  document.getElementById('btn-generate').addEventListener('click', generate);
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    const code = document.getElementById('output-code').textContent;
+    await navigator.clipboard.writeText(code);
+    const btn = document.getElementById('btn-copy');
+    btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 1500);
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const code = document.getElementById('output-code').textContent;
+    const blob = new Blob([code], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `schema-${currentType.toLowerCase()}.json`;
+    a.click();
+  });
+
+  renderForm(currentType);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:200px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.result-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;text-align:center}
+.result-big{font-size:2rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);margin-bottom:.25rem}
+.result-label{font-size:.75rem;color:var(--muted)}
+.result-sub{font-size:.8rem;color:var(--muted);margin-top:4px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-3{grid-template-columns:1fr}}
+.score-bar-wrap{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-top:8px}
+.score-bar{height:100%;border-radius:4px;transition:width .4s}
+.tip-item{font-size:.82rem;color:var(--muted);padding:6px 10px;background:rgba(255,255,255,.03);border-radius:6px;border-left:2px solid var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Text to Analyze</div>
+    <textarea class="tool-code" id="text-input" placeholder="Paste your text here (at least a few sentences for accurate results)..."></textarea>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="checkReadability()"><i class="bi bi-bar-chart"></i> Check Readability</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="grid-3" style="margin-bottom:1rem">
+      <div class="result-card">
+        <div class="result-big" id="flesch-ease">—</div>
+        <div class="result-label">Flesch Reading Ease</div>
+        <div class="result-sub" id="flesch-ease-label">—</div>
+        <div class="score-bar-wrap"><div class="score-bar" id="flesch-ease-bar" style="width:0%"></div></div>
+      </div>
+      <div class="result-card">
+        <div class="result-big" id="flesch-kincaid">—</div>
+        <div class="result-label">Flesch-Kincaid Grade</div>
+        <div class="result-sub" id="fk-label">—</div>
+      </div>
+      <div class="result-card">
+        <div class="result-big" id="gunning-fog">—</div>
+        <div class="result-label">Gunning Fog Index</div>
+        <div class="result-sub" id="fog-label">—</div>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:1rem">
+      <div class="result-card"><div class="result-big" id="stat-words">—</div><div class="result-label">Words</div></div>
+      <div class="result-card"><div class="result-big" id="stat-sents">—</div><div class="result-label">Sentences</div></div>
+      <div class="result-card"><div class="result-big" id="stat-sylls">—</div><div class="result-label">Syllables</div></div>
+    </div>
+
+    <div>
+      <div class="tool-label">Suggestions</div>
+      <div id="suggestions" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+function countSyllables(word) {
+  word = word.toLowerCase().replace(/[^a-z]/g,'');
+  if (!word) return 0;
+  if (word.length <= 3) return 1;
+  word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+  word = word.replace(/^y/, '');
+  const matches = word.match(/[aeiouy]{1,2}/g);
+  return matches ? matches.length : 1;
+}
+
+function isComplexWord(word) {
+  return countSyllables(word) >= 3;
+}
+
+function checkReadability() {
+  const text = document.getElementById('text-input').value.trim();
+  if (!text) { showErr('status', 'Please enter some text'); return; }
+
+  const words = text.split(/\s+/).filter(w => w.replace(/[^a-zA-Z]/g,'').length > 0);
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  const wordCount = words.length;
+  const sentCount = sentences.length;
+
+  if (wordCount < 10) { showErr('status', 'Please enter at least 10 words for accurate results'); return; }
+
+  const syllableCount = words.reduce((sum, w) => sum + countSyllables(w), 0);
+  const complexWords = words.filter(w => isComplexWord(w.replace(/[^a-zA-Z]/g,''))).length;
+
+  // Flesch Reading Ease: 206.835 - 1.015*(words/sentences) - 84.6*(syllables/words)
+  const fleschEase = 206.835 - 1.015*(wordCount/sentCount) - 84.6*(syllableCount/wordCount);
+  const fleschClamped = Math.max(0, Math.min(100, fleschEase));
+
+  // Flesch-Kincaid Grade Level: 0.39*(words/sentences) + 11.8*(syllables/words) - 15.59
+  const fkGrade = 0.39*(wordCount/sentCount) + 11.8*(syllableCount/wordCount) - 15.59;
+
+  // Gunning Fog: 0.4 * ((words/sentences) + 100*(complexWords/words))
+  const fogIndex = 0.4 * ((wordCount/sentCount) + 100*(complexWords/wordCount));
+
+  document.getElementById('flesch-ease').textContent = fleschClamped.toFixed(1);
+  document.getElementById('flesch-kincaid').textContent = Math.max(0, fkGrade).toFixed(1);
+  document.getElementById('gunning-fog').textContent = Math.max(0, fogIndex).toFixed(1);
+  document.getElementById('stat-words').textContent = wordCount;
+  document.getElementById('stat-sents').textContent = sentCount;
+  document.getElementById('stat-sylls').textContent = syllableCount;
+
+  // Flesch ease interpretation
+  let easeLabel, easeColor;
+  if (fleschClamped >= 90) { easeLabel = 'Very Easy (5th grade)'; easeColor = '#00F5D4'; }
+  else if (fleschClamped >= 70) { easeLabel = 'Easy (6th grade)'; easeColor = '#81C784'; }
+  else if (fleschClamped >= 60) { easeLabel = 'Standard (7-8th grade)'; easeColor = '#FFC107'; }
+  else if (fleschClamped >= 50) { easeLabel = 'Fairly Difficult (High school)'; easeColor = '#FF9800'; }
+  else if (fleschClamped >= 30) { easeLabel = 'Difficult (College)'; easeColor = '#FF7043'; }
+  else { easeLabel = 'Very Difficult (Professional)'; easeColor = '#FF6B6B'; }
+  document.getElementById('flesch-ease-label').textContent = easeLabel;
+  document.getElementById('flesch-ease-bar').style.width = fleschClamped + '%';
+  document.getElementById('flesch-ease-bar').style.background = easeColor;
+
+  const gradeLabel = g => g <= 6 ? 'Elementary' : g <= 9 ? 'Middle School' : g <= 12 ? 'High School' : 'College+';
+  document.getElementById('fk-label').textContent = 'Grade ' + Math.round(Math.max(0,fkGrade)) + ' — ' + gradeLabel(fkGrade);
+  document.getElementById('fog-label').textContent = fogIndex < 8 ? 'Easy to read' : fogIndex < 12 ? 'Acceptable' : fogIndex < 17 ? 'Hard to read' : 'Very hard';
+
+  // Suggestions
+  const tips = [];
+  if (wordCount/sentCount > 20) tips.push('Your average sentence length is high. Try breaking long sentences into shorter ones.');
+  if (syllableCount/wordCount > 1.7) tips.push('Many words have multiple syllables. Consider using simpler vocabulary.');
+  if (complexWords/wordCount > 0.2) tips.push('Over 20% of words are complex (3+ syllables). Simplify where possible.');
+  if (fleschClamped < 60) tips.push('Aim for a Flesch score above 60 for general audiences.');
+  if (fkGrade > 12) tips.push('The text reads at a college level. Consider simplifying for broader audiences.');
+  if (!tips.length) tips.push('Great readability! Your text is clear and accessible.');
+
+  document.getElementById('suggestions').innerHTML = tips.map(t => `<div class="tip-item"><i class="bi bi-lightbulb" style="color:var(--primary);margin-right:6px"></i>${t}</div>`).join('');
+  document.getElementById('results').style.display = 'block';
+  showOk('status', 'Analysis complete');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') checkReadability();
+});
+</script>
+{% endblock %}

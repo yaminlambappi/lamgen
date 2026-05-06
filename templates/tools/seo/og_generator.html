@@ -1,0 +1,178 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .split-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; margin-bottom: 2rem; }
+    
+    .input-grp { margin-bottom: 1.5rem; }
+    .input-grp label { display: block; margin-bottom: 0.5rem; color: var(--muted); font-size: 0.9rem; font-weight: 600; }
+    .input-field { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.8rem; border-radius: 8px; outline: none; }
+    .input-field:focus { border-color: var(--primary); }
+    textarea.input-field { resize: vertical; min-height: 80px; }
+    
+    /* Social Preview Cards */
+    .preview-container { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+    .preview-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+    
+    /* Facebook Card */
+    .fb-card { background: #fff; border: 1px solid #ddd; border-radius: 0; overflow: hidden; font-family: Helvetica, Arial, sans-serif; color: #1c1e21; margin-bottom: 2rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .fb-img-wrapper { width: 100%; aspect-ratio: 1.91 / 1; background: #e9ebee; border-bottom: 1px solid #ddd; overflow: hidden; position: relative; }
+    .fb-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+    .fb-content { padding: 10px 12px; background: #f2f3f5; }
+    .fb-domain { font-size: 12px; color: #606770; text-transform: uppercase; margin-bottom: 4px; display: block; }
+    .fb-title { font-size: 16px; font-weight: 600; line-height: 20px; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 3px; }
+    .fb-desc { font-size: 14px; color: #606770; line-height: 20px; max-height: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Twitter Card */
+    .tw-card { background: #000; border: 1px solid #333; border-radius: 16px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #fff; }
+    .tw-img-wrapper { width: 100%; aspect-ratio: 1.91 / 1; background: #333; border-bottom: 1px solid #333; overflow: hidden; }
+    .tw-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+    .tw-content { padding: 12px; }
+    .tw-domain { color: #71767b; font-size: 15px; margin-bottom: 2px; }
+    .tw-title { font-size: 15px; color: #fff; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tw-desc { color: #71767b; font-size: 15px; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+    .output-area { background: #0F0F1A; border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; position: relative; margin-top: 2rem; }
+    .output-code { font-family: monospace; color: #00F5D4; white-space: pre-wrap; word-break: break-all; }
+    .btn-copy { position: absolute; top: 1rem; right: 1rem; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+    .btn-copy:hover { border-color: var(--primary); }
+
+    @media (max-width: 768px) {
+        .split-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="split-grid">
+    <div>
+        <div class="input-grp">
+            <label>Page URL</label>
+            <input type="url" id="in-url" class="input-field" value="https://lamgen.tools">
+        </div>
+        <div class="input-grp">
+            <label>Title (og:title)</label>
+            <input type="text" id="in-title" class="input-field" value="LamGen Tools - Free Online Utilities">
+        </div>
+        <div class="input-grp">
+            <label>Description (og:description)</label>
+            <textarea id="in-desc" class="input-field">A massive ecosystem of free, privacy-first, browser-side utilities for developers, writers, and students.</textarea>
+        </div>
+        <div class="input-grp">
+            <label>Image URL (og:image) - Absolute URL required</label>
+            <input type="url" id="in-img" class="input-field" value="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&h=630&fit=crop">
+        </div>
+        <div class="input-grp">
+            <label>Site Name (og:site_name)</label>
+            <input type="text" id="in-site" class="input-field" value="LamGen">
+        </div>
+    </div>
+    
+    <div class="preview-container">
+        <div class="preview-label"><i class="bi bi-facebook" style="color: #1877F2;"></i> Facebook Preview</div>
+        <div class="fb-card">
+            <div class="fb-img-wrapper">
+                <img id="fb-img" src="" alt="Preview">
+            </div>
+            <div class="fb-content">
+                <span class="fb-domain" id="fb-domain">lamgen.tools</span>
+                <div class="fb-title" id="fb-title">LamGen Tools - Free Online Utilities</div>
+                <div class="fb-desc" id="fb-desc">A massive ecosystem of free, privacy-first, browser-side utilities for developers, writers, and students.</div>
+            </div>
+        </div>
+
+        <div class="preview-label"><i class="bi bi-twitter-x"></i> Twitter / X Preview</div>
+        <div class="tw-card">
+            <div class="tw-img-wrapper">
+                <img id="tw-img" src="" alt="Preview">
+            </div>
+            <div class="tw-content">
+                <div class="tw-domain" id="tw-domain">lamgen.tools</div>
+                <div class="tw-title" id="tw-title">LamGen Tools - Free Online Utilities</div>
+                <div class="tw-desc" id="tw-desc">A massive ecosystem of free, privacy-first, browser-side utilities for developers, writers, and students.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="output-area">
+    <button class="btn-copy" id="btn-copy"><i class="bi bi-clipboard"></i> Copy Tags</button>
+    <div style="color: var(--muted); margin-bottom: 1rem; font-size: 0.9rem;">Paste inside your <code>&lt;head&gt;</code> tag</div>
+    <div class="output-code" id="output-code"></div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputs = {
+            url: document.getElementById('in-url'),
+            title: document.getElementById('in-title'),
+            desc: document.getElementById('in-desc'),
+            img: document.getElementById('in-img'),
+            site: document.getElementById('in-site')
+        };
+        
+        function update() {
+            const url = inputs.url.value;
+            const title = inputs.title.value;
+            const desc = inputs.desc.value;
+            const img = inputs.img.value;
+            const site = inputs.site.value;
+            
+            // Domain extraction
+            let domain = url;
+            try { domain = new URL(url).hostname; } catch(e) {}
+            
+            // Facebook
+            document.getElementById('fb-domain').textContent = domain.toUpperCase();
+            document.getElementById('fb-title').textContent = title || 'Title missing';
+            document.getElementById('fb-desc').textContent = desc || 'Description missing';
+            document.getElementById('fb-img').src = img;
+            
+            // Twitter
+            document.getElementById('tw-domain').textContent = domain;
+            document.getElementById('tw-title').textContent = title || 'Title missing';
+            document.getElementById('tw-desc').textContent = desc || 'Description missing';
+            document.getElementById('tw-img').src = img;
+            
+            // Generate Code
+            const html = `<!-- HTML Meta Tags -->
+<title>${title}</title>
+<meta name="description" content="${desc}">
+
+<!-- Facebook Meta Tags -->
+<meta property="og:url" content="${url}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${desc}">
+<meta property="og:image" content="${img}">
+<meta property="og:site_name" content="${site}">
+
+<!-- Twitter Meta Tags -->
+<meta name="twitter:card" content="summary_large_image">
+<meta property="twitter:domain" content="${domain}">
+<meta property="twitter:url" content="${url}">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${desc}">
+<meta name="twitter:image" content="${img}">`;
+            
+            // escape HTML entities
+            document.getElementById('output-code').textContent = html;
+        }
+        
+        Object.values(inputs).forEach(input => input.addEventListener('input', update));
+        
+        document.getElementById('btn-copy').addEventListener('click', () => {
+            const code = document.getElementById('output-code').textContent;
+            navigator.clipboard.writeText(code);
+            const btn = document.getElementById('btn-copy');
+            btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+            setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy Tags', 2000);
+        });
+        
+        // init
+        update();
+    });
+</script>
+{% endblock %}

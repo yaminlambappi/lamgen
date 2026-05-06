@@ -1,0 +1,146 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.check-row{display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;user-select:none}
+.check-row input{accent-color:var(--primary);width:16px;height:16px}
+.kw-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.kw-table th{text-align:left;padding:8px 12px;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.kw-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04)}
+.kw-table tr:last-child td{border-bottom:none}
+.kw-table .rank{color:var(--muted);font-size:.78rem}
+.kw-table .word{font-weight:600;color:var(--text)}
+.kw-table .count{color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace}
+.kw-table .pct{color:var(--primary);font-family:'JetBrains Mono',monospace}
+.density-bar{height:4px;background:rgba(108,99,255,.2);border-radius:2px;margin-top:3px}
+.density-fill{height:100%;background:var(--primary);border-radius:2px}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Text to Analyze</div>
+    <textarea class="tool-code" id="input-text" placeholder="Paste your text here..."></textarea>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Min Word Length</div>
+      <input type="number" class="num-input" id="min-len" value="3" min="1" max="20">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;justify-content:flex-end">
+      <label class="check-row"><input type="checkbox" id="filter-stop" checked> Filter stop words</label>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="analyze()"><i class="bi bi-bar-chart"></i> Analyze</button>
+    <button class="btn-sm" onclick="exportCSV()"><i class="bi bi-download"></i> Export CSV</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="results" style="display:none">
+    <div class="tool-label">Top Keywords</div>
+    <div style="overflow-x:auto">
+      <table class="kw-table">
+        <thead><tr><th>#</th><th>Word</th><th>Count</th><th>Density</th><th></th></tr></thead>
+        <tbody id="kw-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+const STOP_WORDS = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','shall','can','this','that','these','those','i','you','he','she','it','we','they','me','him','her','us','them','my','your','his','its','our','their','what','which','who','when','where','why','how','all','each','every','both','few','more','most','other','some','such','no','not','only','same','so','than','too','very','just','as','if','then','there','here','about','into','through','during','before','after','above','below','between','out','off','over','under','again','further','once','any','also','up','down','now','new','old','first','last','long','great','little','own','right','big','high','small','large','next','early','young','important','public','private','real','best','free','good','bad','well','even','back','still','way','take','come','go','get','make','know','think','see','look','want','give','use','find','tell','ask','seem','feel','try','leave','call','keep','let','begin','show','hear','play','run','move','live','believe','hold','bring','happen','write','provide','sit','stand','lose','pay','meet','include','continue','set','learn','change','lead','understand','watch','follow','stop','create','speak','read','spend','grow','open','walk','win','offer','remember','love','consider','appear','buy','wait','serve','die','send','expect','build','stay','fall','cut','reach','kill','remain','suggest','raise','pass','sell','require','report','decide','pull']);
+
+let lastResults = [];
+
+function analyze() {
+  const text = document.getElementById('input-text').value;
+  if (!text.trim()) { showErr('status', 'Please enter some text'); return; }
+  const minLen = parseInt(document.getElementById('min-len').value) || 3;
+  const filterStop = document.getElementById('filter-stop').checked;
+
+  const words = text.toLowerCase().replace(/[^a-z\s]/g,' ').split(/\s+/).filter(w => w.length >= minLen);
+  const totalWords = words.length;
+  if (!totalWords) { showErr('status', 'No words found'); return; }
+
+  const freq = {};
+  for (const w of words) {
+    if (filterStop && STOP_WORDS.has(w)) continue;
+    freq[w] = (freq[w] || 0) + 1;
+  }
+
+  lastResults = Object.entries(freq).sort((a,b) => b[1]-a[1]).slice(0,20);
+  const maxCount = lastResults[0]?.[1] || 1;
+
+  const tbody = document.getElementById('kw-tbody');
+  tbody.innerHTML = lastResults.map(([word, count], i) => {
+    const pct = ((count / totalWords) * 100).toFixed(2);
+    const barPct = (count / maxCount) * 100;
+    return `<tr>
+      <td class="rank">${i+1}</td>
+      <td class="word">${word}</td>
+      <td class="count">${count}</td>
+      <td class="pct">
+        ${pct}%
+        <div class="density-bar"><div class="density-fill" style="width:${barPct}%"></div></div>
+      </td>
+      <td></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('results').style.display = 'block';
+  showOk('status', `Analyzed ${totalWords} words, ${Object.keys(freq).length} unique`);
+}
+
+function exportCSV() {
+  if (!lastResults.length) return;
+  const csv = 'Rank,Word,Count,Density\n' + lastResults.map(([w,c],i) => `${i+1},${w},${c},${((c/lastResults.reduce((a,b)=>a+b[1],0))*100).toFixed(2)}%`).join('\n');
+  downloadText(csv, 'keyword-density.csv', 'text/csv');
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyze();
+});
+</script>
+{% endblock %}

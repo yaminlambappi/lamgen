@@ -1,0 +1,227 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-label{font-size:.75rem;color:var(--muted);font-weight:600}
+.text-input,.select-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.text-input:focus,.select-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.bio-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:.75rem}
+.bio-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.bio-type{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--primary);background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;padding:2px 10px}
+.bio-text{font-size:.9rem;line-height:1.65;color:var(--text)}
+.bio-meta{display:flex;gap:10px;margin-top:8px;font-size:.72rem;color:var(--muted)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <div class="input-group">
+      <label class="input-label">Your Name *</label>
+      <input type="text" class="text-input" id="name" placeholder="e.g. Alex Johnson">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Role / Title *</label>
+      <input type="text" class="text-input" id="role" placeholder="e.g. UX Designer, Full-Stack Developer">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Company / Organization</label>
+      <input type="text" class="text-input" id="company" placeholder="e.g. Google, Freelance, My Startup">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Years of Experience</label>
+      <input type="text" class="text-input" id="years" placeholder="e.g. 5, 10+, 3">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Top Achievement / Specialty</label>
+      <input type="text" class="text-input" id="achievement" placeholder="e.g. built products used by 1M+ users">
+    </div>
+    <div class="input-group">
+      <label class="input-label">Tone / Style</label>
+      <select class="select-input" id="tone">
+        <option value="professional">Professional</option>
+        <option value="conversational">Conversational</option>
+        <option value="creative">Creative / Bold</option>
+        <option value="minimal">Minimal</option>
+        <option value="academic">Academic</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-person-lines-fill"></i> Generate Bios</button>
+    <button class="btn-sm" onclick="generate()"><i class="bi bi-arrow-clockwise"></i> Regenerate</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div class="tool-label">Generated Bios</div>
+    <div id="resultsList"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function waitForEngine(cb) {
+  if (window.GenEngine) { cb(); return; }
+  setTimeout(() => waitForEngine(cb), 50);
+}
+waitForEngine(() => {
+const G = window.GenEngine;
+
+// Expose to global scope for onclick handlers
+window.generate = generate;
+window.copyBio = copyBio;
+
+const BIO_TYPES = [
+  { id:'one-line',   label:'One-liner',      words:[8,15]  },
+  { id:'twitter',    label:'Twitter Bio',    words:[15,25] },
+  { id:'instagram',  label:'Instagram Bio',  words:[20,35] },
+  { id:'linkedin',   label:'LinkedIn About', words:[50,80] },
+  { id:'website',    label:'Website About',  words:[60,100]},
+  { id:'third',      label:'Third Person',   words:[40,70] },
+];
+
+function generate() {
+  const name = document.getElementById('name').value.trim();
+  const role = document.getElementById('role').value.trim();
+  if (!name || !role) { showErr('st','Enter your name and role'); return; }
+  hideStatus('st');
+
+  const company     = document.getElementById('company').value.trim();
+  const years       = document.getElementById('years').value.trim();
+  const achievement = document.getElementById('achievement').value.trim();
+  const tone        = document.getElementById('tone').value;
+
+  const N = name, R = role;
+  const C = company ? `at ${company}` : '';
+  const Y = years ? `${years}+ years` : G.pick(['several years','a decade','years']);
+  const A = achievement || `${G.synonym('deliver')}ing ${G.powerAdj()} ${G.synonym('results')}`;
+
+  // Tone-specific openers and phrasing
+  const toneMap = {
+    professional: {
+      openers: [`${G.powerAdj()} ${R}`, `Experienced ${R}`, `${R} with ${Y} of experience`],
+      connectors: ['specializing in','focused on','with expertise in','known for'],
+      closers: ['Open to new opportunities.','Let\'s connect.','Available for consulting.'],
+    },
+    conversational: {
+      openers: [`Hey, I'm ${N}!`, `I'm ${N}, a ${R}`, `${N} here — ${R} by day`],
+      connectors: ['who loves','obsessed with','passionate about','always exploring'],
+      closers: ['Let\'s chat!','DM me anytime.','Always happy to connect 👋'],
+    },
+    creative: {
+      openers: [`${N}. ${R}. ${G.pick(['Dreamer','Builder','Creator','Maker'])}.`, `Part ${R}, part ${G.pick(['storyteller','strategist','visionary','rebel'])}.`],
+      connectors: ['crafting','building','designing','reimagining'],
+      closers: ['Let\'s make something great.','Ideas welcome.','Currently building the future.'],
+    },
+    minimal: {
+      openers: [R, `${R} ${C}`, `${N} · ${R}`],
+      connectors: ['|','·','—'],
+      closers: ['', '', ''],
+    },
+    academic: {
+      openers: [`${N} is a ${R}`, `Dr./Prof. ${N} serves as ${R}`, `${N} holds expertise as ${R}`],
+      connectors: ['whose research focuses on','specializing in','with scholarly interest in'],
+      closers: ['Available for academic collaboration.','Research inquiries welcome.'],
+    },
+  };
+
+  const tm = toneMap[tone] || toneMap.professional;
+
+  const generators = {
+    'one-line': [
+      () => `${G.pick(tm.openers)} ${G.pick(tm.connectors)} ${A}.`,
+      () => `${R} ${C} | ${A}.`,
+      () => `${G.powerAdj()} ${R} ${G.synonym('help')}ing ${G.pick(['teams','companies','people'])} ${G.synonym('grow')}.`,
+    ],
+    'twitter': [
+      () => `${G.pick(tm.openers)} ${G.pick(tm.connectors)} ${A}. ${C}. ${G.pick(tm.closers)}`,
+      () => `${R} | ${A} | ${C} | ${G.pick(tm.closers)}`,
+      () => `${G.powerAdj()} ${R}. ${G.synonym('passionate')} about ${A}. ${G.pick(tm.closers)}`,
+    ],
+    'instagram': [
+      () => `${G.pick(tm.openers)} ✨\n${G.synonym('passionate')} about ${A}\n${C}\n${G.pick(tm.closers)}`,
+      () => `${R} 🚀\n${A}\n${C ? C + '\n' : ''}${G.pick(tm.closers)}`,
+      () => `${G.powerAdj()} ${R} | ${A}\n${G.pick(['Building','Creating','Designing'])} ${G.pick(['the future','something great','what matters'])}\n${G.pick(tm.closers)}`,
+    ],
+    'linkedin': [
+      () => `${G.pick(tm.openers)} with ${Y} of experience ${G.pick(tm.connectors)} ${A}.\n\n${G.transition()} I ${G.synonym('help')} ${G.pick(['organizations','teams','companies','startups'])} ${G.synonym('grow')} by ${G.synonym('deliver')}ing ${G.powerAdj()} ${G.synonym('results')}.\n\n${G.pick(tm.closers)}`,
+      () => `${G.powerAdj()} ${R} ${C} with a track record of ${A}.\n\nI ${G.synonym('build')} ${G.powerAdj()} ${G.synonym('solutions')} that ${G.synonym('drive')} real ${G.synonym('results')}.\n\n${G.pick(tm.closers)}`,
+    ],
+    'website': [
+      () => `Hi, I'm ${N} — a ${G.powerAdj()} ${R} ${C} with ${Y} of experience.\n\nI ${G.synonym('help')} ${G.pick(['businesses','teams','clients','organizations'])} ${G.synonym('grow')} through ${A}.\n\nWhen I'm not ${G.pick(['building','designing','coding','writing'])}, you'll find me ${G.pick(['exploring new ideas','learning something new','collaborating with great people'])}.\n\n${G.pick(tm.closers)}`,
+    ],
+    'third': [
+      () => `${N} is a ${G.powerAdj()} ${R} ${C} with ${Y} of experience ${G.pick(tm.connectors)} ${A}. ${N} ${G.synonym('help')}s ${G.pick(['organizations','teams','clients'])} ${G.synonym('grow')} by ${G.synonym('deliver')}ing ${G.powerAdj()} ${G.synonym('results')}.`,
+      () => `As a ${R} ${C}, ${N} has spent ${Y} ${G.synonym('build')}ing ${G.powerAdj()} ${G.synonym('solutions')}. ${N}'s work is defined by ${A}.`,
+    ],
+  };
+
+  const results = BIO_TYPES.map(type => {
+    const gens = generators[type.id] || generators['one-line'];
+    const shuffled = G.shuffle(gens);
+    let text = '';
+    for (const gen of shuffled) {
+      try { text = gen().trim(); if (text) break; } catch(e) {}
+    }
+    return { type, text };
+  }).filter(r => r.text);
+
+  document.getElementById('resultsList').innerHTML = results.map((r, i) => {
+    const wc = r.text.split(/\s+/).filter(Boolean).length;
+    return `
+      <div class="bio-card">
+        <div class="bio-card-head">
+          <span class="bio-type">${r.type.label}</span>
+          <button class="btn-sm" style="padding:4px 10px;font-size:.72rem" onclick="copyBio(${i},this)">
+            <i class="bi bi-clipboard"></i> Copy
+          </button>
+        </div>
+        <div class="bio-text" id="bio-${i}">${escHtml(r.text).replace(/\n/g,'<br>')}</div>
+        <div class="bio-meta"><span>${wc} words</span><span>${r.text.length} chars</span></div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('resultsWrap').style.display = '';
+  showOk('st', `${results.length} bio variants generated`);
+}
+
+function copyBio(idx, btn) {
+  const el = document.getElementById('bio-' + idx);
+  const text = el ? el.innerText : '';
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showErr(id, msg) { const el=document.getElementById(id); el.className='status err'; el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg; }
+function showOk(id, msg) { const el=document.getElementById(id); el.className='status ok'; el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg; }
+function hideStatus(id) { document.getElementById(id).className='status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generate(); }
+});
+}); // end waitForEngine
+</script>
+{% endblock %}

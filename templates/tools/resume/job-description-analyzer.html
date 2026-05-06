@@ -1,0 +1,254 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:200px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.result-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1.2rem}
+.result-card-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:4px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.78rem;color:var(--primary)}
+.chip.must{background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.3);color:#FF6B6B}
+.chip.nice{background:rgba(0,245,212,.08);border-color:rgba(0,245,212,.2);color:var(--accent)}
+.chip.freq{background:rgba(255,179,71,.1);border-color:rgba(255,179,71,.3);color:#FFB347}
+.level-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:50px;font-size:.85rem;font-weight:700}
+.level-junior{background:rgba(0,245,212,.1);color:var(--accent);border:1px solid rgba(0,245,212,.3)}
+.level-mid{background:rgba(108,99,255,.1);color:var(--primary);border:1px solid rgba(108,99,255,.3)}
+.level-senior{background:rgba(255,179,71,.1);color:#FFB347;border:1px solid rgba(255,179,71,.3)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.resp-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.4rem}
+.resp-list li{font-size:.88rem;color:var(--text);padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;gap:.5rem}
+.resp-list li::before{content:"→";color:var(--primary);flex-shrink:0}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Paste Job Description</div>
+    <textarea class="tool-code" id="jdInput" placeholder="Paste the full job description here..."></textarea>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="analyzeJD()"><i class="bi bi-search"></i> Analyze</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div id="results" style="display:none;flex-direction:column;gap:1rem">
+    <div class="grid-2">
+      <div class="result-card">
+        <div class="result-card-title"><i class="bi bi-bar-chart-fill" style="color:var(--primary)"></i> Experience Level</div>
+        <div id="levelBadge"></div>
+        <div id="levelReason" style="font-size:.82rem;color:var(--muted);margin-top:.5rem"></div>
+      </div>
+      <div class="result-card">
+        <div class="result-card-title"><i class="bi bi-list-check" style="color:var(--accent)"></i> Key Stats</div>
+        <div id="statsGrid" style="display:flex;flex-direction:column;gap:.3rem;font-size:.88rem;color:var(--muted)"></div>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="result-card-title" style="margin-bottom:0"><i class="bi bi-tags-fill" style="color:var(--primary)"></i> Required Skills (by frequency)</div>
+        <button class="btn-sm" onclick="copySkills('required')"><i class="bi bi-clipboard"></i> Copy</button>
+      </div>
+      <div class="chips" id="requiredSkills"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="result-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <div class="result-card-title" style="margin-bottom:0"><i class="bi bi-check-circle-fill" style="color:#FF6B6B"></i> Must-Have</div>
+          <button class="btn-sm" onclick="copySkills('must')"><i class="bi bi-clipboard"></i></button>
+        </div>
+        <div class="chips" id="mustHave"></div>
+      </div>
+      <div class="result-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <div class="result-card-title" style="margin-bottom:0"><i class="bi bi-star-fill" style="color:var(--accent)"></i> Nice-to-Have</div>
+          <button class="btn-sm" onclick="copySkills('nice')"><i class="bi bi-clipboard"></i></button>
+        </div>
+        <div class="chips" id="niceToHave"></div>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-card-title"><i class="bi bi-clipboard-check-fill" style="color:var(--primary)"></i> Key Responsibilities</div>
+      <ul class="resp-list" id="responsibilities"></ul>
+    </div>
+
+    <div class="result-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="result-card-title" style="margin-bottom:0"><i class="bi bi-robot" style="color:#FFB347"></i> ATS Keyword Suggestions</div>
+        <button class="btn-sm" onclick="copySkills('ats')"><i class="bi bi-clipboard"></i> Copy All</button>
+      </div>
+      <div class="chips" id="atsKeywords"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const TECH_SKILLS = ['python','javascript','typescript','java','c++','c#','go','rust','ruby','php','swift','kotlin','react','angular','vue','node','django','flask','spring','express','sql','mysql','postgresql','mongodb','redis','elasticsearch','aws','azure','gcp','docker','kubernetes','terraform','git','linux','rest','graphql','api','microservices','machine learning','deep learning','tensorflow','pytorch','pandas','numpy','scikit','tableau','power bi','excel','figma','sketch','photoshop','illustrator','html','css','sass','webpack','ci/cd','jenkins','github actions','agile','scrum','jira','confluence'];
+const SOFT_SKILLS = ['communication','leadership','teamwork','problem-solving','analytical','detail-oriented','self-motivated','collaborative','adaptable','creative','organized','time management','critical thinking','interpersonal','presentation','mentoring','strategic','innovative'];
+const MUST_SIGNALS = ['required','must have','must-have','essential','mandatory','minimum','at least','you have','you will need','we require','necessary','expected'];
+const NICE_SIGNALS = ['preferred','nice to have','nice-to-have','bonus','plus','advantage','desirable','ideally','familiarity with','exposure to','knowledge of','experience with'];
+
+function analyzeJD() {
+  const text = document.getElementById('jdInput').value.trim();
+  if (!text) { showErr('st','Please paste a job description'); return; }
+  hideStatus('st');
+
+  const lower = text.toLowerCase();
+  const words = lower.split(/\W+/);
+  const wordFreq = {};
+  words.forEach(w => { if (w.length > 2) wordFreq[w] = (wordFreq[w] || 0) + 1; });
+
+  // Detect experience level
+  let level = 'mid', levelReason = '';
+  const seniorSignals = ['senior','lead','principal','staff','architect','manager','director','head of','vp','10+','8+','7+','6+ years'];
+  const juniorSignals = ['junior','entry','graduate','intern','0-2','1-2','1+ year','fresh','new grad','associate'];
+  const seniorCount = seniorSignals.filter(s => lower.includes(s)).length;
+  const juniorCount = juniorSignals.filter(s => lower.includes(s)).length;
+  if (seniorCount > juniorCount) { level = 'senior'; levelReason = `Detected: ${seniorSignals.filter(s=>lower.includes(s)).slice(0,3).join(', ')}`; }
+  else if (juniorCount > seniorCount) { level = 'junior'; levelReason = `Detected: ${juniorSignals.filter(s=>lower.includes(s)).slice(0,3).join(', ')}`; }
+  else { levelReason = 'Mid-level signals detected (2-5 years experience range)'; }
+
+  // Find skills with frequency
+  const foundSkills = [];
+  TECH_SKILLS.forEach(skill => {
+    const re = new RegExp('\\b' + skill.replace(/[+.]/g,'\\$&') + '\\b', 'gi');
+    const matches = (text.match(re) || []).length;
+    if (matches > 0) foundSkills.push({ skill, count: matches });
+  });
+  foundSkills.sort((a,b) => b.count - a.count);
+
+  // Must-have vs nice-to-have
+  const sentences = text.split(/[.!?\n]+/);
+  const mustSkills = new Set(), niceSkills = new Set();
+  sentences.forEach(sent => {
+    const sl = sent.toLowerCase();
+    const isMust = MUST_SIGNALS.some(s => sl.includes(s));
+    const isNice = NICE_SIGNALS.some(s => sl.includes(s));
+    TECH_SKILLS.forEach(skill => {
+      const re = new RegExp('\\b' + skill.replace(/[+.]/g,'\\$&') + '\\b', 'i');
+      if (re.test(sent)) {
+        if (isNice) niceSkills.add(skill);
+        else if (isMust) mustSkills.add(skill);
+      }
+    });
+  });
+
+  // Responsibilities
+  const respLines = sentences.filter(s => {
+    const sl = s.trim().toLowerCase();
+    return sl.length > 20 && (sl.startsWith('you will') || sl.startsWith('you\'ll') || sl.startsWith('responsible') || sl.startsWith('develop') || sl.startsWith('design') || sl.startsWith('build') || sl.startsWith('manage') || sl.startsWith('lead') || sl.startsWith('collaborate') || sl.startsWith('work with') || sl.startsWith('create') || sl.startsWith('implement') || sl.startsWith('maintain') || sl.startsWith('ensure') || sl.startsWith('drive'));
+  }).slice(0, 8);
+
+  // ATS keywords
+  const atsKeywords = [...new Set([...foundSkills.map(s=>s.skill), ...SOFT_SKILLS.filter(s=>lower.includes(s))])].slice(0, 20);
+
+  // Render
+  const levelClass = level === 'senior' ? 'level-senior' : level === 'junior' ? 'level-junior' : 'level-mid';
+  const levelIcon = level === 'senior' ? 'bi-award-fill' : level === 'junior' ? 'bi-mortarboard-fill' : 'bi-person-fill';
+  document.getElementById('levelBadge').innerHTML = `<span class="level-badge ${levelClass}"><i class="bi ${levelIcon}"></i> ${level.charAt(0).toUpperCase()+level.slice(1)}-Level</span>`;
+  document.getElementById('levelReason').textContent = levelReason;
+
+  const wordCount = text.split(/\s+/).length;
+  const sentCount = sentences.filter(s=>s.trim().length>10).length;
+  document.getElementById('statsGrid').innerHTML = `
+    <div><i class="bi bi-file-text" style="color:var(--primary);margin-right:6px"></i>${wordCount} words, ${sentCount} sentences</div>
+    <div><i class="bi bi-tags" style="color:var(--primary);margin-right:6px"></i>${foundSkills.length} technical skills found</div>
+    <div><i class="bi bi-check2-circle" style="color:#FF6B6B;margin-right:6px"></i>${mustSkills.size} must-have skills</div>
+    <div><i class="bi bi-star" style="color:var(--accent);margin-right:6px"></i>${niceSkills.size} nice-to-have skills</div>
+  `;
+
+  const reqEl = document.getElementById('requiredSkills');
+  reqEl.innerHTML = '';
+  foundSkills.slice(0, 20).forEach(({skill, count}) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip freq';
+    chip.textContent = `${skill} ×${count}`;
+    reqEl.appendChild(chip);
+  });
+
+  const mustEl = document.getElementById('mustHave');
+  mustEl.innerHTML = '';
+  [...mustSkills].slice(0,15).forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'chip must';
+    chip.textContent = s;
+    mustEl.appendChild(chip);
+  });
+  if (!mustSkills.size) mustEl.innerHTML = '<span style="color:var(--muted);font-size:.85rem">No explicit must-have signals found</span>';
+
+  const niceEl = document.getElementById('niceToHave');
+  niceEl.innerHTML = '';
+  [...niceSkills].slice(0,15).forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'chip nice';
+    chip.textContent = s;
+    niceEl.appendChild(chip);
+  });
+  if (!niceSkills.size) niceEl.innerHTML = '<span style="color:var(--muted);font-size:.85rem">No explicit nice-to-have signals found</span>';
+
+  const respEl = document.getElementById('responsibilities');
+  respEl.innerHTML = '';
+  if (respLines.length) {
+    respLines.forEach(r => {
+      const li = document.createElement('li');
+      li.textContent = r.trim().replace(/^[-•*]\s*/,'');
+      respEl.appendChild(li);
+    });
+  } else {
+    respEl.innerHTML = '<li style="color:var(--muted)">Could not extract structured responsibilities — try pasting a more detailed JD</li>';
+  }
+
+  const atsEl = document.getElementById('atsKeywords');
+  atsEl.innerHTML = '';
+  atsKeywords.forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = s;
+    atsEl.appendChild(chip);
+  });
+
+  document.getElementById('results').style.display = 'flex';
+  showOk('st', 'Analysis complete');
+}
+
+function copySkills(type) {
+  const map = { required: '#requiredSkills', must: '#mustHave', nice: '#niceToHave', ats: '#atsKeywords' };
+  const chips = document.querySelectorAll(map[type] + ' .chip');
+  const text = Array.from(chips).map(c => c.textContent.replace(/\s*×\d+$/, '')).join(', ');
+  navigator.clipboard.writeText(text);
+}
+
+function clearAll() {
+  document.getElementById('jdInput').value = '';
+  document.getElementById('results').style.display = 'none';
+  hideStatus('st');
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); analyzeJD(); }
+});
+</script>
+{% endblock %}

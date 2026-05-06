@@ -1,0 +1,231 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:200px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.7;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.ctrl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem}
+.ctrl-item{display:flex;flex-direction:column;gap:.3rem}
+.num-input{width:100%;padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box}
+.num-input:focus{border-color:var(--primary)}
+.select-input{width:100%;padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;cursor:pointer;box-sizing:border-box}
+.select-input:focus{border-color:var(--primary)}
+.toggle-row{display:flex;gap:1rem;flex-wrap:wrap}
+.toggle-item{display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;color:var(--text)}
+.toggle-item input{accent-color:var(--primary);width:16px;height:16px;cursor:pointer}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.meta-item{display:flex;align-items:center;gap:5px}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div class="ctrl-grid">
+    <div class="ctrl-item">
+      <div class="tool-label">Generate By</div>
+      <select class="select-input" id="genType" onchange="updateLabel()">
+        <option value="paragraphs">Paragraphs</option>
+        <option value="sentences">Sentences</option>
+        <option value="words">Words</option>
+      </select>
+    </div>
+    <div class="ctrl-item">
+      <div class="tool-label" id="countLabel">Count</div>
+      <input type="number" class="num-input" id="countIn" value="3" min="1" max="500">
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <label class="toggle-item">
+      <input type="checkbox" id="startLorem" checked>
+      Start with "Lorem ipsum..."
+    </label>
+    <label class="toggle-item">
+      <input type="checkbox" id="htmlOutput">
+      Wrap in &lt;p&gt; tags (HTML)
+    </label>
+    <label class="toggle-item">
+      <input type="checkbox" id="includeHeadings">
+      Include &lt;h2&gt; headings
+    </label>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-paragraph"></i> Generate</button>
+    <button class="btn-sm" id="btnCopy" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+    <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download</button>
+    <button class="btn-sm" onclick="clearOut()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Output</div>
+      <div class="meta-row" id="stats"></div>
+    </div>
+    <textarea class="tool-code out" id="output" readonly placeholder="Generated text will appear here..."></textarea>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const WORDS = [
+  'lorem','ipsum','dolor','sit','amet','consectetur','adipiscing','elit','sed','do',
+  'eiusmod','tempor','incididunt','ut','labore','et','dolore','magna','aliqua','enim',
+  'ad','minim','veniam','quis','nostrud','exercitation','ullamco','laboris','nisi',
+  'aliquip','ex','ea','commodo','consequat','duis','aute','irure','in','reprehenderit',
+  'voluptate','velit','esse','cillum','fugiat','nulla','pariatur','excepteur','sint',
+  'occaecat','cupidatat','non','proident','sunt','culpa','qui','officia','deserunt',
+  'mollit','anim','id','est','laborum','perspiciatis','unde','omnis','iste','natus',
+  'error','accusantium','doloremque','laudantium','totam','rem','aperiam','eaque','ipsa',
+  'quae','ab','illo','inventore','veritatis','quasi','architecto','beatae','vitae',
+  'dicta','explicabo','nemo','ipsam','quia','voluptas','aspernatur','odit','fugit',
+  'consequuntur','magni','dolores','eos','ratione','sequi','nesciunt','neque','porro',
+  'quisquam','dolorem','adipisci','numquam','eius','modi','tempora','incidunt','magnam',
+  'quaerat','voluptatem','minima','nostrum','exercitationem','ullam','corporis','suscipit'
+];
+
+const LOREM_START = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.';
+
+function updateLabel() {
+  const type = document.getElementById('genType').value;
+  document.getElementById('countLabel').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+}
+
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function randomWord(exclude) {
+  let w;
+  do { w = WORDS[Math.floor(Math.random() * WORDS.length)]; } while (w === exclude);
+  return w;
+}
+
+function makeSentence(forceStart) {
+  const len = rnd(8, 20);
+  const words = [];
+  for (let i = 0; i < len; i++) words.push(randomWord(words[words.length-1]));
+  words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+  // Add comma occasionally
+  const commaPos = rnd(3, len - 3);
+  words[commaPos] = words[commaPos] + ',';
+  return words.join(' ') + '.';
+}
+
+function makeParagraph(isFirst) {
+  const sentCount = rnd(4, 8);
+  const sentences = [];
+  for (let i = 0; i < sentCount; i++) sentences.push(makeSentence());
+  if (isFirst && document.getElementById('startLorem').checked) {
+    sentences[0] = LOREM_START;
+  }
+  return sentences.join(' ');
+}
+
+function generate() {
+  const type = document.getElementById('genType').value;
+  const count = Math.min(500, Math.max(1, parseInt(document.getElementById('countIn').value) || 1));
+  const html = document.getElementById('htmlOutput').checked;
+  const headings = document.getElementById('includeHeadings').checked;
+
+  let parts = [];
+
+  if (type === 'words') {
+    const words = [];
+    if (document.getElementById('startLorem').checked) {
+      const loremWords = LOREM_START.replace(/[.,]/g,'').split(' ');
+      words.push(...loremWords.slice(0, Math.min(count, loremWords.length)));
+    }
+    while (words.length < count) words.push(randomWord(words[words.length-1]));
+    const text = words.slice(0, count).join(' ');
+    parts = [html ? `<p>${text}</p>` : text];
+  } else if (type === 'sentences') {
+    const sentences = [];
+    for (let i = 0; i < count; i++) sentences.push(makeSentence());
+    if (document.getElementById('startLorem').checked) sentences[0] = LOREM_START;
+    if (html) {
+      parts = [`<p>${sentences.join(' ')}</p>`];
+    } else {
+      parts = [sentences.join(' ')];
+    }
+  } else {
+    // paragraphs
+    const headingWords = ['Introduction','Overview','Details','Summary','Background','Context','Analysis','Conclusion'];
+    for (let i = 0; i < count; i++) {
+      if (headings && i > 0 && i % 2 === 0) {
+        const hw = headingWords[Math.floor(i/2) % headingWords.length];
+        parts.push(html ? `<h2>${hw}</h2>` : `\n${hw.toUpperCase()}\n`);
+      }
+      const para = makeParagraph(i === 0);
+      parts.push(html ? `<p>${para}</p>` : para);
+    }
+  }
+
+  const output = parts.join(html ? '\n' : '\n\n');
+  document.getElementById('output').value = output;
+
+  const wordCount = output.replace(/<[^>]+>/g,'').split(/\s+/).filter(Boolean).length;
+  const charCount = output.replace(/<[^>]+>/g,'').length;
+  document.getElementById('stats').innerHTML = `
+    <span class="meta-item"><i class="bi bi-type"></i> ${wordCount} words</span>
+    <span class="meta-item"><i class="bi bi-fonts"></i> ${charCount} chars</span>
+  `;
+  showOk('st', `Generated ${count} ${type}`);
+}
+
+function copyOut() {
+  const v = document.getElementById('output').value;
+  if (!v) return;
+  const btn = document.getElementById('btnCopy');
+  navigator.clipboard.writeText(v).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function downloadOut() {
+  const v = document.getElementById('output').value;
+  if (!v) return;
+  const html = document.getElementById('htmlOutput').checked;
+  const blob = new Blob([v], {type: html ? 'text/html' : 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = html ? 'lorem.html' : 'lorem.txt'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearOut() {
+  document.getElementById('output').value = '';
+  document.getElementById('stats').innerHTML = '';
+  hideStatus('st');
+}
+
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generate(); }
+});
+
+generate();
+</script>
+{% endblock %}

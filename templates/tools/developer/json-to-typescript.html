@@ -1,0 +1,249 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:220px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.tool-code.out{background:rgba(0,0,0,.4)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.4rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:.5rem}
+.opt-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
+.opt-label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);cursor:pointer}
+.opt-label input{accent-color:var(--primary)}
+.tool-input{padding:7px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;cursor:pointer}
+.tool-input:focus{border-color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Input JSON</div>
+    <textarea class="tool-code" id="jsonIn" placeholder='Paste raw JSON here…&#10;Example: {"id":1,"name":"Alice","email":"alice@example.com","active":true}&#10;&#10;Tip: Press Ctrl+Enter to generate.'></textarea>
+    <div class="chips">
+      <span class="chip" onclick="loadEx('user')">User Object</span>
+      <span class="chip" onclick="loadEx('api')">API Response</span>
+      <span class="chip" onclick="loadEx('nested')">Nested</span>
+      <span class="chip" onclick="loadEx('array')">Array</span>
+    </div>
+  </div>
+
+  <div class="opt-row">
+    <div>
+      <span style="font-size:.85rem;color:var(--muted);margin-right:.5rem">Root name:</span>
+      <input class="tool-input" id="rootName" value="Root" placeholder="Root" style="width:120px" />
+    </div>
+    <label class="opt-label"><input type="checkbox" id="optionalNulls" checked> null → optional (?)</label>
+    <label class="opt-label"><input type="checkbox" id="exportKw" checked> export interface</label>
+    <label class="opt-label"><input type="checkbox" id="readonlyKw"> readonly fields</label>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="convertToTS()"><i class="bi bi-filetype-tsx"></i> Generate TypeScript</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">TypeScript Interface</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" id="btnCopy" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download .ts</button>
+      </div>
+    </div>
+    <textarea class="tool-code out" id="tsOut" readonly placeholder="Generated TypeScript will appear here… (Copy or download when ready)"></textarea>
+    <div class="meta-row" id="stats"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const EXAMPLES = {
+  user: '{"id":1,"name":"Alice Smith","email":"alice@example.com","age":30,"active":true,"avatar":null,"createdAt":"2024-01-15T10:30:00Z"}',
+  api: '{"success":true,"data":{"users":[{"id":1,"name":"Alice"},{"id":2,"name":"Bob"}],"total":2,"page":1,"perPage":10},"error":null,"timestamp":1700000000}',
+  nested: '{"user":{"id":1,"profile":{"firstName":"Alice","lastName":"Smith","bio":null,"social":{"twitter":"@alice","linkedin":"alice-smith"}},"settings":{"theme":"dark","notifications":true,"language":"en"}},"meta":{"version":"1.0","lastUpdated":"2024-01-15"}}',
+  array: '[{"id":1,"title":"Post One","content":"Hello world","tags":["tech","coding"],"author":{"id":1,"name":"Alice"},"published":true,"views":1250},{"id":2,"title":"Post Two","content":"Another post","tags":["design"],"author":{"id":2,"name":"Bob"},"published":false,"views":null}]'
+};
+
+function loadEx(key) {
+  document.getElementById('jsonIn').value = EXAMPLES[key];
+  convertToTS();
+}
+
+let interfaces = {};
+
+function inferType(value, key, depth) {
+  if (value === null) return 'null';
+  if (typeof value === 'boolean') return 'boolean';
+  if (typeof value === 'number') return Number.isInteger(value) ? 'number' : 'number';
+  if (typeof value === 'string') {
+    // Detect date strings
+    if (/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/.test(value)) return 'string'; // could be Date but keep as string
+    return 'string';
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) return 'unknown[]';
+    const types = [...new Set(value.map(v => inferType(v, key, depth)))];
+    if (types.length === 1) {
+      const t = types[0];
+      if (t.startsWith('{') || t.endsWith('}')) {
+        // Inline object — create interface
+        const name = capitalize(key) + 'Item';
+        return name + '[]';
+      }
+      return t + '[]';
+    }
+    return `(${types.join(' | ')})[]`;
+  }
+  if (typeof value === 'object') {
+    const name = capitalize(key);
+    buildInterface(name, value, depth + 1);
+    return name;
+  }
+  return 'unknown';
+}
+
+function buildInterface(name, obj, depth=0) {
+  if (interfaces[name]) {
+    // Merge fields
+    const existing = interfaces[name];
+    Object.keys(obj).forEach(k => {
+      if (!(k in existing)) existing[k] = { type: inferType(obj[k], k, depth), optional: true };
+    });
+    return;
+  }
+  const fields = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    fields[k] = { type: inferType(v, k, depth), optional: v === null && document.getElementById('optionalNulls').checked };
+  });
+  interfaces[name] = fields;
+}
+
+function capitalize(s) {
+  if (!s) return 'Unknown';
+  return s.charAt(0).toUpperCase() + s.slice(1).replace(/[_-]([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+function renderInterface(name, fields) {
+  const exp = document.getElementById('exportKw').checked ? 'export ' : '';
+  const ro = document.getElementById('readonlyKw').checked ? 'readonly ' : '';
+  const lines = Object.entries(fields).map(([k, {type, optional}]) => {
+    const opt = optional ? '?' : '';
+    const t = type === 'null' ? (document.getElementById('optionalNulls').checked ? 'null' : 'null') : type;
+    return `  ${ro}${k}${opt}: ${t};`;
+  });
+  return `${exp}interface ${name} {\n${lines.join('\n')}\n}`;
+}
+
+function convertToTS() {
+  const raw = document.getElementById('jsonIn').value.trim();
+  if (!raw) { showErr('st','No input provided'); return; }
+  hideStatus('st');
+
+  try {
+    const parsed = JSON.parse(raw);
+    interfaces = {};
+    const rootName = document.getElementById('rootName').value.trim() || 'Root';
+
+    if (Array.isArray(parsed)) {
+      if (parsed.length === 0) {
+        document.getElementById('tsOut').value = `export type ${rootName} = unknown[];`;
+        return;
+      }
+      // Merge all array items into one interface
+      const merged = {};
+      parsed.forEach(item => {
+        if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
+          Object.entries(item).forEach(([k, v]) => {
+            if (!(k in merged)) merged[k] = v;
+            else if (merged[k] === null && v !== null) merged[k] = v;
+          });
+        }
+      });
+      buildInterface(rootName + 'Item', merged);
+      interfaces['_root_'] = { _items: { type: `${rootName}Item[]`, optional: false } };
+    } else if (typeof parsed === 'object' && parsed !== null) {
+      buildInterface(rootName, parsed);
+    } else {
+      document.getElementById('tsOut').value = `export type ${rootName} = ${inferType(parsed, rootName, 0)};`;
+      return;
+    }
+
+    // Render all interfaces (deepest first)
+    const order = Object.keys(interfaces).filter(k => k !== '_root_').reverse();
+    const parts = order.map(name => renderInterface(name, interfaces[name]));
+
+    // If array root, add type alias
+    if (interfaces['_root_']) {
+      parts.push(`export type ${rootName} = ${rootName}Item[];`);
+    }
+
+    const output = parts.join('\n\n');
+    document.getElementById('tsOut').value = output;
+
+    const ifaceCount = order.length;
+    const fieldCount = order.reduce((s, n) => s + Object.keys(interfaces[n]).length, 0);
+    document.getElementById('stats').innerHTML = `
+      <span><i class="bi bi-braces"></i> ${ifaceCount} interface${ifaceCount!==1?'s':''}</span>
+      <span><i class="bi bi-list-ul"></i> ${fieldCount} fields</span>
+      <span><i class="bi bi-file-earmark"></i> ${output.length} chars</span>
+    `;
+    showOk('st', `Generated ${ifaceCount} interface${ifaceCount!==1?'s':''}`);
+  } catch(e) {
+    showErr('st', 'JSON parse error: ' + e.message);
+  }
+}
+
+function copyOut() {
+  const v = document.getElementById('tsOut').value;
+  if (!v) return;
+  navigator.clipboard.writeText(v).then(() => {
+    const btn = document.getElementById('btnCopy');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function downloadOut() {
+  const v = document.getElementById('tsOut').value;
+  if (!v) return;
+  const name = (document.getElementById('rootName').value.trim() || 'types').toLowerCase();
+  const blob = new Blob([v], {type:'text/typescript'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${name}.ts`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearAll() {
+  document.getElementById('jsonIn').value = '';
+  document.getElementById('tsOut').value = '';
+  document.getElementById('stats').innerHTML = '';
+  hideStatus('st');
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); convertToTS(); }
+});
+</script>
+{% endblock %}

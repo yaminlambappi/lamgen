@@ -1,0 +1,210 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.result-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;text-align:center}
+.result-big{font-size:2.5rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);margin-bottom:.25rem}
+.result-label{font-size:.8rem;color:var(--muted)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.input-group{display:flex;flex-direction:column;gap:.3rem}
+.input-label{font-size:.75rem;color:var(--muted);font-weight:600}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.mode-tabs{display:flex;gap:4px;margin-bottom:1rem}
+.mode-tab{padding:8px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.85rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.check-row{display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;user-select:none}
+.check-row input{accent-color:var(--primary);width:16px;height:16px}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:.88rem}
+.result-row .val{font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Mode</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode(0,this)">Date Difference</button>
+      <button class="mode-tab" onclick="setMode(1,this)">Add / Subtract</button>
+    </div>
+  </div>
+
+  <!-- Mode 0: Difference -->
+  <div id="mode-0">
+    <div class="grid-2">
+      <div class="input-group">
+        <div class="input-label">Start Date</div>
+        <input type="date" class="num-input" id="diff-start">
+      </div>
+      <div class="input-group">
+        <div class="input-label">End Date</div>
+        <input type="date" class="num-input" id="diff-end">
+      </div>
+    </div>
+    <div style="margin-top:.75rem">
+      <label class="check-row"><input type="checkbox" id="business-days"> Count business days only (Mon–Fri)</label>
+    </div>
+    <div class="act-row" style="margin-top:.75rem">
+      <button class="btn-go" onclick="calcDiff()"><i class="bi bi-calculator"></i> Calculate</button>
+      <div class="status" id="status-0"></div>
+    </div>
+    <div id="diff-results" style="display:none;margin-top:1rem">
+      <div class="grid-3" style="margin-bottom:1rem">
+        <div class="result-card"><div class="result-big" id="diff-years">—</div><div class="result-label">Years</div></div>
+        <div class="result-card"><div class="result-big" id="diff-months">—</div><div class="result-label">Months</div></div>
+        <div class="result-card"><div class="result-big" id="diff-days">—</div><div class="result-label">Days</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="result-row"><span>Total days</span><span class="val" id="diff-total-days">—</span></div>
+        <div class="result-row"><span>Total weeks</span><span class="val" id="diff-weeks">—</span></div>
+        <div class="result-row"><span>Total hours</span><span class="val" id="diff-hours">—</span></div>
+        <div class="result-row" id="biz-row" style="display:none"><span>Business days</span><span class="val" id="diff-biz">—</span></div>
+        <div class="result-row"><span>Start day</span><span class="val" id="diff-start-day">—</span></div>
+        <div class="result-row"><span>End day</span><span class="val" id="diff-end-day">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mode 1: Add/Subtract -->
+  <div id="mode-1" style="display:none">
+    <div class="input-group" style="margin-bottom:.75rem">
+      <div class="input-label">Start Date</div>
+      <input type="date" class="num-input" id="add-start">
+    </div>
+    <div class="grid-2" style="margin-bottom:.75rem">
+      <div class="input-group">
+        <div class="input-label">Operation</div>
+        <select class="select-input" id="add-op">
+          <option value="add">Add</option>
+          <option value="sub">Subtract</option>
+        </select>
+      </div>
+      <div></div>
+    </div>
+    <div class="grid-3" style="margin-bottom:.75rem">
+      <div class="input-group"><div class="input-label">Years</div><input type="number" class="num-input" id="add-years" value="0" min="0"></div>
+      <div class="input-group"><div class="input-label">Months</div><input type="number" class="num-input" id="add-months" value="0" min="0"></div>
+      <div class="input-group"><div class="input-label">Days</div><input type="number" class="num-input" id="add-days" value="0" min="0"></div>
+    </div>
+    <div class="act-row">
+      <button class="btn-go" onclick="calcAdd()"><i class="bi bi-calculator"></i> Calculate</button>
+      <div class="status" id="status-1"></div>
+    </div>
+    <div id="add-results" style="display:none;margin-top:1rem">
+      <div class="result-card">
+        <div class="result-big" id="add-result-date" style="font-size:1.8rem">—</div>
+        <div class="result-label" id="add-result-day">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+let mode = 0;
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mode-0').style.display = m===0?'block':'none';
+  document.getElementById('mode-1').style.display = m===1?'block':'none';
+}
+
+function calcDiff() {
+  const s = document.getElementById('diff-start').value;
+  const e = document.getElementById('diff-end').value;
+  if (!s || !e) { showErr('status-0', 'Select both dates'); return; }
+  hideStatus('status-0');
+  let start = new Date(s), end = new Date(e);
+  if (start > end) [start, end] = [end, start];
+
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  let days = end.getDate() - start.getDate();
+  if (days < 0) { months--; const prev = new Date(end.getFullYear(), end.getMonth(), 0); days += prev.getDate(); }
+  if (months < 0) { years--; months += 12; }
+
+  const totalMs = end - start;
+  const totalDays = Math.round(totalMs / 86400000);
+  const totalWeeks = (totalDays / 7).toFixed(2);
+  const totalHours = Math.round(totalMs / 3600000);
+
+  document.getElementById('diff-years').textContent = years;
+  document.getElementById('diff-months').textContent = months;
+  document.getElementById('diff-days').textContent = days;
+  document.getElementById('diff-total-days').textContent = totalDays.toLocaleString();
+  document.getElementById('diff-weeks').textContent = totalWeeks;
+  document.getElementById('diff-hours').textContent = totalHours.toLocaleString();
+  document.getElementById('diff-start-day').textContent = DAYS[start.getDay()];
+  document.getElementById('diff-end-day').textContent = DAYS[end.getDay()];
+
+  const bizMode = document.getElementById('business-days').checked;
+  document.getElementById('biz-row').style.display = bizMode ? 'flex' : 'none';
+  if (bizMode) {
+    let biz = 0;
+    const cur = new Date(start);
+    while (cur <= end) {
+      const d = cur.getDay();
+      if (d !== 0 && d !== 6) biz++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    document.getElementById('diff-biz').textContent = biz.toLocaleString();
+  }
+
+  document.getElementById('diff-results').style.display = 'block';
+}
+
+function calcAdd() {
+  const s = document.getElementById('add-start').value;
+  if (!s) { showErr('status-1', 'Select a start date'); return; }
+  hideStatus('status-1');
+  const op = document.getElementById('add-op').value;
+  const y = parseInt(document.getElementById('add-years').value) || 0;
+  const m = parseInt(document.getElementById('add-months').value) || 0;
+  const d = parseInt(document.getElementById('add-days').value) || 0;
+  const sign = op === 'add' ? 1 : -1;
+  const date = new Date(s);
+  date.setFullYear(date.getFullYear() + sign * y);
+  date.setMonth(date.getMonth() + sign * m);
+  date.setDate(date.getDate() + sign * d);
+  document.getElementById('add-result-date').textContent = date.toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('add-result-day').textContent = DAYS[date.getDay()];
+  document.getElementById('add-results').style.display = 'block';
+}
+
+// Set defaults
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('diff-start').value = today;
+document.getElementById('diff-end').value = today;
+document.getElementById('add-start').value = today;
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { mode === 0 ? calcDiff() : calcAdd(); }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input, .select-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus, .select-input:focus { border-color: var(--primary); }
+.input-grp { margin-bottom: 1.2rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.slug-display { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: var(--accent); background: rgba(0,245,212,0.07); border: 1px solid rgba(0,245,212,0.25); border-radius: 10px; padding: 1.2rem 1.5rem; word-break: break-all; min-height: 60px; display: flex; align-items: center; }
+.variant-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 0.6rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.variant-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.2rem; }
+.validator-box { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; margin-top: 1.5rem; }
+.check-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0.4rem; }
+.check-ok { color: #00c864; }
+.check-fail { color: var(--danger); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="input-grp">
+  <span class="tool-label">Input Text</span>
+  <input type="text" id="in-text" class="num-input" placeholder="e.g. 10 Best Ways to Build a Scalable Django App in 2025" style="font-size:1.05rem;">
+</div>
+
+<div class="grid-2" style="margin-bottom:1.2rem;">
+  <div>
+    <span class="tool-label">Separator</span>
+    <select id="in-sep" class="select-input">
+      <option value="-">Hyphen (-)</option>
+      <option value="_">Underscore (_)</option>
+      <option value="">None (no separator)</option>
+    </select>
+  </div>
+  <div>
+    <span class="tool-label">Max Length (0 = unlimited)</span>
+    <input type="number" id="in-maxlen" class="num-input" value="0" min="0" max="200">
+  </div>
+</div>
+
+<div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.2rem;">
+  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;color:var(--text);">
+    <input type="checkbox" id="chk-lower" checked style="accent-color:var(--primary);width:16px;height:16px;"> Lowercase
+  </label>
+  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;color:var(--text);">
+    <input type="checkbox" id="chk-stop" style="accent-color:var(--primary);width:16px;height:16px;"> Remove Stop Words
+  </label>
+  <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;color:var(--text);">
+    <input type="checkbox" id="chk-nums" style="accent-color:var(--primary);width:16px;height:16px;"> Remove Numbers
+  </label>
+</div>
+
+<div class="input-grp">
+  <span class="tool-label">Live Slug Preview</span>
+  <div class="slug-display" id="slug-out">your-slug-will-appear-here</div>
+</div>
+
+<div style="display:flex;gap:1rem;margin-bottom:2rem;">
+  <button class="btn-go" id="btn-copy">📋 Copy Slug</button>
+</div>
+
+<div style="margin-bottom:1.5rem;">
+  <span class="tool-label">Slug Variants</span>
+  <div id="variants"></div>
+</div>
+
+<div class="validator-box">
+  <span class="tool-label" style="margin-bottom:0.8rem;">Slug Validator</span>
+  <div id="validator-results"></div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const stopWords = new Set(['a','an','and','are','as','at','be','but','by','for','if','in','into','is','it','no','not','of','on','or','such','that','the','their','then','there','these','they','this','to','was','will','with','from','about','which','when','where','who','how','what','all','also','been','both','can','do','does','each','few','get','had','has','have','he','her','him','his','i','its','just','me','more','my','nor','our','out','own','same','she','so','some','than','too','up','us','very','was','we','were','you','your']);
+
+  function makeSlug(text, sep, lower, removeStop, removeNums, maxLen) {
+    let s = text;
+    if (lower) s = s.toLowerCase();
+    s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    s = s.replace(/[^a-zA-Z0-9\s]/g, ' ');
+    let words = s.split(/\s+/).filter(Boolean);
+    if (removeStop) words = words.filter(w => !stopWords.has(w.toLowerCase()));
+    if (removeNums) words = words.filter(w => !/^\d+$/.test(w));
+    let slug = words.join(sep);
+    if (sep) {
+      const re = new RegExp('\\' + sep + '{2,}', 'g');
+      slug = slug.replace(re, sep).replace(new RegExp('^\\' + sep + '|\\' + sep + '$', 'g'), '');
+    }
+    if (maxLen > 0 && slug.length > maxLen) {
+      slug = slug.substring(0, maxLen);
+      if (sep && slug.endsWith(sep)) slug = slug.slice(0, -1);
+    }
+    return slug || 'empty-slug';
+  }
+
+  function validate(slug) {
+    const checks = [
+      { label: 'No uppercase letters', ok: slug === slug.toLowerCase() },
+      { label: 'No spaces', ok: !/\s/.test(slug) },
+      { label: 'No special characters (only a-z, 0-9, -, _)', ok: /^[a-z0-9\-_]+$/.test(slug) },
+      { label: 'Does not start or end with separator', ok: !/^[-_]|[-_]$/.test(slug) },
+      { label: 'No consecutive separators', ok: !/[-_]{2,}/.test(slug) },
+      { label: 'Length ≤ 75 characters (recommended)', ok: slug.length <= 75 },
+      { label: 'Not empty', ok: slug.length > 0 && slug !== 'empty-slug' },
+    ];
+    return checks;
+  }
+
+  function update() {
+    const text = document.getElementById('in-text').value;
+    const sep = document.getElementById('in-sep').value;
+    const lower = document.getElementById('chk-lower').checked;
+    const removeStop = document.getElementById('chk-stop').checked;
+    const removeNums = document.getElementById('chk-nums').checked;
+    const maxLen = parseInt(document.getElementById('in-maxlen').value) || 0;
+
+    const slug = makeSlug(text, sep, lower, removeStop, removeNums, maxLen);
+    document.getElementById('slug-out').textContent = slug;
+
+    // Variants
+    const variants = [
+      { label: 'Hyphen, lowercase', slug: makeSlug(text, '-', true, false, false, 0) },
+      { label: 'Underscore, lowercase', slug: makeSlug(text, '_', true, false, false, 0) },
+      { label: 'Hyphen, stop words removed', slug: makeSlug(text, '-', true, true, false, 0) },
+      { label: 'Hyphen, max 50 chars', slug: makeSlug(text, '-', true, false, false, 50) },
+    ];
+    document.getElementById('variants').innerHTML = variants.map(v => `
+      <div class="variant-card">
+        <div>
+          <div class="variant-label">${v.label}</div>
+          <code style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:0.9rem;">${v.slug}</code>
+        </div>
+        <button class="btn-sm" onclick="copySlug(this,'${v.slug.replace(/'/g,"\\'")}')"><i class="bi bi-clipboard"></i></button>
+      </div>`).join('');
+
+    // Validator
+    const checks = validate(slug);
+    document.getElementById('validator-results').innerHTML = checks.map(c => `
+      <div class="check-item">
+        <span class="${c.ok ? 'check-ok' : 'check-fail'}">${c.ok ? '✓' : '✗'}</span>
+        <span style="color:${c.ok ? 'var(--text)' : 'var(--danger)'};">${c.label}</span>
+      </div>`).join('');
+  }
+
+  window.copySlug = async (btn, text) => {
+    await navigator.clipboard.writeText(text);
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i>', 1500);
+  };
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    const slug = document.getElementById('slug-out').textContent;
+    await navigator.clipboard.writeText(slug);
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy Slug', 1500);
+  });
+
+  ['in-text','in-sep','in-maxlen'].forEach(id => document.getElementById(id).addEventListener('input', update));
+  ['chk-lower','chk-stop','chk-nums'].forEach(id => document.getElementById(id).addEventListener('change', update));
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') update(); });
+  update();
+});
+</script>
+{% endblock %}

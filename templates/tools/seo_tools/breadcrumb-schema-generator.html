@@ -1,0 +1,178 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus { border-color: var(--primary); }
+.input-grp { margin-bottom: 1rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.bc-item { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.8rem; }
+.bc-item:hover { border-color: rgba(108,99,255,0.4); }
+.bc-num { width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
+.bc-fields { flex: 1; display: grid; grid-template-columns: 1fr 1.5fr; gap: 0.6rem; }
+.btn-remove { background: rgba(255,107,107,0.1); color: var(--danger); border: 1px solid rgba(255,107,107,0.3); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+/* Visual breadcrumb */
+.bc-visual { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0; }
+.bc-crumb { color: var(--primary); font-size: 0.9rem; text-decoration: none; }
+.bc-crumb:last-child { color: var(--text); font-weight: 600; }
+.bc-sep { color: var(--muted); font-size: 0.8rem; }
+.output-area { background: #0A0A0F; border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem; position: relative; margin-top: 1rem; }
+.output-code { font-family: 'JetBrains Mono', monospace; color: var(--accent); white-space: pre-wrap; word-break: break-all; font-size: 0.82rem; max-height: 350px; overflow-y: auto; }
+.tabs { display: flex; gap: 0.4rem; margin-bottom: 0.8rem; }
+.tab { padding: 0.35rem 0.8rem; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+  <span class="tool-label" style="margin:0;">Breadcrumb Items</span>
+  <button class="btn-sm" id="btn-add"><i class="bi bi-plus-lg"></i> Add Item</button>
+</div>
+<div id="bc-list"></div>
+
+<div style="margin-bottom:1rem;">
+  <span class="tool-label">Visual Preview</span>
+  <div class="bc-visual" id="bc-visual">
+    <span style="color:var(--muted);font-size:0.85rem;">Add items to see preview</span>
+  </div>
+</div>
+
+<button class="btn-go" id="btn-generate" style="margin-bottom:1.5rem;">⚡ Generate Schema</button>
+
+<div id="output-section" style="display:none;">
+  <div class="tabs">
+    <button class="tab active" id="tab-jsonld" onclick="showTab('jsonld')">JSON-LD Schema</button>
+    <button class="tab" id="tab-html" onclick="showTab('html')">HTML Breadcrumb</button>
+  </div>
+  <div class="output-area">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+      <span id="output-label" style="font-size:0.8rem;color:var(--muted);">JSON-LD</span>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="btn-sm" id="btn-copy"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" id="btn-download"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <div class="output-code" id="output-code"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let items = [
+    { name: 'Home', url: 'https://example.com' },
+    { name: 'Category', url: 'https://example.com/category' },
+    { name: 'Page', url: 'https://example.com/category/page' },
+  ];
+  let currentTab = 'jsonld';
+
+  function render() {
+    document.getElementById('bc-list').innerHTML = items.map((item, i) => `
+      <div class="bc-item">
+        <div class="bc-num">${i + 1}</div>
+        <div class="bc-fields">
+          <input type="text" class="num-input bc-name" data-i="${i}" value="${item.name.replace(/"/g,'&quot;')}" placeholder="Name">
+          <input type="url" class="num-input bc-url" data-i="${i}" value="${item.url.replace(/"/g,'&quot;')}" placeholder="https://example.com/page">
+        </div>
+        ${items.length > 1 ? `<button class="btn-remove" onclick="removeItem(${i})"><i class="bi bi-trash"></i></button>` : '<div style="width:28px;"></div>'}
+      </div>`).join('');
+
+    document.querySelectorAll('.bc-name').forEach(el => {
+      el.addEventListener('input', e => { items[e.target.dataset.i].name = e.target.value; updatePreview(); });
+    });
+    document.querySelectorAll('.bc-url').forEach(el => {
+      el.addEventListener('input', e => { items[e.target.dataset.i].url = e.target.value; updatePreview(); });
+    });
+    updatePreview();
+  }
+
+  function updatePreview() {
+    const valid = items.filter(it => it.name.trim());
+    if (!valid.length) {
+      document.getElementById('bc-visual').innerHTML = '<span style="color:var(--muted);font-size:0.85rem;">Add items to see preview</span>';
+      return;
+    }
+    document.getElementById('bc-visual').innerHTML = valid.map((it, i) => `
+      <a class="bc-crumb" href="${it.url || '#'}" target="_blank">${it.name}</a>
+      ${i < valid.length - 1 ? '<span class="bc-sep">›</span>' : ''}`).join('');
+  }
+
+  window.removeItem = (i) => { items.splice(i, 1); render(); };
+
+  document.getElementById('btn-add').addEventListener('click', () => {
+    if (items.length >= 10) { alert('Maximum 10 breadcrumb items.'); return; }
+    items.push({ name: '', url: '' });
+    render();
+  });
+
+  function buildJsonLD() {
+    const valid = items.filter(it => it.name.trim() && it.url.trim());
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": valid.map((it, i) => ({
+        "@type": "ListItem",
+        "position": i + 1,
+        "name": it.name.trim(),
+        "item": it.url.trim()
+      }))
+    };
+    return `<script type="application/ld+json">\n${JSON.stringify(schema, null, 2)}\n<\/script>`;
+  }
+
+  function buildHTML() {
+    const valid = items.filter(it => it.name.trim());
+    return `<nav aria-label="Breadcrumb">
+  <ol itemscope itemtype="https://schema.org/BreadcrumbList" style="display:flex;list-style:none;padding:0;margin:0;gap:0.5rem;align-items:center;">
+${valid.map((it, i) => `    <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <a itemprop="item" href="${it.url || '#'}"><span itemprop="name">${it.name}</span></a>
+      <meta itemprop="position" content="${i + 1}">
+    </li>${i < valid.length - 1 ? '\n    <li aria-hidden="true">›</li>' : ''}`).join('\n')}
+  </ol>
+</nav>`;
+  }
+
+  window.showTab = (tab) => {
+    currentTab = tab;
+    document.getElementById('tab-jsonld').classList.toggle('active', tab === 'jsonld');
+    document.getElementById('tab-html').classList.toggle('active', tab === 'html');
+    document.getElementById('output-label').textContent = tab === 'jsonld' ? 'JSON-LD' : 'HTML Markup';
+    document.getElementById('output-code').textContent = tab === 'jsonld' ? buildJsonLD() : buildHTML();
+  };
+
+  document.getElementById('btn-generate').addEventListener('click', () => {
+    const valid = items.filter(it => it.name.trim() && it.url.trim());
+    if (!valid.length) { alert('Please add at least one item with name and URL.'); return; }
+    document.getElementById('output-section').style.display = 'block';
+    document.getElementById('output-code').textContent = currentTab === 'jsonld' ? buildJsonLD() : buildHTML();
+    document.getElementById('output-section').scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(document.getElementById('output-code').textContent);
+    const btn = document.getElementById('btn-copy');
+    btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 1500);
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const content = document.getElementById('output-code').textContent;
+    const ext = currentTab === 'jsonld' ? 'json' : 'html';
+    const blob = new Blob([content], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `breadcrumb-schema.${ext}`;
+    a.click();
+  });
+
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') document.getElementById('btn-generate').click(); });
+  render();
+});
+</script>
+{% endblock %}

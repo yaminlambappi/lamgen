@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+/* ── Tool page shell ── */
+.tool-page {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-width: 920px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ── Compact header ── */
+.tool-page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-top: 0.1rem;
+}
+.tool-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 0.15rem;
+}
+.tool-icon-badge {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    background: {{ category.color_from }}1A;
+    border: 1px solid {{ category.color_from }}38;
+    color: {{ category.color_from }};
+    box-shadow: 0 4px 16px {{ category.color_from }}18;
+}
+.tool-page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.2rem, 2.8vw, 1.55rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--lg-text);
+    margin: 0;
+    background: linear-gradient(135deg, #F0F4FF 20%, rgba(220,228,255,0.75) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.tool-page-desc {
+    font-size: 0.84rem;
+    color: var(--lg-text-muted);
+    line-height: 1.55;
+    max-width: 580px;
+    margin: 0;
+}
+
+/* ── Tool canvas ── */
+.tool-canvas {
+    background:
+        radial-gradient(800px 400px at 5% 0%, rgba(139,127,255,0.12), transparent 55%),
+        radial-gradient(600px 300px at 95% 10%, rgba(62,236,216,0.08), transparent 50%),
+        var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 18px;
+    padding: 1rem;
+    box-shadow: var(--lg-card-shadow);
+    transition: border-color 0.22s, box-shadow 0.22s;
+}
+.tool-canvas:hover {
+    border-color: rgba(62,236,216,0.20);
+    box-shadow: var(--lg-card-hover-shadow);
+}
+
+/* Internal spacing */
+.tool-canvas > * + * { margin-top: 0.85rem; }
+.tool-canvas .dev-tool-wrap > * + * { margin-top: 0.75rem; }
+.tool-canvas .grid-2 { gap: 0.75rem !important; }
+
+/* ── Related tools ── */
+.tool-related {
+    border-top: 1px solid rgba(120,110,255,0.12);
+    padding-top: 0.85rem;
+}
+.tool-related-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--lg-text-helper);
+    margin-bottom: 0.5rem;
+}
+.tool-related-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.tool-related-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    background: rgba(100,90,255,0.07);
+    border: 1px solid rgba(120,110,255,0.13);
+    border-radius: 50px;
+    font-size: 0.74rem;
+    color: var(--lg-text-muted);
+    text-decoration: none;
+    transition: all 0.15s;
+}
+.tool-related-link:hover {
+    background: rgba(120,110,255,0.13);
+    border-color: rgba(130,120,255,0.20);
+    color: var(--lg-text);
+    transform: translateY(-1px);
+}
+.tool-related-link i { font-size: 0.72rem; }
+
+/* ── SEO section ── */
+.tool-seo-section {
+    font-size: 0.80rem;
+    color: rgba(180,196,230,0.30);
+    line-height: 1.6;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(120,110,255,0.10);
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+    .tool-page { gap: 0.7rem; }
+    .tool-canvas { padding: 0.9rem; }
+    .tool-page-title { font-size: 1.2rem; }
+    .tool-page-desc { font-size: 0.80rem; }
+}
+</style>
+{% block tool_css %}{% endblock %}
+{% endblock %}
+
+
+{% block content %}
+<div class="tool-page">
+
+    <!-- Header -->
+    <header class="tool-page-header">
+        <div class="tool-title-row">
+            <div class="tool-icon-badge" aria-hidden="true">
+                <i class="{{ tool.icon }}"></i>
+            </div>
+            <h1 class="tool-page-title">{{ tool.name }}</h1>
+        </div>
+        {% if tool.description %}
+        <p class="tool-page-desc">{{ tool.description }}</p>
+        {% elif tool.short_desc %}
+        <p class="tool-page-desc">{{ tool.short_desc }}</p>
+        {% endif %}
+    </header>
+
+    <!-- Tool canvas -->
+    <section class="tool-canvas" aria-label="{{ tool.name }} tool">
+        {% block tool_content %}{% endblock %}
+    </section>
+
+    <!-- Related tools -->
+    {% if related_tools %}
+    <div class="tool-related">
+        <div class="tool-related-title">Related tools</div>
+        <div class="tool-related-grid">
+            {% for rt in related_tools|slice:":8" %}
+            <a href="{{ rt.get_absolute_url }}" class="tool-related-link">
+                <i class="{{ rt.icon }}" style="color:{{ rt.category.color_from }}"></i>
+                {{ rt.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- SEO -->
+    <div class="tool-seo-section">
+        {{ tool.short_desc }} — runs entirely in your browser. No data is sent to any server.
+    </div>
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function() {
+    const btn = document.getElementById('btn-favorite');
+    if (!btn) return;
+    btn.addEventListener('click', async function() {
+        const slug = this.dataset.slug;
+        try {
+            const res = await fetch('/tools/bookmark/save/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ tool_slug: slug })
+            });
+            const data = await res.json();
+            if (data.bookmarked) {
+                this.innerHTML = '<i class="bi bi-bookmark-fill"></i> Saved';
+                this.style.color = 'var(--lg-cyan)';
+            } else {
+                this.innerHTML = '<i class="bi bi-bookmark"></i> Save';
+                this.style.color = '';
+            }
+        } catch(e) {}
+    });
+})();
+</script>
+<script>
+/* Global placeholder upgrader */
+(function () {
+    function isGeneric(ph) {
+        if (!ph) return true;
+        const p = ph.trim().toLowerCase();
+        return p === 'enter text' || p === 'type here' || p === 'type something' ||
+               p === 'input' || p === 'output' || p === '...' || p === 'e.g.' ||
+               p === 'example' || p.startsWith('e.g') || p.includes('will appear here');
+    }
+    function nearestLabelText(el) {
+        const byFor = el.id ? document.querySelector(`label[for="${CSS.escape(el.id)}"]`) : null;
+        if (byFor?.textContent) return byFor.textContent.trim();
+        const inGroupLabel = el.closest('.input-group')?.querySelector('.input-label, label');
+        if (inGroupLabel?.textContent) return inGroupLabel.textContent.trim();
+        let node = el.parentElement; let hops = 0;
+        while (node && hops < 4) {
+            const t = node.querySelector?.('.tool-label');
+            if (t?.textContent) return t.textContent.trim();
+            node = node.parentElement; hops++;
+        }
+        return '';
+    }
+    function friendlyFromLabel(label, el) {
+        const l = (label || '').replace(/\*/g, '').trim();
+        const isArea = el.tagName === 'TEXTAREA';
+        const isReadOnly = el.hasAttribute('readonly');
+        if (isReadOnly) return 'Output will appear here…';
+        if (!l) return isArea ? 'Paste or type here…' : 'Type here…';
+        const base = l.toLowerCase();
+        if (base.includes('json')) return 'Paste raw JSON here…';
+        if (base.includes('keyword')) return 'Enter your target keyword…';
+        if (base.includes('url')) return 'Paste a URL…';
+        if (base.includes('email')) return 'Enter an email subject/topic…';
+        if (base.includes('topic')) return 'Enter a topic or keyword…';
+        if (base.includes('audience')) return 'Describe your target audience…';
+        if (base.includes('date')) return 'Pick a date and time…';
+        if (base.includes('timestamp')) return 'Paste a Unix timestamp…';
+        return isArea ? `Paste ${l.toLowerCase()} here…` : `Enter ${l.toLowerCase()}…`;
+    }
+    function run() {
+        const root = document.querySelector('.tool-canvas');
+        if (!root) return;
+        root.querySelectorAll('textarea, input').forEach(el => {
+            if (el.type === 'file' || el.type === 'range' || el.type === 'radio' || el.type === 'checkbox') return;
+            const ph = el.getAttribute('placeholder') || '';
+            if (!isGeneric(ph)) return;
+            el.setAttribute('placeholder', friendlyFromLabel(nearestLabelText(el), el));
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+    else run();
+})();
+</script>
+{% block tool_js %}{% endblock %}
+{% endblock %}

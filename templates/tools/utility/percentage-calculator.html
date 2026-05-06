@@ -1,0 +1,164 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.result-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;text-align:center}
+.result-big{font-size:2.5rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);margin-bottom:.25rem}
+.result-label{font-size:.8rem;color:var(--muted)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.num-input option,.select-input option{background:#0F0F1A}
+.mode-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:1rem}
+.mode-tab{padding:8px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.85rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.calc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:1.1rem;color:var(--text)}
+.calc-row .num-input{max-width:140px}
+.calc-row span{color:var(--muted);font-weight:600}
+.formula-box{background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.15);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--muted)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Mode</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode(0,this)">X% of Y</button>
+      <button class="mode-tab" onclick="setMode(1,this)">X is what % of Y?</button>
+      <button class="mode-tab" onclick="setMode(2,this)">% Change from X to Y</button>
+    </div>
+  </div>
+
+  <!-- Mode 0 -->
+  <div id="mode-0">
+    <div class="tool-label">What is X% of Y?</div>
+    <div class="calc-row">
+      <input type="number" class="num-input" id="m0-x" placeholder="X" oninput="calc0()">
+      <span>% of</span>
+      <input type="number" class="num-input" id="m0-y" placeholder="Y" oninput="calc0()">
+      <span>=</span>
+      <span id="m0-result" style="font-size:1.4rem;font-weight:800;color:var(--accent);min-width:80px">—</span>
+    </div>
+    <div class="formula-box" style="margin-top:10px" id="m0-formula">Formula: (X / 100) × Y</div>
+  </div>
+
+  <!-- Mode 1 -->
+  <div id="mode-1" style="display:none">
+    <div class="tool-label">X is what percentage of Y?</div>
+    <div class="calc-row">
+      <input type="number" class="num-input" id="m1-x" placeholder="X" oninput="calc1()">
+      <span>is what % of</span>
+      <input type="number" class="num-input" id="m1-y" placeholder="Y" oninput="calc1()">
+      <span>=</span>
+      <span id="m1-result" style="font-size:1.4rem;font-weight:800;color:var(--accent);min-width:80px">—</span>
+    </div>
+    <div class="formula-box" style="margin-top:10px" id="m1-formula">Formula: (X / Y) × 100</div>
+  </div>
+
+  <!-- Mode 2 -->
+  <div id="mode-2" style="display:none">
+    <div class="tool-label">Percentage change from X to Y</div>
+    <div class="calc-row">
+      <span>From</span>
+      <input type="number" class="num-input" id="m2-x" placeholder="X" oninput="calc2()">
+      <span>to</span>
+      <input type="number" class="num-input" id="m2-y" placeholder="Y" oninput="calc2()">
+      <span>=</span>
+      <span id="m2-result" style="font-size:1.4rem;font-weight:800;color:var(--accent);min-width:100px">—</span>
+    </div>
+    <div class="formula-box" style="margin-top:10px" id="m2-formula">Formula: ((Y - X) / |X|) × 100</div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-sm" id="copy-btn" onclick="copyResult()"><i class="bi bi-clipboard"></i> Copy Result</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+let currentMode = 0;
+let lastResult = '';
+
+function setMode(m, btn) {
+  currentMode = m;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mode-0').style.display = m===0?'block':'none';
+  document.getElementById('mode-1').style.display = m===1?'block':'none';
+  document.getElementById('mode-2').style.display = m===2?'block':'none';
+}
+
+function fmt(n) {
+  if (isNaN(n) || !isFinite(n)) return '—';
+  return parseFloat(n.toFixed(6)).toString();
+}
+
+function calc0() {
+  const x = parseFloat(document.getElementById('m0-x').value);
+  const y = parseFloat(document.getElementById('m0-y').value);
+  if (isNaN(x) || isNaN(y)) { document.getElementById('m0-result').textContent = '—'; return; }
+  const r = (x / 100) * y;
+  lastResult = fmt(r);
+  document.getElementById('m0-result').textContent = lastResult;
+  document.getElementById('m0-formula').textContent = `Formula: (${x} / 100) × ${y} = ${lastResult}`;
+}
+
+function calc1() {
+  const x = parseFloat(document.getElementById('m1-x').value);
+  const y = parseFloat(document.getElementById('m1-y').value);
+  if (isNaN(x) || isNaN(y) || y === 0) { document.getElementById('m1-result').textContent = '—'; return; }
+  const r = (x / y) * 100;
+  lastResult = fmt(r) + '%';
+  document.getElementById('m1-result').textContent = lastResult;
+  document.getElementById('m1-formula').textContent = `Formula: (${x} / ${y}) × 100 = ${lastResult}`;
+}
+
+function calc2() {
+  const x = parseFloat(document.getElementById('m2-x').value);
+  const y = parseFloat(document.getElementById('m2-y').value);
+  if (isNaN(x) || isNaN(y) || x === 0) { document.getElementById('m2-result').textContent = '—'; return; }
+  const r = ((y - x) / Math.abs(x)) * 100;
+  const sign = r >= 0 ? '+' : '';
+  lastResult = sign + fmt(r) + '%';
+  const el = document.getElementById('m2-result');
+  el.textContent = lastResult;
+  el.style.color = r >= 0 ? 'var(--accent)' : '#FF6B6B';
+  document.getElementById('m2-formula').textContent = `Formula: ((${y} - ${x}) / |${x}|) × 100 = ${lastResult}`;
+}
+
+function copyResult() {
+  if (!lastResult) return;
+  copyText(lastResult, document.getElementById('copy-btn'));
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    if (currentMode === 0) calc0();
+    else if (currentMode === 1) calc1();
+    else calc2();
+  }
+});
+</script>
+{% endblock %}

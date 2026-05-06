@@ -1,0 +1,207 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:768px){.tool-row{grid-template-columns:1fr}}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:200px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-go:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:.25rem}
+.chip{padding:3px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;font-size:.75rem;color:var(--primary);cursor:pointer;transition:all .15s}
+.chip:hover{background:rgba(108,99,255,.2)}
+.meta-row{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.meta-item{display:flex;align-items:center;gap:5px}
+.mode-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div>
+    <div class="tool-label">Input JSON</div>
+    <textarea class="tool-code" id="jsonIn" placeholder='{"name":"Alice","age":30,"hobbies":["reading","coding"]}'></textarea>
+    <div class="chips" id="examples">
+      <span class="chip" onclick="loadEx('simple')">Simple Object</span>
+      <span class="chip" onclick="loadEx('nested')">Nested</span>
+      <span class="chip" onclick="loadEx('array')">Array</span>
+      <span class="chip" onclick="loadEx('minified')">Minified</span>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" id="btnFormat" onclick="formatJSON()">
+      <i class="bi bi-braces"></i> Format
+    </button>
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="2" onclick="setMode(this,2)">2 Spaces</button>
+      <button class="mode-tab" data-mode="4" onclick="setMode(this,4)">4 Spaces</button>
+      <button class="mode-tab" data-mode="0" onclick="setMode(this,0)">Minified</button>
+      <button class="mode-tab" data-mode="sorted" onclick="setMode(this,'sorted')">Sorted Keys</button>
+    </div>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Output</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm" id="btnCopy" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+        <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download</button>
+      </div>
+    </div>
+    <textarea class="tool-code out" id="jsonOut" readonly placeholder="Formatted JSON will appear here..."></textarea>
+    <div class="meta-row" id="stats" style="margin-top:.5rem"></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let currentMode = 2;
+
+const EXAMPLES = {
+  simple: '{"name":"Alice","age":30,"email":"alice@example.com","active":true}',
+  nested: '{"user":{"id":1,"name":"Bob","address":{"street":"123 Main St","city":"Springfield","zip":"12345"},"roles":["admin","editor"]},"meta":{"created":"2024-01-15","version":2}}',
+  array: '[{"id":1,"product":"Widget A","price":9.99,"stock":150},{"id":2,"product":"Widget B","price":24.99,"stock":42},{"id":3,"product":"Widget C","price":4.99,"stock":0}]',
+  minified: '{"config":{"debug":false,"maxRetries":3,"timeout":5000,"endpoints":{"api":"https://api.example.com","cdn":"https://cdn.example.com"},"features":{"darkMode":true,"analytics":false}}}'
+};
+
+function loadEx(key) {
+  document.getElementById('jsonIn').value = EXAMPLES[key];
+  formatJSON();
+}
+
+function setMode(btn, mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (document.getElementById('jsonOut').value) formatJSON();
+}
+
+function getDepth(obj, d=0) {
+  if (typeof obj !== 'object' || obj === null) return d;
+  return Math.max(...Object.values(obj).map(v => getDepth(v, d+1)), d);
+}
+
+function countKeys(obj) {
+  if (typeof obj !== 'object' || obj === null) return 0;
+  let count = 0;
+  if (Array.isArray(obj)) {
+    obj.forEach(v => { count += countKeys(v); });
+  } else {
+    count += Object.keys(obj).length;
+    Object.values(obj).forEach(v => { count += countKeys(v); });
+  }
+  return count;
+}
+
+function sortKeys(obj) {
+  if (Array.isArray(obj)) return obj.map(sortKeys);
+  if (typeof obj === 'object' && obj !== null) {
+    return Object.keys(obj).sort().reduce((acc, k) => {
+      acc[k] = sortKeys(obj[k]);
+      return acc;
+    }, {});
+  }
+  return obj;
+}
+
+function formatJSON() {
+  const raw = document.getElementById('jsonIn').value.trim();
+  if (!raw) { showErr('st','No input provided'); return; }
+  hideStatus('st');
+  try {
+    const parsed = JSON.parse(raw);
+    let obj = parsed;
+    let indent = currentMode === 'sorted' ? 2 : currentMode;
+    if (currentMode === 'sorted') obj = sortKeys(parsed);
+    const out = currentMode === 0 ? JSON.stringify(obj) : JSON.stringify(obj, null, indent);
+    document.getElementById('jsonOut').value = out;
+    const keys = countKeys(parsed);
+    const depth = getDepth(parsed);
+    const bytes = new TextEncoder().encode(out).length;
+    document.getElementById('stats').innerHTML = `
+      <span class="meta-item"><i class="bi bi-key"></i> ${keys} keys</span>
+      <span class="meta-item"><i class="bi bi-layers"></i> Depth: ${depth}</span>
+      <span class="meta-item"><i class="bi bi-file-earmark"></i> ${bytes} bytes</span>
+      <span class="meta-item"><i class="bi bi-list-ol"></i> ${out.split('\n').length} lines</span>
+    `;
+    showOk('st', 'Valid JSON');
+  } catch(e) {
+    document.getElementById('jsonOut').value = '';
+    document.getElementById('stats').innerHTML = '';
+    const msg = e.message.replace(/</g,'&lt;');
+    showErr('st', msg);
+  }
+}
+
+function copyOut() {
+  const v = document.getElementById('jsonOut').value;
+  if (!v) return;
+  copyText(v, document.getElementById('btnCopy'));
+}
+
+function downloadOut() {
+  const v = document.getElementById('jsonOut').value;
+  if (!v) return;
+  downloadText(v, 'formatted.json', 'application/json');
+}
+
+function clearAll() {
+  document.getElementById('jsonIn').value = '';
+  document.getElementById('jsonOut').value = '';
+  document.getElementById('stats').innerHTML = '';
+  hideStatus('st');
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function downloadText(content, filename, mime='text/plain') {
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); formatJSON(); }
+});
+</script>
+{% endblock %}

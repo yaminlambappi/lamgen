@@ -1,0 +1,166 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap { display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem; }
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input, .select-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus, .select-input:focus { border-color: var(--primary); }
+textarea.num-input { resize: vertical; min-height: 90px; }
+.input-grp { margin-bottom: 1.2rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.result-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.8rem; }
+.result-card:hover { border-color: rgba(108,99,255,0.4); }
+.char-badge { font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px; white-space: nowrap; }
+.char-green { background: rgba(0,200,100,0.15); color: #00c864; }
+.char-yellow { background: rgba(255,200,0,0.15); color: #ffc800; }
+.char-red { background: rgba(255,107,107,0.15); color: var(--danger); }
+.results-panel { max-height: 520px; overflow-y: auto; }
+.density-bar { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); overflow: hidden; margin-top: 0.3rem; }
+.density-fill { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; }
+@media (max-width: 768px) { .dev-tool-wrap { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="input-grp">
+      <span class="tool-label">Target Keyword</span>
+      <input type="text" id="in-keyword" class="num-input" placeholder="e.g. best running shoes">
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Page Summary (2-3 sentences)</span>
+      <textarea id="in-summary" class="num-input" placeholder="Describe what this page is about…"></textarea>
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Call to Action</span>
+      <select id="in-cta" class="select-input">
+        <option value="Learn more">Learn more</option>
+        <option value="Shop now">Shop now</option>
+        <option value="Get started">Get started</option>
+        <option value="Try for free">Try for free</option>
+        <option value="Read the guide">Read the guide</option>
+        <option value="Discover more">Discover more</option>
+        <option value="See all options">See all options</option>
+        <option value="Download now">Download now</option>
+      </select>
+    </div>
+    <div class="input-grp" id="density-box" style="display:none;">
+      <span class="tool-label">Keyword Density</span>
+      <div id="density-info" style="font-size:0.9rem;color:var(--text);"></div>
+      <div class="density-bar"><div class="density-fill" id="density-fill"></div></div>
+      <div id="density-rec" style="font-size:0.8rem;margin-top:0.4rem;"></div>
+    </div>
+    <button class="btn-go" id="btn-generate">⚡ Generate Descriptions</button>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:0.6rem;">Ctrl+Enter to generate</p>
+  </div>
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <span class="tool-label" style="margin:0;">Generated Descriptions (10)</span>
+      <span style="font-size:0.75rem;color:var(--muted);">🟢 ≤155 &nbsp;🟡 156-160 &nbsp;🔴 >160</span>
+    </div>
+    <div class="results-panel" id="results">
+      <div style="color:var(--muted);text-align:center;padding:3rem 0;">Enter a keyword and summary, then click Generate</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const templates = [
+    '{summary} {cta} to find the best {keyword} options available.',
+    'Looking for {keyword}? {summary} {cta} today.',
+    'Discover everything about {keyword}. {summary} {cta}.',
+    '{summary} Our expert guide on {keyword} has everything you need. {cta}.',
+    'Get the most out of {keyword}. {summary} {cta} and see the difference.',
+    'Everything you need to know about {keyword} in one place. {summary} {cta}.',
+    '{keyword} made simple. {summary} {cta} for free.',
+    'Find the perfect {keyword} solution. {summary} {cta} now.',
+    'Your complete resource for {keyword}. {summary} {cta}.',
+    'Struggling with {keyword}? {summary} {cta} and get results fast.',
+  ];
+
+  function truncate(s, max) {
+    s = s.trim();
+    if (s.length <= max) return s;
+    return s.substring(0, max - 3) + '...';
+  }
+
+  function charClass(n) {
+    if (n <= 155) return 'char-green';
+    if (n <= 160) return 'char-yellow';
+    return 'char-red';
+  }
+
+  function buildDesc(tpl, kw, summary, cta) {
+    let s = tpl.replace(/{keyword}/g, kw).replace(/{summary}/g, summary).replace(/{cta}/g, cta);
+    return truncate(s, 165);
+  }
+
+  function calcDensity(text, kw) {
+    if (!kw || !text) return 0;
+    const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+    const kwWords = kw.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return 0;
+    let count = 0;
+    for (let i = 0; i <= words.length - kwWords.length; i++) {
+      if (kwWords.every((w, j) => words[i + j] === w)) count++;
+    }
+    return ((count * kwWords.length) / words.length * 100).toFixed(2);
+  }
+
+  function generate() {
+    const kw = document.getElementById('in-keyword').value.trim();
+    const summary = document.getElementById('in-summary').value.trim();
+    const cta = document.getElementById('in-cta').value;
+    if (!kw) { document.getElementById('results').innerHTML = '<div style="color:var(--danger);text-align:center;padding:2rem;">Please enter a keyword.</div>'; return; }
+    const summaryShort = summary ? truncate(summary, 80) : 'Explore our comprehensive resource.';
+    const descs = templates.map(t => buildDesc(t, kw, summaryShort, cta));
+    const el = document.getElementById('results');
+    el.innerHTML = descs.map(d => {
+      const cls = charClass(d.length);
+      const density = calcDensity(d, kw);
+      return `<div class="result-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;margin-bottom:0.5rem;">
+          <span style="font-size:0.9rem;flex:1;">${d}</span>
+          <span class="char-badge ${cls}">${d.length}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:0.75rem;color:var(--muted);">Keyword density: <strong style="color:${density>=1&&density<=3?'#00c864':density>3?'var(--danger)':'#ffc800'}">${density}%</strong></span>
+          <button class="btn-sm" onclick="copyText(this,\`${d.replace(/`/g,'\\`')}\`)"><i class="bi bi-clipboard"></i> Copy</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Show density for full summary
+    const fullText = descs.join(' ');
+    const d = calcDensity(fullText, kw);
+    document.getElementById('density-box').style.display = 'block';
+    document.getElementById('density-info').textContent = `"${kw}" density across all descriptions: ${d}%`;
+    const fill = document.getElementById('density-fill');
+    const pct = Math.min(parseFloat(d) / 5 * 100, 100);
+    fill.style.width = pct + '%';
+    fill.style.background = d >= 1 && d <= 3 ? '#00c864' : d > 3 ? 'var(--danger)' : '#ffc800';
+    const rec = document.getElementById('density-rec');
+    if (d < 1) rec.innerHTML = '<span style="color:#ffc800;">⚠ Density below 1% — consider using the keyword more.</span>';
+    else if (d <= 3) rec.innerHTML = '<span style="color:#00c864;">✓ Ideal keyword density (1–3%).</span>';
+    else rec.innerHTML = '<span style="color:var(--danger);">⚠ Density above 3% — may appear spammy.</span>';
+  }
+
+  window.copyText = async (btn, text) => {
+    await navigator.clipboard.writeText(text);
+    btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy', 1500);
+  };
+
+  document.getElementById('btn-generate').addEventListener('click', generate);
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+});
+</script>
+{% endblock %}

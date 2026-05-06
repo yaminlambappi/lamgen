@@ -1,0 +1,131 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--primary)}
+.tool-code.out{background:rgba(0,0,0,.4);cursor:default}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.mode-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.mode-tab{padding:7px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.82rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Reverse Mode</div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('string',this)">Reverse String</button>
+      <button class="mode-tab" onclick="setMode('words',this)">Reverse Word Order</button>
+      <button class="mode-tab" onclick="setMode('each-word',this)">Reverse Each Word</button>
+      <button class="mode-tab" onclick="setMode('lines',this)">Reverse Lines</button>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Input Text</div>
+      <textarea class="tool-code" id="input-text" placeholder="Type or paste text here..." oninput="reverseText()"></textarea>
+    </div>
+    <div>
+      <div class="tool-label">Reversed Output</div>
+      <textarea class="tool-code out" id="output-text" readonly placeholder="Result will appear here..."></textarea>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="reverseText()"><i class="bi bi-arrow-left-right"></i> Reverse</button>
+    <button class="btn-sm" onclick="copyResult()"><i class="bi bi-clipboard"></i> Copy Result</button>
+    <button class="btn-sm" onclick="swapInputOutput()"><i class="bi bi-arrow-repeat"></i> Swap</button>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status err';
+  el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg;
+}
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+
+let mode = 'string';
+
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  reverseText();
+}
+
+function reverseText() {
+  const text = document.getElementById('input-text').value;
+  if (!text) { document.getElementById('output-text').value = ''; return; }
+  let result;
+  switch(mode) {
+    case 'string':
+      result = text.split('').reverse().join('');
+      break;
+    case 'words':
+      result = text.split(/\s+/).reverse().join(' ');
+      break;
+    case 'each-word':
+      result = text.split(/\s+/).map(w => w.split('').reverse().join('')).join(' ');
+      break;
+    case 'lines':
+      result = text.split('\n').reverse().join('\n');
+      break;
+    default:
+      result = text;
+  }
+  document.getElementById('output-text').value = result;
+}
+
+function copyResult() {
+  const result = document.getElementById('output-text').value;
+  if (!result) return;
+  const btn = event.target.closest('button');
+  copyText(result, btn);
+}
+
+function swapInputOutput() {
+  const input = document.getElementById('input-text');
+  const output = document.getElementById('output-text');
+  input.value = output.value;
+  reverseText();
+}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') reverseText();
+});
+</script>
+{% endblock %}

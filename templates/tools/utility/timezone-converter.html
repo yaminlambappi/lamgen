@@ -1,0 +1,208 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.num-input,.select-input,.text-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus,.text-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.tz-card{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px}
+.tz-time{font-size:2rem;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent)}
+.tz-date{font-size:.85rem;color:var(--muted);margin-top:4px}
+.tz-offset{font-size:.78rem;color:var(--primary);margin-top:4px}
+.tz-dst{font-size:.75rem;padding:2px 8px;border-radius:50px;display:inline-block;margin-top:4px}
+.tz-dst.active{background:rgba(0,245,212,.1);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.tz-dst.inactive{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid rgba(255,255,255,.1)}
+.world-clocks{display:flex;flex-direction:column;gap:6px}
+.world-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:.85rem}
+.world-row .city{color:var(--muted)}
+.world-row .time{font-family:'JetBrains Mono',monospace;color:var(--text);font-weight:600}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Date & Time to Convert</div>
+    <input type="datetime-local" class="num-input" id="dt-input">
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">From Timezone</div>
+      <select class="select-input" id="tz-from" onchange="convertTZ()"></select>
+    </div>
+    <div>
+      <div class="tool-label">To Timezone</div>
+      <select class="select-input" id="tz-to" onchange="convertTZ()"></select>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="convertTZ()"><i class="bi bi-arrow-left-right"></i> Convert</button>
+    <button class="btn-sm" onclick="useNow()"><i class="bi bi-clock"></i> Use Now</button>
+  </div>
+
+  <div class="grid-2" id="tz-results" style="display:none">
+    <div class="tz-card">
+      <div class="tool-label" id="from-label">From</div>
+      <div class="tz-time" id="from-time">—</div>
+      <div class="tz-date" id="from-date">—</div>
+      <div class="tz-offset" id="from-offset">—</div>
+      <div class="tz-dst" id="from-dst">—</div>
+    </div>
+    <div class="tz-card">
+      <div class="tool-label" id="to-label">To</div>
+      <div class="tz-time" id="to-time">—</div>
+      <div class="tz-date" id="to-date">—</div>
+      <div class="tz-offset" id="to-offset">—</div>
+      <div class="tz-dst" id="to-dst">—</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="tool-label">World Clocks (Current Time)</div>
+    <div class="world-clocks" id="world-clocks"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const TIMEZONES = [
+  'UTC','America/New_York','America/Chicago','America/Denver','America/Los_Angeles',
+  'America/Anchorage','America/Honolulu','America/Toronto','America/Vancouver',
+  'America/Mexico_City','America/Sao_Paulo','America/Buenos_Aires','America/Bogota',
+  'Europe/London','Europe/Paris','Europe/Berlin','Europe/Madrid','Europe/Rome',
+  'Europe/Amsterdam','Europe/Stockholm','Europe/Moscow','Europe/Istanbul',
+  'Asia/Dubai','Asia/Karachi','Asia/Kolkata','Asia/Dhaka','Asia/Bangkok',
+  'Asia/Singapore','Asia/Shanghai','Asia/Tokyo','Asia/Seoul','Asia/Hong_Kong',
+  'Australia/Sydney','Australia/Melbourne','Pacific/Auckland','Africa/Cairo',
+  'Africa/Johannesburg','Africa/Lagos'
+];
+
+const WORLD_CITIES = [
+  {tz:'America/New_York',label:'New York'},
+  {tz:'America/Los_Angeles',label:'Los Angeles'},
+  {tz:'Europe/London',label:'London'},
+  {tz:'Europe/Paris',label:'Paris'},
+  {tz:'Europe/Moscow',label:'Moscow'},
+  {tz:'Asia/Dubai',label:'Dubai'},
+  {tz:'Asia/Kolkata',label:'Mumbai'},
+  {tz:'Asia/Singapore',label:'Singapore'},
+  {tz:'Asia/Tokyo',label:'Tokyo'},
+  {tz:'Australia/Sydney',label:'Sydney'},
+];
+
+function populateTZ() {
+  const fromSel = document.getElementById('tz-from');
+  const toSel = document.getElementById('tz-to');
+  const opts = TIMEZONES.map(tz => `<option value="${tz}">${tz.replace('_',' ')}</option>`).join('');
+  fromSel.innerHTML = opts;
+  toSel.innerHTML = opts;
+  fromSel.value = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  toSel.value = 'UTC';
+}
+
+function getOffset(tz, date) {
+  const utcDate = new Date(date.toLocaleString('en-US', {timeZone:'UTC'}));
+  const tzDate = new Date(date.toLocaleString('en-US', {timeZone:tz}));
+  const diff = (tzDate - utcDate) / 60000;
+  const h = Math.floor(Math.abs(diff)/60);
+  const m = Math.abs(diff) % 60;
+  return (diff >= 0 ? '+' : '-') + String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+}
+
+function isDST(tz, date) {
+  const jan = new Date(date.getFullYear(), 0, 1);
+  const jul = new Date(date.getFullYear(), 6, 1);
+  const janOff = getOffset(tz, jan);
+  const julOff = getOffset(tz, jul);
+  const curOff = getOffset(tz, date);
+  if (janOff === julOff) return false;
+  return curOff === (Math.abs(parseInt(julOff)) > Math.abs(parseInt(janOff)) ? julOff : janOff);
+}
+
+function formatTZTime(date, tz) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false
+  }).format(date);
+}
+
+function formatTZDate(date, tz) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, weekday:'long', year:'numeric', month:'long', day:'numeric'
+  }).format(date);
+}
+
+function convertTZ() {
+  const dtVal = document.getElementById('dt-input').value;
+  if (!dtVal) return;
+  const fromTZ = document.getElementById('tz-from').value;
+  const toTZ = document.getElementById('tz-to').value;
+
+  // Parse the local datetime as if it's in fromTZ
+  const [datePart, timePart] = dtVal.split('T');
+  const [y,mo,d] = datePart.split('-').map(Number);
+  const [h,mi] = timePart.split(':').map(Number);
+
+  // Create date in UTC by finding what UTC time corresponds to the given local time in fromTZ
+  const tempDate = new Date(`${datePart}T${timePart}:00`);
+
+  document.getElementById('from-label').textContent = fromTZ;
+  document.getElementById('to-label').textContent = toTZ;
+  document.getElementById('from-time').textContent = formatTZTime(tempDate, fromTZ);
+  document.getElementById('from-date').textContent = formatTZDate(tempDate, fromTZ);
+  document.getElementById('from-offset').textContent = 'UTC' + getOffset(fromTZ, tempDate);
+  const fromDst = isDST(fromTZ, tempDate);
+  document.getElementById('from-dst').textContent = fromDst ? 'DST Active' : 'DST Inactive';
+  document.getElementById('from-dst').className = 'tz-dst ' + (fromDst ? 'active' : 'inactive');
+
+  document.getElementById('to-time').textContent = formatTZTime(tempDate, toTZ);
+  document.getElementById('to-date').textContent = formatTZDate(tempDate, toTZ);
+  document.getElementById('to-offset').textContent = 'UTC' + getOffset(toTZ, tempDate);
+  const toDst = isDST(toTZ, tempDate);
+  document.getElementById('to-dst').textContent = toDst ? 'DST Active' : 'DST Inactive';
+  document.getElementById('to-dst').className = 'tz-dst ' + (toDst ? 'active' : 'inactive');
+
+  document.getElementById('tz-results').style.display = 'grid';
+}
+
+function useNow() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+  document.getElementById('dt-input').value = local;
+  convertTZ();
+}
+
+function updateWorldClocks() {
+  const now = new Date();
+  const container = document.getElementById('world-clocks');
+  container.innerHTML = WORLD_CITIES.map(c => `
+    <div class="world-row">
+      <span class="city">${c.label}</span>
+      <span class="time">${formatTZTime(now, c.tz)}</span>
+    </div>
+  `).join('');
+}
+
+populateTZ();
+useNow();
+updateWorldClocks();
+setInterval(updateWorldClocks, 1000);
+
+document.getElementById('dt-input').addEventListener('input', convertTZ);
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') convertTZ();
+});
+</script>
+{% endblock %}

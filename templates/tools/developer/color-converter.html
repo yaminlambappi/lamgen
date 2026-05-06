@@ -1,0 +1,255 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:10px 13px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.9rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.color-swatch{width:100%;height:120px;border-radius:16px;border:1px solid rgba(255,255,255,.1);transition:background .2s;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:600;font-family:'JetBrains Mono',monospace}
+.format-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;transition:border-color .2s}
+.format-row:hover{border-color:rgba(108,99,255,.2)}
+.format-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);width:50px;flex-shrink:0}
+.format-value{flex:1;font-family:'JetBrains Mono',monospace;font-size:.88rem;color:var(--text)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.contrast-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem}
+.contrast-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.75rem}
+.wcag-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;font-size:.85rem}
+.badge{padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700}
+.badge.pass{background:rgba(0,245,212,.1);color:var(--accent);border:1px solid rgba(0,245,212,.3)}
+.badge.fail{background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.3)}
+.named-color{font-size:.82rem;color:var(--accent);margin-top:.25rem}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <div class="tool-label">Pick or Enter Color</div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <input type="color" id="colorPicker" value="#6C63FF" oninput="fromPicker()" style="width:48px;height:42px;border:none;background:none;cursor:pointer;border-radius:8px;flex-shrink:0" />
+        <input class="tool-input" id="hexInput" placeholder="#6C63FF" oninput="fromHex(this.value)" style="font-family:'JetBrains Mono',monospace" />
+      </div>
+      <div class="named-color" id="namedColor"></div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div class="tool-label">Color Preview</div>
+      <div class="color-swatch" id="colorSwatch" style="background:#6C63FF;color:#fff">#6C63FF</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:.5rem" id="formatList">
+    <div class="format-row">
+      <div class="format-label">HEX</div>
+      <div class="format-value" id="fHex">#6C63FF</div>
+      <button class="btn-sm" onclick="copyFmt('fHex')"><i class="bi bi-clipboard"></i></button>
+    </div>
+    <div class="format-row">
+      <div class="format-label">RGB</div>
+      <div class="format-value" id="fRgb">rgb(108, 99, 255)</div>
+      <button class="btn-sm" onclick="copyFmt('fRgb')"><i class="bi bi-clipboard"></i></button>
+    </div>
+    <div class="format-row">
+      <div class="format-label">HSL</div>
+      <div class="format-value" id="fHsl">hsl(243, 100%, 70%)</div>
+      <button class="btn-sm" onclick="copyFmt('fHsl')"><i class="bi bi-clipboard"></i></button>
+    </div>
+    <div class="format-row">
+      <div class="format-label">HSV</div>
+      <div class="format-value" id="fHsv">hsv(243, 61%, 100%)</div>
+      <button class="btn-sm" onclick="copyFmt('fHsv')"><i class="bi bi-clipboard"></i></button>
+    </div>
+    <div class="format-row">
+      <div class="format-label">CMYK</div>
+      <div class="format-value" id="fCmyk">cmyk(58%, 61%, 0%, 0%)</div>
+      <button class="btn-sm" onclick="copyFmt('fCmyk')"><i class="bi bi-clipboard"></i></button>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">Enter RGB</div>
+      <div style="display:flex;gap:.4rem">
+        <input class="tool-input" id="rIn" type="number" min="0" max="255" placeholder="R" oninput="fromRGB()" style="text-align:center" />
+        <input class="tool-input" id="gIn" type="number" min="0" max="255" placeholder="G" oninput="fromRGB()" style="text-align:center" />
+        <input class="tool-input" id="bIn" type="number" min="0" max="255" placeholder="B" oninput="fromRGB()" style="text-align:center" />
+      </div>
+    </div>
+    <div>
+      <div class="tool-label">Enter HSL</div>
+      <div style="display:flex;gap:.4rem">
+        <input class="tool-input" id="hIn" type="number" min="0" max="360" placeholder="H" oninput="fromHSL()" style="text-align:center" />
+        <input class="tool-input" id="sIn" type="number" min="0" max="100" placeholder="S%" oninput="fromHSL()" style="text-align:center" />
+        <input class="tool-input" id="lIn" type="number" min="0" max="100" placeholder="L%" oninput="fromHSL()" style="text-align:center" />
+      </div>
+    </div>
+  </div>
+
+  <div class="contrast-box">
+    <div class="contrast-title"><i class="bi bi-eye-fill" style="color:var(--primary);margin-right:6px"></i>WCAG Contrast Ratio</div>
+    <div style="display:flex;gap:.75rem;margin-bottom:.75rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:120px">
+        <div class="tool-label">Background Color</div>
+        <input class="tool-input" id="bgColor" value="#ffffff" oninput="calcContrast()" style="font-family:'JetBrains Mono',monospace" />
+      </div>
+      <div style="flex:1;min-width:120px">
+        <div class="tool-label">Text Color</div>
+        <input class="tool-input" id="fgColor" value="#6C63FF" oninput="calcContrast()" style="font-family:'JetBrains Mono',monospace" />
+      </div>
+    </div>
+    <div id="contrastPreview" style="padding:1rem;border-radius:8px;margin-bottom:.75rem;font-size:1rem;font-weight:600;text-align:center">Sample Text</div>
+    <div id="contrastResults"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const CSS_COLORS = {
+  'aliceblue':'#f0f8ff','antiquewhite':'#faebd7','aqua':'#00ffff','aquamarine':'#7fffd4','azure':'#f0ffff','beige':'#f5f5dc','bisque':'#ffe4c4','black':'#000000','blanchedalmond':'#ffebcd','blue':'#0000ff','blueviolet':'#8a2be2','brown':'#a52a2a','burlywood':'#deb887','cadetblue':'#5f9ea0','chartreuse':'#7fff00','chocolate':'#d2691e','coral':'#ff7f50','cornflowerblue':'#6495ed','cornsilk':'#fff8dc','crimson':'#dc143c','cyan':'#00ffff','darkblue':'#00008b','darkcyan':'#008b8b','darkgoldenrod':'#b8860b','darkgray':'#a9a9a9','darkgreen':'#006400','darkkhaki':'#bdb76b','darkmagenta':'#8b008b','darkolivegreen':'#556b2f','darkorange':'#ff8c00','darkorchid':'#9932cc','darkred':'#8b0000','darksalmon':'#e9967a','darkseagreen':'#8fbc8f','darkslateblue':'#483d8b','darkslategray':'#2f4f4f','darkturquoise':'#00ced1','darkviolet':'#9400d3','deeppink':'#ff1493','deepskyblue':'#00bfff','dimgray':'#696969','dodgerblue':'#1e90ff','firebrick':'#b22222','floralwhite':'#fffaf0','forestgreen':'#228b22','fuchsia':'#ff00ff','gainsboro':'#dcdcdc','ghostwhite':'#f8f8ff','gold':'#ffd700','goldenrod':'#daa520','gray':'#808080','green':'#008000','greenyellow':'#adff2f','honeydew':'#f0fff0','hotpink':'#ff69b4','indianred':'#cd5c5c','indigo':'#4b0082','ivory':'#fffff0','khaki':'#f0e68c','lavender':'#e6e6fa','lavenderblush':'#fff0f5','lawngreen':'#7cfc00','lemonchiffon':'#fffacd','lightblue':'#add8e6','lightcoral':'#f08080','lightcyan':'#e0ffff','lightgoldenrodyellow':'#fafad2','lightgray':'#d3d3d3','lightgreen':'#90ee90','lightpink':'#ffb6c1','lightsalmon':'#ffa07a','lightseagreen':'#20b2aa','lightskyblue':'#87cefa','lightslategray':'#778899','lightsteelblue':'#b0c4de','lightyellow':'#ffffe0','lime':'#00ff00','limegreen':'#32cd32','linen':'#faf0e6','magenta':'#ff00ff','maroon':'#800000','mediumaquamarine':'#66cdaa','mediumblue':'#0000cd','mediumorchid':'#ba55d3','mediumpurple':'#9370db','mediumseagreen':'#3cb371','mediumslateblue':'#7b68ee','mediumspringgreen':'#00fa9a','mediumturquoise':'#48d1cc','mediumvioletred':'#c71585','midnightblue':'#191970','mintcream':'#f5fffa','mistyrose':'#ffe4e1','moccasin':'#ffe4b5','navajowhite':'#ffdead','navy':'#000080','oldlace':'#fdf5e6','olive':'#808000','olivedrab':'#6b8e23','orange':'#ffa500','orangered':'#ff4500','orchid':'#da70d6','palegoldenrod':'#eee8aa','palegreen':'#98fb98','paleturquoise':'#afeeee','palevioletred':'#db7093','papayawhip':'#ffefd5','peachpuff':'#ffdab9','peru':'#cd853f','pink':'#ffc0cb','plum':'#dda0dd','powderblue':'#b0e0e6','purple':'#800080','red':'#ff0000','rosybrown':'#bc8f8f','royalblue':'#4169e1','saddlebrown':'#8b4513','salmon':'#fa8072','sandybrown':'#f4a460','seagreen':'#2e8b57','seashell':'#fff5ee','sienna':'#a0522d','silver':'#c0c0c0','skyblue':'#87ceeb','slateblue':'#6a5acd','slategray':'#708090','snow':'#fffafa','springgreen':'#00ff7f','steelblue':'#4682b4','tan':'#d2b48c','teal':'#008080','thistle':'#d8bfd8','tomato':'#ff6347','turquoise':'#40e0d0','violet':'#ee82ee','wheat':'#f5deb3','white':'#ffffff','whitesmoke':'#f5f5f5','yellow':'#ffff00','yellowgreen':'#9acd32'
+};
+
+function hexToRgb(hex) {
+  hex = hex.replace(/^#/, '');
+  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  if (hex.length !== 6) return null;
+  const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+  if (isNaN(r)||isNaN(g)||isNaN(b)) return null;
+  return {r,g,b};
+}
+
+function rgbToHex(r,g,b) { return '#' + [r,g,b].map(v=>Math.round(v).toString(16).padStart(2,'0')).join(''); }
+
+function rgbToHsl(r,g,b) {
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h,s,l=(max+min)/2;
+  if(max===min){h=s=0;}
+  else{const d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}
+  return {h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};
+}
+
+function hslToRgb(h,s,l) {
+  s/=100; l/=100;
+  const k=n=>(n+h/30)%12, a=s*Math.min(l,1-l);
+  const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
+  return {r:Math.round(f(0)*255),g:Math.round(f(8)*255),b:Math.round(f(4)*255)};
+}
+
+function rgbToHsv(r,g,b) {
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min;
+  let h=0,s=max===0?0:d/max,v=max;
+  if(d!==0){switch(max){case r:h=((g-b)/d)%6;break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;}h=Math.round(h*60);if(h<0)h+=360;}
+  return {h,s:Math.round(s*100),v:Math.round(v*100)};
+}
+
+function rgbToCmyk(r,g,b) {
+  r/=255; g/=255; b/=255;
+  const k=1-Math.max(r,g,b);
+  if(k===1) return {c:0,m:0,y:0,k:100};
+  return {c:Math.round((1-r-k)/(1-k)*100),m:Math.round((1-g-k)/(1-k)*100),y:Math.round((1-b-k)/(1-k)*100),k:Math.round(k*100)};
+}
+
+function updateAll(r,g,b) {
+  const hex = rgbToHex(r,g,b);
+  const hsl = rgbToHsl(r,g,b);
+  const hsv = rgbToHsv(r,g,b);
+  const cmyk = rgbToCmyk(r,g,b);
+
+  document.getElementById('hexInput').value = hex;
+  document.getElementById('colorPicker').value = hex;
+  document.getElementById('colorSwatch').style.background = hex;
+  document.getElementById('colorSwatch').textContent = hex;
+  // Determine text color for swatch
+  const lum = 0.299*r + 0.587*g + 0.114*b;
+  document.getElementById('colorSwatch').style.color = lum > 128 ? '#000' : '#fff';
+
+  document.getElementById('fHex').textContent = hex;
+  document.getElementById('fRgb').textContent = `rgb(${r}, ${g}, ${b})`;
+  document.getElementById('fHsl').textContent = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+  document.getElementById('fHsv').textContent = `hsv(${hsv.h}, ${hsv.s}%, ${hsv.v}%)`;
+  document.getElementById('fCmyk').textContent = `cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`;
+
+  document.getElementById('rIn').value = r;
+  document.getElementById('gIn').value = g;
+  document.getElementById('bIn').value = b;
+  document.getElementById('hIn').value = hsl.h;
+  document.getElementById('sIn').value = hsl.s;
+  document.getElementById('lIn').value = hsl.l;
+
+  // Named color
+  const named = Object.entries(CSS_COLORS).find(([,v]) => v.toLowerCase() === hex.toLowerCase());
+  document.getElementById('namedColor').textContent = named ? `CSS name: ${named[0]}` : '';
+
+  // Update contrast fg
+  document.getElementById('fgColor').value = hex;
+  calcContrast();
+}
+
+function fromPicker() { const hex = document.getElementById('colorPicker').value; const rgb = hexToRgb(hex); if(rgb) updateAll(rgb.r,rgb.g,rgb.b); }
+function fromHex(val) {
+  val = val.trim();
+  // Check CSS named color
+  if (CSS_COLORS[val.toLowerCase()]) val = CSS_COLORS[val.toLowerCase()];
+  const rgb = hexToRgb(val);
+  if(rgb) updateAll(rgb.r,rgb.g,rgb.b);
+}
+function fromRGB() {
+  const r=parseInt(document.getElementById('rIn').value)||0, g=parseInt(document.getElementById('gIn').value)||0, b=parseInt(document.getElementById('bIn').value)||0;
+  updateAll(Math.min(255,Math.max(0,r)),Math.min(255,Math.max(0,g)),Math.min(255,Math.max(0,b)));
+}
+function fromHSL() {
+  const h=parseInt(document.getElementById('hIn').value)||0, s=parseInt(document.getElementById('sIn').value)||0, l=parseInt(document.getElementById('lIn').value)||0;
+  const {r,g,b} = hslToRgb(h,s,l);
+  updateAll(r,g,b);
+}
+
+function calcContrast() {
+  const bg = hexToRgb(document.getElementById('bgColor').value);
+  const fg = hexToRgb(document.getElementById('fgColor').value);
+  if (!bg || !fg) return;
+
+  function luminance(r,g,b) {
+    const [rs,gs,bs] = [r,g,b].map(v => { v/=255; return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4); });
+    return 0.2126*rs + 0.7152*gs + 0.0722*bs;
+  }
+  const l1 = luminance(fg.r,fg.g,fg.b), l2 = luminance(bg.r,bg.g,bg.b);
+  const ratio = (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+  const r = Math.round(ratio*100)/100;
+
+  document.getElementById('contrastPreview').style.background = `#${document.getElementById('bgColor').value.replace('#','')}`;
+  document.getElementById('contrastPreview').style.color = `#${document.getElementById('fgColor').value.replace('#','')}`;
+
+  document.getElementById('contrastResults').innerHTML = `
+    <div style="font-size:1.2rem;font-weight:700;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem">${r}:1</div>
+    <div class="wcag-row"><span>AA Normal Text (4.5:1)</span><span class="badge ${r>=4.5?'pass':'fail'}">${r>=4.5?'PASS':'FAIL'}</span></div>
+    <div class="wcag-row"><span>AA Large Text (3:1)</span><span class="badge ${r>=3?'pass':'fail'}">${r>=3?'PASS':'FAIL'}</span></div>
+    <div class="wcag-row"><span>AAA Normal Text (7:1)</span><span class="badge ${r>=7?'pass':'fail'}">${r>=7?'PASS':'FAIL'}</span></div>
+    <div class="wcag-row"><span>AAA Large Text (4.5:1)</span><span class="badge ${r>=4.5?'pass':'fail'}">${r>=4.5?'PASS':'FAIL'}</span></div>
+  `;
+}
+
+function copyFmt(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target.closest('button');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+  updateAll(108, 99, 255);
+  calcContrast();
+});
+</script>
+{% endblock %}

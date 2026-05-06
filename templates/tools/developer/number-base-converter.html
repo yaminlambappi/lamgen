@@ -1,0 +1,197 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.tool-input{width:100%;padding:12px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:1rem;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.tool-input::placeholder{color:rgba(255,255,255,.2)}
+.base-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:1rem 1.2rem;transition:border-color .2s}
+.base-card:hover{border-color:rgba(108,99,255,.25)}
+.base-card.active{border-color:var(--primary);background:rgba(108,99,255,.05)}
+.base-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center}
+.base-value{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:600;word-break:break-all;min-height:1.5em}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.select-input{padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;cursor:pointer}
+.select-input:focus{border-color:var(--primary)}
+.opt-label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);cursor:pointer}
+.opt-label input{accent-color:var(--primary)}
+.bit-display{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--muted);word-break:break-all;line-height:1.8;margin-top:.5rem}
+.bit-display .bit-1{color:var(--accent)}
+.bit-display .bit-0{color:rgba(255,255,255,.3)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+    <div>
+      <span style="font-size:.85rem;color:var(--muted);margin-right:.5rem">Input Base:</span>
+      <select class="select-input" id="inputBase" onchange="convert()">
+        <option value="10" selected>Decimal (10)</option>
+        <option value="2">Binary (2)</option>
+        <option value="8">Octal (8)</option>
+        <option value="16">Hexadecimal (16)</option>
+      </select>
+    </div>
+    <div>
+      <span style="font-size:.85rem;color:var(--muted);margin-right:.5rem">Bit Length:</span>
+      <select class="select-input" id="bitLength" onchange="convert()">
+        <option value="0">Auto</option>
+        <option value="8">8-bit</option>
+        <option value="16">16-bit</option>
+        <option value="32" selected>32-bit</option>
+        <option value="64">64-bit</option>
+      </select>
+    </div>
+    <label class="opt-label"><input type="checkbox" id="showTwos" onchange="convert()"> Two's complement</label>
+  </div>
+
+  <div>
+    <div class="tool-label">Input Value</div>
+    <input class="tool-input" id="numInput" placeholder="Enter a number..." oninput="convert()" />
+    <div class="status" id="st" style="margin-top:.5rem"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="base-card" id="card-dec">
+      <div class="base-label">
+        <span>Decimal (Base 10)</span>
+        <button class="btn-sm" onclick="copyBase('dec')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="base-value" id="val-dec">—</div>
+    </div>
+    <div class="base-card" id="card-bin">
+      <div class="base-label">
+        <span>Binary (Base 2)</span>
+        <button class="btn-sm" onclick="copyBase('bin')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="base-value" id="val-bin">—</div>
+    </div>
+    <div class="base-card" id="card-oct">
+      <div class="base-label">
+        <span>Octal (Base 8)</span>
+        <button class="btn-sm" onclick="copyBase('oct')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="base-value" id="val-oct">—</div>
+    </div>
+    <div class="base-card" id="card-hex">
+      <div class="base-label">
+        <span>Hexadecimal (Base 16)</span>
+        <button class="btn-sm" onclick="copyBase('hex')"><i class="bi bi-clipboard"></i></button>
+      </div>
+      <div class="base-value" id="val-hex">—</div>
+    </div>
+  </div>
+
+  <div id="bitViz" style="display:none">
+    <div class="tool-label">Bit Visualization</div>
+    <div class="bit-display" id="bitDisplay"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function convert() {
+  const raw = document.getElementById('numInput').value.trim();
+  const base = parseInt(document.getElementById('inputBase').value);
+  const bitLen = parseInt(document.getElementById('bitLength').value);
+  const showTwos = document.getElementById('showTwos').checked;
+
+  if (!raw) {
+    ['dec','bin','oct','hex'].forEach(b => document.getElementById('val-'+b).textContent = '—');
+    document.getElementById('bitViz').style.display = 'none';
+    hideStatus('st');
+    return;
+  }
+
+  // Parse
+  let num;
+  try {
+    if (base === 16) {
+      num = parseInt(raw.replace(/^0x/i,''), 16);
+    } else if (base === 2) {
+      num = parseInt(raw.replace(/\s/g,''), 2);
+    } else if (base === 8) {
+      num = parseInt(raw.replace(/^0o/i,''), 8);
+    } else {
+      num = parseInt(raw, 10);
+    }
+    if (isNaN(num)) throw new Error('Invalid number');
+  } catch(e) {
+    showErr('st', 'Invalid input for base ' + base);
+    return;
+  }
+  hideStatus('st');
+
+  const isNeg = num < 0;
+  let absNum = Math.abs(num);
+
+  // Two's complement for negative numbers
+  let binStr, decStr, octStr, hexStr;
+
+  if (isNeg && showTwos && bitLen > 0) {
+    // Two's complement
+    const twos = (Math.pow(2, bitLen) + num) >>> 0;
+    binStr = twos.toString(2).padStart(bitLen, '0');
+    decStr = num.toString(10);
+    octStr = twos.toString(8);
+    hexStr = twos.toString(16).toUpperCase();
+  } else {
+    decStr = num.toString(10);
+    binStr = absNum.toString(2);
+    octStr = absNum.toString(8);
+    hexStr = absNum.toString(16).toUpperCase();
+    if (isNeg) { binStr = '-' + binStr; octStr = '-' + octStr; hexStr = '-' + hexStr; }
+  }
+
+  // Pad binary to bit length
+  if (bitLen > 0 && !isNeg) {
+    binStr = binStr.padStart(bitLen, '0');
+  }
+
+  // Group binary in nibbles
+  const binGrouped = binStr.replace(/^-?/, m => m).replace(/(\d{4})(?=\d)/g, '$1 ');
+
+  document.getElementById('val-dec').textContent = decStr;
+  document.getElementById('val-bin').textContent = binGrouped;
+  document.getElementById('val-oct').textContent = (isNeg && !showTwos ? '-' : '') + octStr.replace(/^-/,'');
+  document.getElementById('val-hex').textContent = '0x' + hexStr.replace(/^-/,'');
+
+  // Bit visualization
+  const cleanBin = binStr.replace(/^-/,'').replace(/\s/g,'');
+  if (cleanBin.length <= 64) {
+    const bits = cleanBin.padStart(bitLen || cleanBin.length, '0');
+    const html = bits.split('').map((b,i) => {
+      const sep = (bits.length - i) % 8 === 0 && i > 0 ? ' ' : '';
+      return `${sep}<span class="bit-${b}">${b}</span>`;
+    }).join('');
+    document.getElementById('bitDisplay').innerHTML = html;
+    document.getElementById('bitViz').style.display = 'block';
+  }
+
+  showOk('st', `Decimal: ${decStr}`);
+}
+
+function copyBase(base) {
+  const text = document.getElementById('val-'+base).textContent;
+  if (text === '—') return;
+  navigator.clipboard.writeText(text.replace(/\s/g,''));
+}
+
+function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+function hideStatus(id){document.getElementById(id).className='status';}
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); convert(); }
+});
+</script>
+{% endblock %}

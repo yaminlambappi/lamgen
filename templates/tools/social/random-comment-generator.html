@@ -1,0 +1,159 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.comment-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.comment-card:hover { border-color: rgba(108,99,255,0.3); }
+.comment-text { font-size: 0.95rem; color: var(--text); line-height: 1.5; flex: 1; }
+.type-badge { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px; white-space: nowrap; background: rgba(108,99,255,0.15); color: var(--primary); }
+.filter-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
+.filter-chip { padding: 0.35rem 0.9rem; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.results-panel { max-height: 550px; overflow-y: auto; }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:2rem;">
+  <div>
+    <div style="margin-bottom:1.2rem;">
+      <span class="tool-label">Platform</span>
+      <div class="filter-row" id="platform-chips">
+        <span class="filter-chip active" data-platform="all">All</span>
+        <span class="filter-chip" data-platform="instagram">📸 Instagram</span>
+        <span class="filter-chip" data-platform="tiktok">🎵 TikTok</span>
+        <span class="filter-chip" data-platform="youtube">▶️ YouTube</span>
+        <span class="filter-chip" data-platform="twitter">🐦 Twitter/X</span>
+      </div>
+    </div>
+    <div style="margin-bottom:1.2rem;">
+      <span class="tool-label">Comment Type</span>
+      <div class="filter-row" id="type-chips">
+        <span class="filter-chip active" data-type="all">All</span>
+        <span class="filter-chip" data-type="supportive">💚 Supportive</span>
+        <span class="filter-chip" data-type="hype">🔥 Hype</span>
+        <span class="filter-chip" data-type="funny">😂 Funny</span>
+        <span class="filter-chip" data-type="relatable">🙋 Relatable</span>
+        <span class="filter-chip" data-type="motivational">💪 Motivational</span>
+        <span class="filter-chip" data-type="question">❓ Question</span>
+      </div>
+    </div>
+    <button class="btn-go" id="btn-generate">💬 Generate Comments</button>
+    <button class="btn-sm" id="btn-regen" style="margin-top:0.5rem;width:100%;padding:0.6rem;">🔄 Regenerate</button>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:0.6rem;">Ctrl+Enter to generate</p>
+  </div>
+  <div>
+    <span class="tool-label">Generated Comments (10)</span>
+    <div class="results-panel" id="results">
+      <div style="color:var(--muted);text-align:center;padding:3rem 0;">Select filters and click Generate</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const comments = {
+    supportive: {
+      all: ["This is so good! Keep it up! 💙","You're doing amazing! 🌟","So proud of you for sharing this!","This made my day better ✨","You have such a gift!","Never stop creating! 💫","This is exactly what I needed to see today","You inspire me so much 🙏","Keep going, you're killing it!","This is pure talent 🎯"],
+      instagram: ["This feed is everything 😍","Your aesthetic is immaculate ✨","Obsessed with your content 💕","This is so beautiful 🌸","Your creativity never misses 🎨"],
+      tiktok: ["This blew up for a reason 🔥","POV: you found the best creator","Not me watching this 10 times 😭","The algorithm blessed me today","This is so underrated fr"],
+      youtube: ["This video deserves way more views","Your editing is insane 🎬","Subscribed immediately after this","This is the content I came for","Your channel is a hidden gem 💎"],
+      twitter: ["This tweet lives rent free in my head","Ratio? More like W","This is the tweet of the year","Screenshotting this forever","Based and correct 🙌"],
+    },
+    hype: {
+      all: ["LETS GOOO 🔥🔥🔥","This is FIRE 🚀","Absolute banger no cap","W content, no debate","This goes so hard 💥","Not a single L in sight","Peak content right here","This is the one 👑","GOATED fr fr","Unmatched energy 🔥"],
+      instagram: ["SLAY 👑","This is giving everything 💅","Main character energy 🌟","Iconic. Legendary. Ethereal.","The serve is REAL 🔥"],
+      tiktok: ["This is the most viral thing I've seen","Sending this to everyone I know","The way this hit different 💀","This is the content we deserve","Not the algorithm sleeping on this 😤"],
+      youtube: ["This video is a masterpiece 🎬","The production quality tho 😤","This deserves 10M views minimum","Came for the thumbnail, stayed for everything","This is cinema 🎥"],
+      twitter: ["This tweet is doing numbers for a reason","The way this is so accurate 💀","Retweeting this into the void","This is the content I follow for","W tweet, W person 🙌"],
+    },
+    funny: {
+      all: ["I'm crying 😭😭😭","I can't breathe 💀","Why is this so accurate 💀","I felt this in my soul","My therapist: what's wrong? Me: this","The accuracy is criminal 😭","I'm sending this to my group chat","Why did I laugh so hard at this","This is my villain origin story","I'm not okay 💀"],
+      instagram: ["The caption is sending me 💀","I'm in the comments because I have no life","This is my Roman Empire","Not me tagging everyone I know","The audacity of this post 😭"],
+      tiktok: ["The way I wheezed 💀","This is the funniest thing on the internet","I'm going to jail for laughing at this","The comments are funnier than the video","This is why I have trust issues 😭"],
+      youtube: ["The editing choices 💀","I paused at 0:00 and already lost it","The thumbnail alone sent me","Why is the comment section a whole comedy show","I came for the video, stayed for the chaos"],
+      twitter: ["I'm logging off after this 💀","The way I spit out my drink","This tweet is a crime against humanity","I'm telling my kids about this","The ratio is deserved 😭"],
+    },
+    relatable: {
+      all: ["This is literally me 😭","Why does this describe my life","I felt this on a spiritual level","This is my entire personality","Nobody: Me: this","This is too real 💀","I'm not crying you're crying","This is the most relatable thing I've seen","Why is this so accurate it hurts","This is my Roman Empire"],
+      instagram: ["This is my entire mood 24/7","The caption is my autobiography","This is giving my life story","Not me relating to this too hard","This is literally my daily routine 😭"],
+      tiktok: ["This is the most relatable tiktok ever","POV: me every single day","The way this described my life perfectly","I'm in this video and I don't like it","This is too real, I need to log off"],
+      youtube: ["This video is a documentary about my life","I've watched this 5 times and cried each time","This is the most accurate thing on YouTube","Why does this feel like it was made for me","I'm not okay after watching this"],
+      twitter: ["This tweet is my entire personality","I'm putting this in my bio","This is the most relatable thing on the internet","Why does this describe me so well","I'm screenshotting this for my therapist"],
+    },
+    motivational: {
+      all: ["You've got this! 💪","Keep pushing, you're almost there!","This is your sign to keep going 🌟","You're stronger than you think 💫","Don't give up, the best is yet to come","You're doing better than you think","This is your reminder that you're amazing","Keep going, you're making progress 🚀","Believe in yourself, you've got this!","You're capable of more than you know 🌟"],
+      instagram: ["Your journey is inspiring so many people 🌸","This is the motivation I needed today","You're proof that hard work pays off 💪","Keep shining, the world needs your light ✨","Your growth is incredible to witness 🌱"],
+      tiktok: ["This is the sign I needed to keep going","Not me getting motivated from a tiktok 💪","This is the energy I needed today","You're inspiring more people than you know","This is the push I needed, thank you 🙏"],
+      youtube: ["This video changed my perspective completely","I needed this more than I knew","This is the most motivating content on YouTube","Thank you for making this, it helped me a lot","This is the content that actually makes a difference"],
+      twitter: ["This tweet is the motivation I needed today","Saving this for when I need a reminder","This is the energy we all need","Thank you for posting this 🙏","This is the most inspiring thing I've read today"],
+    },
+    question: {
+      all: ["Wait, how did you do that?","Can you make a tutorial?","What's the secret? 👀","How long did this take?","Where can I learn more about this?","What inspired you to do this?","Can you explain the process?","What tools did you use?","Is there a part 2?","How do I get started with this?"],
+      instagram: ["What filter is this? 😍","Where is this location?","What camera do you use?","Can you share the recipe?","What's your editing process?"],
+      tiktok: ["What song is this?","Can you do a tutorial?","What app did you use for this?","How long did this take to make?","Is there a part 2?"],
+      youtube: ["What software do you use for editing?","Can you do a full tutorial?","What's your setup?","How long have you been doing this?","Where can I find the resources you mentioned?"],
+      twitter: ["Can you elaborate on this?","What's the source for this?","Have you written more about this?","Is there a thread?","Can you share more context?"],
+    },
+  };
+
+  let selectedPlatform = 'all';
+  let selectedType = 'all';
+
+  // Platform chips
+  document.getElementById('platform-chips').addEventListener('click', e => {
+    const chip = e.target.closest('[data-platform]');
+    if (!chip) return;
+    selectedPlatform = chip.dataset.platform;
+    document.querySelectorAll('[data-platform]').forEach(c => c.classList.toggle('active', c.dataset.platform === selectedPlatform));
+  });
+
+  // Type chips
+  document.getElementById('type-chips').addEventListener('click', e => {
+    const chip = e.target.closest('[data-type]');
+    if (!chip) return;
+    selectedType = chip.dataset.type;
+    document.querySelectorAll('[data-type]').forEach(c => c.classList.toggle('active', c.dataset.type === selectedType));
+  });
+
+  function generate() {
+    const types = selectedType === 'all' ? Object.keys(comments) : [selectedType];
+    let pool = [];
+    types.forEach(type => {
+      const typeComments = comments[type];
+      if (!typeComments) return;
+      const platformComments = typeComments[selectedPlatform] || typeComments.all || [];
+      pool.push(...platformComments.map(c => ({ text: c, type })));
+    });
+    if (!pool.length) { document.getElementById('results').innerHTML = '<div style="color:var(--danger);text-align:center;padding:2rem;">No comments for this combination.</div>'; return; }
+    const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, 10);
+    document.getElementById('results').innerHTML = shuffled.map(c => `
+      <div class="comment-card">
+        <div class="comment-text">${c.text}</div>
+        <div style="display:flex;flex-direction:column;gap:0.4rem;align-items:flex-end;">
+          <span class="type-badge">${c.type}</span>
+          <button class="btn-sm" onclick="copyText(this,\`${c.text.replace(/`/g,'\\`')}\`)"><i class="bi bi-clipboard"></i></button>
+        </div>
+      </div>`).join('');
+  }
+
+  window.copyText = async (btn, text) => {
+    await navigator.clipboard.writeText(text);
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i>', 1500);
+  };
+
+  document.getElementById('btn-generate').addEventListener('click', generate);
+  document.getElementById('btn-regen').addEventListener('click', generate);
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+  generate();
+});
+</script>
+{% endblock %}

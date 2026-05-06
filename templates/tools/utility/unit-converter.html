@@ -1,0 +1,183 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.num-input,.select-input{width:100%;padding:10px 14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;transition:border-color .2s}
+.num-input:focus,.select-input:focus{border-color:var(--primary)}
+.select-input option{background:#0F0F1A}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+.cat-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:1rem}
+.cat-tab{padding:7px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.82rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.cat-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.conv-row{display:flex;align-items:center;gap:10px}
+.conv-row .num-input{flex:1}
+.swap-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;cursor:pointer;color:var(--muted);font-size:1rem;transition:all .2s}
+.swap-btn:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.all-results{display:flex;flex-direction:column;gap:6px;margin-top:.5rem}
+.conv-result-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:.88rem}
+.conv-result-row .val{font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.conv-result-row .unit{color:var(--muted)}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div>
+    <div class="tool-label">Category</div>
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="setCat('length',this)">Length</button>
+      <button class="cat-tab" onclick="setCat('weight',this)">Weight</button>
+      <button class="cat-tab" onclick="setCat('temperature',this)">Temperature</button>
+      <button class="cat-tab" onclick="setCat('volume',this)">Volume</button>
+      <button class="cat-tab" onclick="setCat('speed',this)">Speed</button>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="tool-label">From</div>
+      <select class="select-input" id="from-unit" onchange="convert()"></select>
+    </div>
+    <div>
+      <div class="tool-label">To</div>
+      <select class="select-input" id="to-unit" onchange="convert()"></select>
+    </div>
+  </div>
+
+  <div class="conv-row">
+    <input type="number" class="num-input" id="from-val" placeholder="Enter value" oninput="convert()">
+    <button class="swap-btn" onclick="swapUnits()" title="Swap units"><i class="bi bi-arrow-left-right"></i></button>
+    <input type="number" class="num-input" id="to-val" placeholder="Result" readonly style="background:rgba(0,0,0,.4)">
+  </div>
+
+  <div>
+    <div class="tool-label">All Conversions</div>
+    <div class="all-results" id="all-results"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+const CATS = {
+  length: {
+    units: ['mm','cm','m','km','in','ft','yd','mi'],
+    toBase: {mm:0.001,cm:0.01,m:1,km:1000,in:0.0254,ft:0.3048,yd:0.9144,mi:1609.344},
+    labels: {mm:'Millimeter',cm:'Centimeter',m:'Meter',km:'Kilometer',in:'Inch',ft:'Foot',yd:'Yard',mi:'Mile'}
+  },
+  weight: {
+    units: ['mg','g','kg','t','oz','lb'],
+    toBase: {mg:0.000001,g:0.001,kg:1,t:1000,oz:0.0283495,lb:0.453592},
+    labels: {mg:'Milligram',g:'Gram',kg:'Kilogram',t:'Metric Ton',oz:'Ounce',lb:'Pound'}
+  },
+  temperature: {
+    units: ['C','F','K'],
+    toBase: null,
+    labels: {C:'Celsius',F:'Fahrenheit',K:'Kelvin'}
+  },
+  volume: {
+    units: ['ml','L','fl_oz','cup','pt','qt','gal'],
+    toBase: {ml:0.001,L:1,fl_oz:0.0295735,cup:0.236588,pt:0.473176,qt:0.946353,gal:3.78541},
+    labels: {ml:'Milliliter',L:'Liter',fl_oz:'Fl. Ounce',cup:'Cup',pt:'Pint',qt:'Quart',gal:'Gallon'}
+  },
+  speed: {
+    units: ['m/s','km/h','mph','knots'],
+    toBase: {'m/s':1,'km/h':0.277778,'mph':0.44704,'knots':0.514444},
+    labels: {'m/s':'Meters/sec','km/h':'Km/hour','mph':'Miles/hour','knots':'Knots'}
+  }
+};
+
+let currentCat = 'length';
+
+function setCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  populateUnits();
+  convert();
+}
+
+function populateUnits() {
+  const cat = CATS[currentCat];
+  const fromSel = document.getElementById('from-unit');
+  const toSel = document.getElementById('to-unit');
+  fromSel.innerHTML = cat.units.map(u => `<option value="${u}">${cat.labels[u]} (${u})</option>`).join('');
+  toSel.innerHTML = cat.units.map(u => `<option value="${u}">${cat.labels[u]} (${u})</option>`).join('');
+  toSel.selectedIndex = 1;
+}
+
+function convertTemp(val, from, to) {
+  let celsius;
+  if (from === 'C') celsius = val;
+  else if (from === 'F') celsius = (val - 32) * 5/9;
+  else celsius = val - 273.15;
+  if (to === 'C') return celsius;
+  if (to === 'F') return celsius * 9/5 + 32;
+  return celsius + 273.15;
+}
+
+function convertVal(val, from, to) {
+  if (currentCat === 'temperature') return convertTemp(val, from, to);
+  const cat = CATS[currentCat];
+  return val * cat.toBase[from] / cat.toBase[to];
+}
+
+function fmt(n) {
+  if (Math.abs(n) >= 0.001 && Math.abs(n) < 1e9) return parseFloat(n.toPrecision(8)).toString();
+  return n.toExponential(4);
+}
+
+function convert() {
+  const val = parseFloat(document.getElementById('from-val').value);
+  const from = document.getElementById('from-unit').value;
+  const to = document.getElementById('to-unit').value;
+  if (isNaN(val)) { document.getElementById('to-val').value = ''; document.getElementById('all-results').innerHTML = ''; return; }
+  const result = convertVal(val, from, to);
+  document.getElementById('to-val').value = fmt(result);
+
+  const cat = CATS[currentCat];
+  const allEl = document.getElementById('all-results');
+  allEl.innerHTML = cat.units.map(u => {
+    const r = convertVal(val, from, u);
+    return `<div class="conv-result-row">
+      <span class="unit">${cat.labels[u]}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="val">${fmt(r)}</span>
+        <span style="color:var(--muted);font-size:.78rem">${u}</span>
+        <button class="btn-sm" style="padding:4px 8px" onclick="copyText('${fmt(r)}',this)"><i class="bi bi-clipboard"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function swapUnits() {
+  const fromSel = document.getElementById('from-unit');
+  const toSel = document.getElementById('to-unit');
+  const tmp = fromSel.value;
+  fromSel.value = toSel.value;
+  toSel.value = tmp;
+  const fromVal = document.getElementById('from-val').value;
+  const toVal = document.getElementById('to-val').value;
+  document.getElementById('from-val').value = toVal;
+  convert();
+}
+
+populateUnits();
+</script>
+{% endblock %}

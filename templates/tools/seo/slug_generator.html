@@ -1,0 +1,110 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .editor-pane { border: 1px solid var(--border); border-radius: 12px; background: #0A0A0F; padding: 1rem; margin-bottom: 2rem; }
+    .editor-content { width: 100%; height: 100px; background: transparent; border: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1.2rem; line-height: 1.6; resize: none; outline: none; }
+    
+    .slug-result { font-family: 'Fira Code', monospace; font-size: 1.5rem; color: var(--accent); background: rgba(0,245,212,0.1); border: 1px solid rgba(0,245,212,0.3); border-radius: 12px; padding: 2rem; text-align: center; word-break: break-all; margin-bottom: 2rem; min-height: 100px; display: flex; align-items: center; justify-content: center; }
+    
+    .controls-grid { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .control-label { display: flex; align-items: center; gap: 0.5rem; color: var(--text); cursor: pointer; }
+    .control-label input { accent-color: var(--primary); width: 18px; height: 18px; }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="editor-pane">
+    <div style="color: var(--muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Enter Title or String:</div>
+    <textarea id="text-input" class="editor-content" placeholder="e.g. 10 Best Ways to Build a Scalable Django Application in 2025"></textarea>
+</div>
+
+<div class="controls-grid">
+    <label class="control-label"><input type="checkbox" id="chk-lower" checked> Lowercase</label>
+    <label class="control-label"><input type="checkbox" id="chk-remove-stop"> Remove Stop Words (a, an, the)</label>
+    <label class="control-label"><input type="checkbox" id="chk-remove-nums"> Remove Numbers</label>
+    
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
+        <span style="color: var(--muted); font-size: 0.9rem;">Separator:</span>
+        <select id="sel-separator" style="background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 0.4rem; border-radius: 6px; outline: none;">
+            <option value="-">Hyphen (-)</option>
+            <option value="_">Underscore (_)</option>
+            <option value="">None</option>
+        </select>
+    </div>
+</div>
+
+<div class="slug-result" id="slug-out">your-slug-will-appear-here</div>
+
+<div style="display: flex; justify-content: center;">
+    <button class="btn-primary-nexus" id="btn-copy" style="font-size: 1.1rem; padding: 1rem 3rem;"><i class="bi bi-clipboard"></i> Copy URL Slug</button>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('text-input');
+        const out = document.getElementById('slug-out');
+        const chkLower = document.getElementById('chk-lower');
+        const chkStop = document.getElementById('chk-remove-stop');
+        const chkNums = document.getElementById('chk-remove-nums');
+        const selSep = document.getElementById('sel-separator');
+
+        const stopWords = ['a', 'an', 'and', 'are', 'as', 'at', 'be', 'but', 'by', 'for', 'if', 'in', 'into', 'is', 'it', 'no', 'not', 'of', 'on', 'or', 'such', 'that', 'the', 'their', 'then', 'there', 'these', 'they', 'this', 'to', 'was', 'will', 'with'];
+
+        function generateSlug() {
+            let txt = input.value;
+            if(!txt) {
+                out.textContent = "your-slug-will-appear-here";
+                out.style.opacity = '0.5';
+                return;
+            }
+            out.style.opacity = '1';
+
+            if(chkLower.checked) txt = txt.toLowerCase();
+            
+            // Normalize accents
+            txt = txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            // Remove non-alphanumeric chars (except spaces and existing separators)
+            txt = txt.replace(/[^a-zA-Z0-9\s\-_]/g, " ");
+
+            let words = txt.split(/\s+/).filter(w => w.length > 0);
+
+            if(chkStop.checked) {
+                words = words.filter(w => !stopWords.includes(w.toLowerCase()));
+            }
+
+            if(chkNums.checked) {
+                words = words.filter(w => !/^\d+$/.test(w));
+            }
+
+            let sep = selSep.value;
+            let res = words.join(sep);
+            
+            // Cleanup double separators
+            if(sep) {
+                const re = new RegExp('\\' + sep + '{2,}', 'g');
+                res = res.replace(re, sep);
+            }
+
+            out.textContent = res || "no-valid-words";
+        }
+
+        input.addEventListener('input', generateSlug);
+        chkLower.addEventListener('change', generateSlug);
+        chkStop.addEventListener('change', generateSlug);
+        chkNums.addEventListener('change', generateSlug);
+        selSep.addEventListener('change', generateSlug);
+
+        document.getElementById('btn-copy').addEventListener('click', async () => {
+            if(!input.value) return;
+            await navigator.clipboard.writeText(out.textContent);
+            const btn = document.getElementById('btn-copy');
+            btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+            setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy URL Slug', 2000);
+        });
+    });
+</script>
+{% endblock %}

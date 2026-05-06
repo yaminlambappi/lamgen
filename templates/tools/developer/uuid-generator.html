@@ -1,0 +1,204 @@
+{% extends "tools/tool_base.html" %}
+{% load static %}
+
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
+.uuid-list{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;max-height:400px;overflow-y:auto}
+.uuid-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--text);transition:background .15s}
+.uuid-item:last-child{border-bottom:none}
+.uuid-item:hover{background:rgba(255,255,255,.03)}
+.uuid-val{flex:1;letter-spacing:.5px}
+.uuid-copy{padding:3px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;font-size:.7rem;cursor:pointer;color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif}
+.uuid-copy:hover{background:rgba(108,99,255,.15);color:var(--primary);border-color:var(--primary)}
+.ctrl-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.num-input{width:80px;padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;text-align:center}
+.num-input:focus{border-color:var(--primary)}
+.version-tabs{display:flex;gap:4px}
+.vtab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.vtab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
+.fmt-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.ftab{padding:5px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.75rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif}
+.ftab.active{background:rgba(0,245,212,.08);border-color:var(--accent);color:var(--accent)}
+.empty-state{padding:40px;text-align:center;color:var(--muted);font-size:.9rem}
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="dev-tool-wrap">
+
+  <div class="ctrl-row">
+    <div>
+      <div class="tool-label">Count</div>
+      <input type="number" class="num-input" id="countIn" value="5" min="1" max="100">
+    </div>
+    <div>
+      <div class="tool-label">Version</div>
+      <div class="version-tabs">
+        <button class="vtab active" onclick="setVersion(this,'v4')">v4 (Random)</button>
+        <button class="vtab" onclick="setVersion(this,'v1')">v1 (Time-based)</button>
+      </div>
+    </div>
+    <div>
+      <div class="tool-label">Format</div>
+      <div class="fmt-tabs">
+        <button class="ftab active" onclick="setFmt(this,'standard')">Standard</button>
+        <button class="ftab" onclick="setFmt(this,'upper')">UPPERCASE</button>
+        <button class="ftab" onclick="setFmt(this,'no-hyphens')">No Hyphens</button>
+        <button class="ftab" onclick="setFmt(this,'braces')">&#123;Braces&#125;</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="act-row">
+    <button class="btn-go" onclick="generate()"><i class="bi bi-fingerprint"></i> Generate</button>
+    <button class="btn-sm" id="btnCopyAll" onclick="copyAll()"><i class="bi bi-clipboard"></i> Copy All</button>
+    <button class="btn-sm" onclick="downloadAll()"><i class="bi bi-download"></i> Download .txt</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem">
+      <div class="tool-label" style="margin-bottom:0">Generated UUIDs</div>
+      <span id="countLabel" style="font-size:.75rem;color:var(--muted)"></span>
+    </div>
+    <div class="uuid-list" id="uuidList">
+      <div class="empty-state"><i class="bi bi-fingerprint" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.3"></i>Click Generate to create UUIDs</div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+let version = 'v4';
+let format = 'standard';
+let lastUUIDs = [];
+
+function setVersion(btn, v) {
+  version = v;
+  document.querySelectorAll('.vtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setFmt(btn, f) {
+  format = f;
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (lastUUIDs.length) renderList(lastUUIDs);
+}
+
+function genV4() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  // Fallback
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function genV1() {
+  // Timestamp-based UUID v1 simulation
+  const now = Date.now();
+  const timeHigh = Math.floor(now / 0x100000000);
+  const timeLow = now & 0xFFFFFFFF;
+  const rand = crypto.getRandomValues(new Uint8Array(8));
+  const tl = timeLow.toString(16).padStart(8,'0');
+  const tm = (timeHigh & 0xFFFF).toString(16).padStart(4,'0');
+  const th = ((timeHigh >> 16) & 0x0FFF | 0x1000).toString(16).padStart(4,'0');
+  const cs = ((rand[0] & 0x3F | 0x80) << 8 | rand[1]).toString(16).padStart(4,'0');
+  const node = Array.from(rand.slice(2)).map(b => b.toString(16).padStart(2,'0')).join('');
+  return `${tl}-${tm}-${th}-${cs}-${node}`;
+}
+
+function applyFormat(uuid) {
+  switch(format) {
+    case 'upper': return uuid.toUpperCase();
+    case 'no-hyphens': return uuid.replace(/-/g,'');
+    case 'braces': return '{' + uuid + '}';
+    default: return uuid;
+  }
+}
+
+function generate() {
+  const count = Math.min(100, Math.max(1, parseInt(document.getElementById('countIn').value) || 1));
+  document.getElementById('countIn').value = count;
+  lastUUIDs = Array.from({length: count}, () => version === 'v4' ? genV4() : genV1());
+  renderList(lastUUIDs);
+  showOk('st', `${count} UUID${count > 1 ? 's' : ''} generated`);
+}
+
+function renderList(uuids) {
+  const formatted = uuids.map(applyFormat);
+  document.getElementById('uuidList').innerHTML = formatted.map((u, i) => `
+    <div class="uuid-item">
+      <span class="uuid-val">${u}</span>
+      <button class="uuid-copy" onclick="copyOne('${u}',this)"><i class="bi bi-clipboard"></i></button>
+    </div>
+  `).join('');
+  document.getElementById('countLabel').textContent = `${uuids.length} UUID${uuids.length > 1 ? 's' : ''}`;
+}
+
+function copyOne(uuid, btn) {
+  navigator.clipboard.writeText(uuid).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i>';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+function copyAll() {
+  if (!lastUUIDs.length) return;
+  const text = lastUUIDs.map(applyFormat).join('\n');
+  const btn = document.getElementById('btnCopyAll');
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+  });
+}
+
+function downloadAll() {
+  if (!lastUUIDs.length) return;
+  const text = lastUUIDs.map(applyFormat).join('\n');
+  const blob = new Blob([text], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'uuids.txt'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearAll() {
+  lastUUIDs = [];
+  document.getElementById('uuidList').innerHTML = '<div class="empty-state"><i class="bi bi-fingerprint" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.3"></i>Click Generate to create UUIDs</div>';
+  document.getElementById('countLabel').textContent = '';
+  hideStatus('st');
+}
+
+function showOk(id, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ok';
+  el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg;
+}
+function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generate(); }
+});
+
+// Generate on load
+generate();
+</script>
+{% endblock %}

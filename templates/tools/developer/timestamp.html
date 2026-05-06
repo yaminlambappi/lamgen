@@ -1,0 +1,120 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+    .timestamp-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    .panel {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 2rem;
+    }
+    .current-time {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .current-time h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 3rem;
+        color: var(--primary);
+    }
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .input-group label {
+        font-size: 0.9rem;
+        color: var(--muted);
+    }
+    .input-row {
+        display: flex;
+        gap: 1rem;
+    }
+    .result-box {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        font-family: monospace;
+    }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div class="timestamp-container">
+    <div class="current-time">
+        <p>The current Unix timestamp is:</p>
+        <h2 id="current-ts">...</h2>
+    </div>
+
+    <div class="panel">
+        <h3>Timestamp to Date</h3>
+        <div class="input-group">
+            <label>Unix Timestamp</label>
+            <div class="input-row">
+                <input type="number" id="ts-input" class="input-nexus" placeholder="e.g. 1714828800">
+                <button id="ts-to-date" class="btn-nexus">Convert</button>
+            </div>
+        </div>
+        <div id="date-result" class="result-box" style="display: none;"></div>
+    </div>
+
+    <div class="panel">
+        <h3>Date to Timestamp</h3>
+        <div class="input-group">
+            <label>Date and Time</label>
+            <div class="input-row">
+                <input type="datetime-local" id="date-input" class="input-nexus">
+                <button id="date-to-ts" class="btn-nexus">Convert</button>
+            </div>
+        </div>
+        <div id="ts-result" class="result-box" style="display: none;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+    const currentTsDisplay = document.getElementById('current-ts');
+    const tsInput = document.getElementById('ts-input');
+    const tsToDateBtn = document.getElementById('ts-to-date');
+    const dateResult = document.getElementById('date-result');
+    const dateInput = document.getElementById('date-input');
+    const dateToTsBtn = document.getElementById('date-to-ts');
+    const tsResult = document.getElementById('ts-result');
+
+    // Update current timestamp every second
+    setInterval(() => {
+        currentTsDisplay.textContent = Math.floor(Date.now() / 1000);
+    }, 1000);
+
+    tsToDateBtn.addEventListener('click', () => {
+        const ts = parseInt(tsInput.value);
+        if (isNaN(ts)) return;
+        const date = new Date(ts * 1000);
+        dateResult.textContent = date.toUTCString() + ' (UTC)\n' + date.toString() + ' (Local)';
+        dateResult.style.display = 'block';
+    });
+
+    dateToTsBtn.addEventListener('click', () => {
+        const dateStr = dateInput.value;
+        if (!dateStr) return;
+        const date = new Date(dateStr);
+        const ts = Math.floor(date.getTime() / 1000);
+        tsResult.textContent = `Timestamp: ${ts}`;
+        tsResult.style.display = 'block';
+    });
+
+    // Initialize with current time
+    tsInput.value = Math.floor(Date.now() / 1000);
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    dateInput.value = now.toISOString().slice(0, 16);
+</script>
+{% endblock %}

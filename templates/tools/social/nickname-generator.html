@@ -1,0 +1,171 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_css %}
+<style>
+.tool-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 0.4rem; display: block; }
+.num-input, .select-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text); padding: 0.75rem 1rem; border-radius: 8px; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; transition: border-color 0.2s; }
+.num-input:focus, .select-input:focus { border-color: var(--primary); }
+.input-grp { margin-bottom: 1.2rem; }
+.btn-go { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #000; font-weight: 700; border: none; padding: 0.8rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
+.btn-go:hover { transform: translateY(-2px); }
+.btn-sm { background: rgba(255,255,255,0.07); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+.nick-card { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem 1.2rem; margin-bottom: 0.6rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.nick-card:hover { border-color: rgba(108,99,255,0.4); }
+.nick-style { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.nick-text { font-size: 1.1rem; color: var(--text); font-weight: 600; }
+.results-panel { max-height: 550px; overflow-y: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.chip { padding: 0.3rem 0.8rem; border-radius: 20px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: var(--muted); cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+.chip.active { border-color: var(--primary); color: var(--primary); background: rgba(108,99,255,0.1); }
+</style>
+{% endblock %}
+
+{% block tool_content %}
+<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:2rem;">
+  <div>
+    <div class="input-grp">
+      <span class="tool-label">Name or Keyword</span>
+      <input type="text" id="in-name" class="num-input" placeholder="e.g. Alex, Dragon, Shadow">
+    </div>
+    <div class="input-grp">
+      <span class="tool-label">Style Filter</span>
+      <div class="chips" id="style-chips"></div>
+    </div>
+    <button class="btn-go" id="btn-generate">⚡ Generate Nicknames</button>
+    <button class="btn-sm" id="btn-regen" style="margin-top:0.5rem;width:100%;padding:0.6rem;">🔄 Regenerate</button>
+    <p style="color:var(--muted);font-size:0.8rem;margin-top:0.6rem;">Ctrl+Enter to generate</p>
+  </div>
+  <div>
+    <span class="tool-label">Generated Nicknames (20+)</span>
+    <div class="results-panel" id="results">
+      <div style="color:var(--muted);text-align:center;padding:3rem 0;">Enter a name and click Generate</div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const adjectives = ['Dark','Shadow','Neon','Cyber','Hyper','Ultra','Mega','Super','Turbo','Blaze','Storm','Frost','Void','Chaos','Phantom','Ghost','Stealth','Venom','Toxic','Savage','Wild','Rogue','Rebel','Apex','Prime','Elite','Omega','Alpha','Delta','Sigma','Crimson','Azure','Jade','Onyx','Silver','Golden','Iron','Steel','Titan','Cosmic','Astral','Lunar','Solar','Inferno','Arctic','Thunder','Lightning','Mystic','Arcane','Eternal'];
+  const nouns = ['Wolf','Fox','Eagle','Dragon','Phoenix','Tiger','Panther','Hawk','Viper','Cobra','Shark','Bear','Lion','Falcon','Raven','Crow','Owl','Lynx','Jaguar','Cheetah','Blade','Sword','Shield','Arrow','Spear','Axe','Hammer','Fist','Claw','Fang','Storm','Flame','Ice','Thunder','Shadow','Ghost','Specter','Wraith','Demon','Angel','Knight','Warrior','Hunter','Ranger','Mage','Wizard','Sage','Oracle','Titan','Legend'];
+
+  const styles = [
+    { name: 'Gaming (xX_Xx)', key: 'gaming' },
+    { name: 'Aesthetic', key: 'aesthetic' },
+    { name: 'Alliteration', key: 'alliteration' },
+    { name: 'Adj+Noun', key: 'adjnoun' },
+    { name: 'Shortened', key: 'short' },
+    { name: 'Rhyming', key: 'rhyme' },
+    { name: 'Numbers', key: 'numbers' },
+    { name: 'Symbols', key: 'symbols' },
+  ];
+
+  let selectedStyles = new Set(styles.map(s => s.key));
+  let seed = 0;
+
+  const chipsEl = document.getElementById('style-chips');
+  styles.forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'chip active';
+    chip.textContent = s.name;
+    chip.addEventListener('click', () => {
+      if (selectedStyles.has(s.key)) { selectedStyles.delete(s.key); chip.classList.remove('active'); }
+      else { selectedStyles.add(s.key); chip.classList.add('active'); }
+    });
+    chipsEl.appendChild(chip);
+  });
+
+  function rng(max) { seed = (seed * 1664525 + 1013904223) & 0xffffffff; return Math.abs(seed) % max; }
+  function pick(arr) { return arr[rng(arr.length)]; }
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(); }
+
+  function generateNicknames(name) {
+    seed = name.split('').reduce((a, c) => a + c.charCodeAt(0), Date.now() & 0xffff);
+    const n = capitalize(name);
+    const nLow = name.toLowerCase();
+    const nUp = name.toUpperCase();
+    const short = n.substring(0, Math.min(4, n.length));
+    const results = [];
+
+    if (selectedStyles.has('gaming')) {
+      results.push({ style: 'Gaming', nick: `xX_${n}_Xx` });
+      results.push({ style: 'Gaming', nick: `${n}420` });
+      results.push({ style: 'Gaming', nick: `${n}_Pro` });
+      results.push({ style: 'Gaming', nick: `[${nUp}]` });
+      results.push({ style: 'Gaming', nick: `${n}YT` });
+    }
+    if (selectedStyles.has('aesthetic')) {
+      results.push({ style: 'Aesthetic', nick: `${nLow}.` });
+      results.push({ style: 'Aesthetic', nick: `soft${n}` });
+      results.push({ style: 'Aesthetic', nick: `${nLow}core` });
+      results.push({ style: 'Aesthetic', nick: `${nLow}vibes` });
+      results.push({ style: 'Aesthetic', nick: `the${n}` });
+    }
+    if (selectedStyles.has('alliteration')) {
+      const firstLetter = nLow[0];
+      const matchAdj = adjectives.filter(a => a.toLowerCase().startsWith(firstLetter));
+      const matchNoun = nouns.filter(n => n.toLowerCase().startsWith(firstLetter));
+      if (matchAdj.length) results.push({ style: 'Alliteration', nick: `${pick(matchAdj)}${n}` });
+      if (matchNoun.length) results.push({ style: 'Alliteration', nick: `${n}${pick(matchNoun)}` });
+      if (matchAdj.length && matchNoun.length) results.push({ style: 'Alliteration', nick: `${pick(matchAdj)}${pick(matchNoun)}` });
+    }
+    if (selectedStyles.has('adjnoun')) {
+      results.push({ style: 'Adj+Noun', nick: `${pick(adjectives)}${pick(nouns)}` });
+      results.push({ style: 'Adj+Noun', nick: `${pick(adjectives)}${n}` });
+      results.push({ style: 'Adj+Noun', nick: `${n}${pick(nouns)}` });
+      results.push({ style: 'Adj+Noun', nick: `${pick(adjectives)}${pick(nouns)}${rng(99)+1}` });
+    }
+    if (selectedStyles.has('short')) {
+      results.push({ style: 'Shortened', nick: short });
+      results.push({ style: 'Shortened', nick: short + 'z' });
+      results.push({ style: 'Shortened', nick: nLow.replace(/[aeiou]/g, '') || short });
+      results.push({ style: 'Shortened', nick: n.substring(0, 3) + n.slice(-2) });
+    }
+    if (selectedStyles.has('rhyme')) {
+      const rhymes = ['ay','ey','zy','ky','ry','ny','by','dy','fy','gy','hy','jy','ly','my','py','sy','ty','vy','wy','xy'];
+      results.push({ style: 'Rhyming', nick: short + pick(rhymes) });
+      results.push({ style: 'Rhyming', nick: n + '-' + short.toLowerCase() + pick(rhymes) });
+    }
+    if (selectedStyles.has('numbers')) {
+      results.push({ style: 'Numbers', nick: `${n}${rng(999)+1}` });
+      results.push({ style: 'Numbers', nick: `${n}_${rng(9999)+1000}` });
+      results.push({ style: 'Numbers', nick: `${rng(99)+1}${n}${rng(99)+1}` });
+    }
+    if (selectedStyles.has('symbols')) {
+      results.push({ style: 'Symbols', nick: `•${n}•` });
+      results.push({ style: 'Symbols', nick: `★${n}★` });
+      results.push({ style: 'Symbols', nick: `『${n}』` });
+      results.push({ style: 'Symbols', nick: `【${n}】` });
+      results.push({ style: 'Symbols', nick: `⚡${n}⚡` });
+    }
+    return results;
+  }
+
+  function generate() {
+    const name = document.getElementById('in-name').value.trim();
+    if (!name) { document.getElementById('results').innerHTML = '<div style="color:var(--danger);text-align:center;padding:2rem;">Please enter a name or keyword.</div>'; return; }
+    const nicks = generateNicknames(name);
+    document.getElementById('results').innerHTML = nicks.map(n => `
+      <div class="nick-card">
+        <div>
+          <div class="nick-style">${n.style}</div>
+          <div class="nick-text">${n.nick}</div>
+        </div>
+        <button class="btn-sm" onclick="copyText(this,'${n.nick.replace(/'/g,"\\'")}')"><i class="bi bi-clipboard"></i></button>
+      </div>`).join('');
+  }
+
+  window.copyText = async (btn, text) => {
+    await navigator.clipboard.writeText(text);
+    btn.innerHTML = '<i class="bi bi-check"></i>';
+    setTimeout(() => btn.innerHTML = '<i class="bi bi-clipboard"></i>', 1500);
+  };
+
+  document.getElementById('btn-generate').addEventListener('click', generate);
+  document.getElementById('btn-regen').addEventListener('click', () => { seed = Date.now(); generate(); });
+  document.addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+});
+</script>
+{% endblock %}
