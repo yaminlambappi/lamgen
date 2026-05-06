@@ -4,7 +4,7 @@
 
 - [x] 1. Create blog Django app with ContentArticle model and migrations
 - [x] 2. Create LongTailVariant model in seo app and migration
-- [-] 3. Create ELITE_TOOL_DATA static dict for top 200 tools
+- [ ] 3. Create ELITE_TOOL_DATA static dict for top 200 tools
 - [~] 4. Add longtail_view, embed_view, og_image_view to tools/views.py
 - [~] 5. Update tools/urls.py and config/urls.py with new routes, i18n_patterns, blog, og-image
 - [~] 6. Update config/settings.py with LANGUAGES, LOCALE_PATHS, blog app, middleware
