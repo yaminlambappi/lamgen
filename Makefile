@@ -1,4 +1,4 @@
-.PHONY: worker beat server shell migrate
+.PHONY: worker beat server shell migrate seed
 
 worker:
 	python3 -m celery -A config worker --loglevel=info
@@ -14,3 +14,7 @@ shell:
 
 migrate:
 	python3 manage.py migrate
+
+seed:
+	python3 manage.py seed_tools
+	python3 manage.py generate_seo_pages

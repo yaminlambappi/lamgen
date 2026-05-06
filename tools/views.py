@@ -12,7 +12,10 @@ import json
 @cache_control(public=True, max_age=60)
 def index(request):
     """All tools homepage — categorized grid."""
-    categories = ToolCategory.objects.filter(is_active=True).prefetch_related('tools')
+    from django.db.models import Prefetch
+    categories = ToolCategory.objects.filter(is_active=True).prefetch_related(
+        Prefetch('tools', queryset=Tool.objects.filter(is_active=True))
+    )
     featured_tools = Tool.objects.filter(is_active=True, is_featured=True).select_related('category')[:8]
     new_tools = Tool.objects.filter(is_active=True, is_new=True).select_related('category')[:6]
     trending = Tool.objects.filter(is_active=True).order_by('-view_count').select_related('category')[:8]
@@ -50,7 +53,10 @@ def index(request):
 @cache_control(public=True, max_age=60)
 def tools_index_view(request):
     """All tools ecosystem explorer — dense launcher grid."""
-    categories = ToolCategory.objects.filter(is_active=True).prefetch_related('tools').order_by('order', 'name')
+    from django.db.models import Prefetch
+    categories = ToolCategory.objects.filter(is_active=True).prefetch_related(
+        Prefetch('tools', queryset=Tool.objects.filter(is_active=True))
+    ).order_by('order', 'name')
 
     # Recent tools from session
     recent_slugs = request.session.get('recent_tools', [])

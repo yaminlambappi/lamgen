@@ -4,6 +4,7 @@ Idempotently seeds ToolCategory and Tool records from config/tool_categories.py.
 Usage: python manage.py seed_tools [--dry-run]
 """
 from django.core.management.base import BaseCommand
+from django.core.cache import cache
 from tools.models import ToolCategory, Tool
 
 
@@ -37,7 +38,7 @@ class Command(BaseCommand):
 
             category, created = ToolCategory.objects.update_or_create(
                 slug=cat_slug,
-                defaults={k: v for k, v in cat_data.items() if k != 'slug'},
+                defaults={**{k: v for k, v in cat_data.items() if k != 'slug'}, 'is_active': True},
             )
             if created:
                 cat_created += 1
@@ -65,6 +66,7 @@ class Command(BaseCommand):
             cat_data['tools'] = tools_list
 
         if not dry_run:
+            cache.delete('tool_categories_nav_v2')
             self.stdout.write(self.style.SUCCESS(
                 f'Done. Categories: +{cat_created} created, ~{cat_updated} updated. '
                 f'Tools: +{tool_created} created, ~{tool_updated} updated.'

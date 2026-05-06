@@ -32,6 +32,10 @@ class ToolCategory(models.Model):
         from django.urls import reverse
         return reverse('tools:category', kwargs={'category_slug': self.slug})
 
+    @property
+    def active_tools_count(self):
+        return self.tools.filter(is_active=True).count()
+
 
 class Tool(models.Model):
     name = models.CharField(max_length=150)
