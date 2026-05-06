@@ -48,6 +48,8 @@ urlpatterns = [
     path('generation/', include('generation.urls')),
     # New Tools Ecosystem
     path('tools/', include('tools.urls', namespace='tools')),
+    # Mini Games Hub
+    path('games/', include('games.urls', namespace='games')),
     # SEO Programmatic pages — mounted under /content/ to avoid collisions
     path('content/', include('seo.urls', namespace='seo')),
     # Platform utilities

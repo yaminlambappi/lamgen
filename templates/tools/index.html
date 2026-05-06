@@ -252,26 +252,23 @@
                 </div>
             </div>
 
-            <!-- Quick actions -->
+            <!-- Mini Games Hub -->
             <div class="panel span-4">
-                <div class="panel-label">Quick Access</div>
+                <div class="panel-label">Mini Games</div>
+                <div style="margin-bottom:12px;">
+                    <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; color:var(--lg-text);">Fast games for slow moments.</div>
+                    <div style="font-size:0.75rem; color:var(--lg-text-muted);">Launch instantly. No login needed.</div>
+                </div>
                 <div class="action-list">
-                    <a href="{% url 'thesis:upload' %}" class="action-link" style="border-color:rgba(139,127,255,0.22); background:rgba(139,127,255,0.08);">
-                        <i class="bi bi-magic" style="color:var(--lg-violet);"></i>
-                        <span class="action-text">AI Thesis Builder</span>
-                        <span class="action-label" style="color:var(--lg-violet); border-color:rgba(139,127,255,0.25); background:rgba(139,127,255,0.10);">CORE</span>
+                    {% for game in nav_games|slice:":4" %}
+                    <a href="javascript:void(0)" onclick="launchGame('{{ game.slug }}')" class="action-link" style="border-color:{{ game.color }}33; background:{{ game.color }}08;">
+                        <i class="{{ game.icon }}" style="color:{{ game.color }};"></i>
+                        <span class="action-text">{{ game.name }}</span>
+                        <i class="bi bi-play-fill" style="font-size:0.8rem; color:var(--lg-text-muted);"></i>
                     </a>
-                    <a href="/tools/media/image-compressor/" class="action-link">
-                        <i class="bi bi-file-zip" style="color:var(--lg-cyan);"></i>
-                        <span class="action-text">Compress Image</span>
-                    </a>
-                    <a href="/tools/developer/json-formatter/" class="action-link">
-                        <i class="bi bi-braces" style="color:#FF6B6B;"></i>
-                        <span class="action-text">Format JSON</span>
-                    </a>
-                    <a href="/tools/media/pdf-merge/" class="action-link">
-                        <i class="bi bi-file-pdf" style="color:var(--lg-warning);"></i>
-                        <span class="action-text">Merge PDF</span>
+                    {% endfor %}
+                    <a href="{% url 'games:index' %}" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; font-size:0.75rem; color:var(--lg-cyan); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                        See All Games <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
             </div>

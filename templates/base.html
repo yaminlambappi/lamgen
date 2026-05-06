@@ -514,5 +514,25 @@
     })();
     </script>
     {% include "partials/auth_prompt.html" %}
+    {% include "games/modal.html" %}
+
+    <script>
+        // Inject games config for JS hub
+        window.GAMES_DATA = [
+            {% for game in nav_games %}
+            {
+                slug: "{{ game.slug }}",
+                name: "{{ game.name|escapejs }}",
+                short_desc: "{{ game.short_desc|escapejs }}",
+                icon: "{{ game.icon }}",
+                color: "{{ game.color }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+    </script>
+    <script src="{% static 'games/js/data.js' %}?v=5.2"></script>
+    <script src="{% static 'games/js/rtc.js' %}?v=5.2"></script>
+    <script src="{% static 'games/js/hub.js' %}?v=5.2"></script>
+    <script src="{% static 'games/js/engines.js' %}?v=5.2"></script>
 </body>
 </html>

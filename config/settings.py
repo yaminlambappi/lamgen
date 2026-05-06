@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     # New ecosystem apps
     'tools',
     'seo',
+    'games',
 ]
 
 MIDDLEWARE = [

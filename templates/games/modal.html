@@ -1,0 +1,135 @@
+<div id="gameModal" class="game-modal-overlay">
+    <div class="game-modal-content">
+        <!-- Sticky Top HUD -->
+        <div class="arcade-topbar">
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div id="gameIcon" class="ws-icon" style="width:36px; height:36px; font-size:1.1rem; display:flex; align-items:center; justify-content:center; border-radius:10px;"></div>
+                    <h2 id="gameTitle" style="font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:800; margin:0; letter-spacing:0.5px;"></h2>
+                </div>
+                
+                <div id="mode-toggle" style="display:flex; background:rgba(255,255,255,0.05); border-radius:20px; overflow:hidden;">
+                    <button id="btn-mode-solo" class="mode-btn active" onclick="GamesHub.setMode('solo')" style="padding:6px 12px; font-size:0.8rem; font-weight:700; border:none; background:var(--lg-violet); color:#fff; cursor:pointer;">SOLO</button>
+                    <button id="btn-mode-multi" class="mode-btn" onclick="GamesHub.setMode('multi')" style="padding:6px 12px; font-size:0.8rem; font-weight:700; border:none; background:transparent; color:var(--lg-text-muted); cursor:pointer;">MULTI</button>
+                </div>
+                
+                <button onclick="closeGame()" class="touch-target" style="background:rgba(255,255,255,0.08); border:none; color:var(--lg-text); border-radius:50%; cursor:pointer; min-width:40px; min-height:40px; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <!-- Injected by hub.js -->
+            <div id="arcade-hud" style="display:flex; align-items:center; justify-content:space-between; width:100%; padding-top:4px;"></div>
+        </div>
+        
+        <!-- Game Stage (Flexible Height, Centered Content) -->
+        <div id="gameStage" class="game-center-stage">
+            <!-- Game content injected here -->
+        </div>
+
+        <!-- Sticky Bottom Action Zone -->
+        <div id="gameBottomBar" class="game-bottom-bar">
+            <div id="gameHelperText" class="game-helper-text">Loading...</div>
+            <div id="gameActionArea" class="game-action-area">
+                <!-- Action buttons injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .game-modal-overlay {
+        display: none; position: fixed; inset: 0; z-index: 100000;
+        background: var(--lg-bg);
+        align-items: center; justify-content: center;
+    }
+    .game-modal-content {
+        width: 100%; height: 100dvh; 
+        background: var(--lg-card-bg);
+        display: flex; flex-direction: column; position: relative;
+        overflow: hidden;
+        animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @media (min-width: 768px) {
+        .game-modal-overlay {
+            background: rgba(4,5,16,0.9); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        }
+        .game-modal-content {
+            width: 100%; max-width: 480px; height: 85dvh; max-height: 850px;
+            border: 1px solid var(--lg-card-border); border-radius: 24px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            animation: modalFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+    }
+    
+    .arcade-topbar {
+        padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        display: flex; flex-direction: column; gap: 12px;
+        background: rgba(0,0,0,0.2); flex-shrink: 0;
+        z-index: 10;
+    }
+    
+    .game-center-stage {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        position: relative; overflow-y: auto; overflow-x: hidden;
+        background: radial-gradient(circle at center, rgba(139,127,255,0.05) 0%, transparent 80%);
+        padding: 20px;
+    }
+    
+    .game-bottom-bar {
+        padding: 20px 24px calc(20px + env(safe-area-inset-bottom, 0px)); 
+        border-top: 1px solid rgba(255,255,255,0.05);
+        background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        flex-shrink: 0; display: flex; flex-direction: column; gap: 16px;
+        z-index: 10;
+    }
+
+    .game-helper-text {
+        font-size: clamp(0.85rem, 3vw, 0.95rem); color: var(--lg-text-muted); 
+        text-align: center; font-weight: 600; min-height: 20px;
+    }
+
+    .game-action-area {
+        display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 400px; margin: 0 auto;
+    }
+
+    .btn-mobile-primary {
+        width: 100%; min-height: 56px; border-radius: 16px; border: none;
+        background: var(--lg-violet); color: #fff;
+        font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem;
+        text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s, background 0.2s;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-mobile-primary:active { transform: scale(0.96); opacity: 0.9; }
+    
+    .btn-mobile-secondary {
+        width: 100%; min-height: 56px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03); color: var(--lg-text);
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+        font-weight: 600; font-size: 1rem;
+    }
+    .btn-mobile-secondary:active { background: rgba(255,255,255,0.1); transform: scale(0.98); }
+
+    @keyframes modalSlideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    /* Vibrate Animation */
+    @keyframes wiggle {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        50% { transform: translateX(4px); }
+        75% { transform: translateX(-4px); }
+        100% { transform: translateX(0); }
+    }
+    .shake-error { animation: wiggle 0.3s ease; }
+</style>

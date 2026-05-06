@@ -1,5 +1,6 @@
 from django.core.cache import cache
 from .models import ToolCategory, Tool, ToolBookmark
+from config.games import GAMES_CONFIG
 
 
 def tools_context(request):
@@ -24,4 +25,5 @@ def tools_context(request):
     return {
         'nav_categories': categories,
         'bookmarked_slugs': bookmarked_slugs,
+        'nav_games': GAMES_CONFIG,
     }
