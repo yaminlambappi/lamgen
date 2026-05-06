@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'tools',
     'seo',
     'games',
+    'blog',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'seo.middleware.CrawlErrorMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -104,10 +106,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+LANGUAGES = [
+    ("en", "English"),
+    ("bn", "Bengali"),
+    ("hi", "Hindi"),
+    ("es", "Spanish"),
+    ("ar", "Arabic"),
+]
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 # Static files
 STATIC_URL = '/static/'

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="tool-page">
+    <h1>LamGen Blog</h1>
+    {% for article in articles %}
+    <article class="tool-seo-section">
+        <h2><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+        <p>{{ article.meta_description }}</p>
+    </article>
+    {% empty %}
+    <p>No articles yet.</p>
+    {% endfor %}
+</section>
+{% endblock %}

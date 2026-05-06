@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="tool-page">
+    <header class="tool-seo-section">
+        <h1>{{ article.title }}</h1>
+        <p>{{ article.meta_description }}</p>
+    </header>
+    <section class="tool-seo-section">
+        {{ article.body_html|safe }}
+    </section>
+    {% if article.related_tools.all %}
+    <section class="tool-seo-section">
+        <h2>Related tools</h2>
+        <ul>
+        {% for t in article.related_tools.all %}
+            <li><a href="{{ t.get_absolute_url }}">{{ t.name }}</a></li>
+        {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+</article>
+{% endblock %}

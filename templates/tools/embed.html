@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tool.name }} Embed</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body style="padding:16px;background:#07091A;color:#E8EDFF;">
+    <div class="tool-canvas">
+        <h1 style="font-size:1.1rem;">{{ tool.name }}</h1>
+        <p style="opacity:.8;">{{ tool.short_desc }}</p>
+        <a href="{{ tool.get_absolute_url }}" style="color:#7B6FFF;">Open full tool</a>
+    </div>
+</body>
+</html>

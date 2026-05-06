@@ -274,10 +274,9 @@
             </div>
 
             <!-- Recent tools telemetry -->
-            {% if recent_tools %}
             <div class="panel span-12">
                 <div class="panel-label">Recently Used</div>
-                <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;">
+                <div id="recentlyUsedLocal" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;">
                     {% for tool in recent_tools %}
                     <a href="{{ tool.get_absolute_url }}" class="action-link" style="min-width:175px; flex-shrink:0;">
                         <i class="{{ tool.icon }}" style="color:{{ tool.category.color_from }}; font-size:0.9rem;"></i>
@@ -287,7 +286,10 @@
                     {% endfor %}
                 </div>
             </div>
-            {% endif %}
+            <div class="panel span-12">
+                <div class="panel-label">Most Used</div>
+                <div id="mostUsedLocal" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;"></div>
+            </div>
 
         </div>
     </div>
@@ -322,5 +324,42 @@
             if (inp) inp.focus();
         }
     });
+
+    (function() {
+        const bySlug = {};
+        {% for cat in categories %}
+            {% for tool in cat.tools.all %}
+                bySlug["{{ tool.slug }}"] = {
+                    name: "{{ tool.name|escapejs }}",
+                    url: "{{ tool.get_absolute_url }}",
+                    icon: "{{ tool.icon }}",
+                    color: "{{ tool.category.color_from }}",
+                    category: "{{ tool.category.name|escapejs }}"
+                };
+            {% endfor %}
+        {% endfor %}
+        const recentWrap = document.getElementById('recentlyUsedLocal');
+        const mostWrap = document.getElementById('mostUsedLocal');
+        try {
+            const recent = JSON.parse(localStorage.getItem('lamgen_recent_tools') || '[]').slice(0, 5);
+            if (recentWrap && recent.length) {
+                recentWrap.innerHTML = recent.filter(s => bySlug[s]).map((s) => {
+                    const t = bySlug[s];
+                    return `<a href="${t.url}" class="action-link" style="min-width:175px; flex-shrink:0;"><i class="${t.icon}" style="color:${t.color}; font-size:0.9rem;"></i><span class="action-text" style="font-size:0.78rem;">${t.name}</span><span class="action-label" style="font-size:0.55rem;">${t.category}</span></a>`;
+                }).join('');
+            }
+            const scores = Object.keys(localStorage).filter(k => k.startsWith('lamgen_tool_stats_')).map((k) => {
+                const slug = k.replace('lamgen_tool_stats_', '');
+                const v = JSON.parse(localStorage.getItem(k) || '{}');
+                return { slug, score: (v.copy || 0) + (v.download || 0) + (v.share || 0) };
+            }).sort((a, b) => b.score - a.score).slice(0, 6);
+            if (mostWrap && scores.length) {
+                mostWrap.innerHTML = scores.filter(x => bySlug[x.slug]).map((x) => {
+                    const t = bySlug[x.slug];
+                    return `<a href="${t.url}" class="action-link" style="min-width:175px; flex-shrink:0;"><i class="${t.icon}" style="color:${t.color}; font-size:0.9rem;"></i><span class="action-text" style="font-size:0.78rem;">${t.name}</span><span class="action-label" style="font-size:0.55rem;">${x.score} uses</span></a>`;
+                }).join('');
+            }
+        } catch (e) {}
+    })();
 </script>
 {% endblock %}

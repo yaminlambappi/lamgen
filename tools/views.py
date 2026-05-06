@@ -1,10 +1,15 @@
+from io import BytesIO
+from pathlib import Path
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import cache_page, cache_control
 from django.db.models import Q, F
 from django.core.cache import cache
+from django.conf import settings
 from .models import Tool, ToolCategory, ToolBookmark, ToolUsageHistory
+from seo.models import LongTailVariant
+from tools.data.elite_content import ELITE_TOOL_DATA
 from .utils.rate_limit import rate_limit
 import json
 
@@ -248,6 +253,7 @@ def tool_view(request, category_slug, tool_slug):
     return render(request, actual_template, {
         'tool': tool,
         'category': category,
+        'elite': ELITE_TOOL_DATA.get(tool.slug, {}),
         'is_bookmarked': is_bookmarked,
         'related_tools': related_tools,
         # SEO metadata
@@ -265,6 +271,85 @@ def tool_view(request, category_slug, tool_slug):
         'seo_use_cases': seo_use_cases,
         'seo_faq_items': seo_faq_items,
     })
+
+
+@cache_control(public=True, max_age=3600)
+def longtail_view(request, category_slug, tool_slug, variant_slug):
+    category = get_object_or_404(ToolCategory, slug=category_slug, is_active=True)
+    tool = get_object_or_404(Tool, slug=tool_slug, category=category, is_active=True)
+    variant = get_object_or_404(
+        LongTailVariant,
+        tool=tool,
+        variant_slug=variant_slug,
+        is_active=True,
+    )
+    all_category_tools = list(
+        Tool.objects.filter(category=category, is_active=True).exclude(id=tool.id).order_by('order', 'name')
+    )
+    from .utils.metadata import get_related_tools, generate_use_cases, generate_faq_items
+    related_tools = get_related_tools(tool, all_category_tools, limit=8)
+    return render(request, tool.template_name, {
+        'tool': tool,
+        'category': category,
+        'variant': variant,
+        'elite': ELITE_TOOL_DATA.get(tool.slug, {}),
+        'related_tools': related_tools,
+        'page_title': variant.meta_title,
+        'meta_description': variant.meta_description,
+        'canonical_url': request.build_absolute_uri(tool.get_absolute_url()),
+        'seo_intro': variant.unique_intro,
+        'seo_use_cases': generate_use_cases(tool.name, tool.tags or ''),
+        'seo_faq_items': generate_faq_items(tool.name, tool.short_desc, category.name),
+    })
+
+
+@cache_control(public=True, max_age=3600)
+def embed_view(request, category_slug, tool_slug):
+    category = get_object_or_404(ToolCategory, slug=category_slug, is_active=True)
+    tool = get_object_or_404(Tool, slug=tool_slug, category=category, is_active=True)
+    response = render(request, "tools/embed.html", {
+        "tool": tool,
+        "category": category,
+        "page_title": f"{tool.name} Embed — LamGen",
+        "meta_description": tool.short_desc,
+        "canonical_url": request.build_absolute_uri(tool.get_absolute_url()),
+    })
+    response["X-Frame-Options"] = "ALLOWALL"
+    return response
+
+
+@cache_control(public=True, max_age=86400)
+def og_image_view(request, category_slug, tool_slug):
+    tool = get_object_or_404(
+        Tool,
+        slug=tool_slug,
+        category__slug=category_slug,
+        is_active=True,
+    )
+    cache_path = Path(settings.MEDIA_ROOT) / "og" / category_slug / f"{tool_slug}.png"
+    if cache_path.exists():
+        return FileResponse(open(cache_path, "rb"), content_type="image/png")
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+        img = Image.new("RGB", (1200, 630), (7, 9, 26))
+        draw = ImageDraw.Draw(img)
+        title_font = ImageFont.load_default()
+        brand_font = ImageFont.load_default()
+        draw.rectangle((0, 0, 1200, 630), fill=(8, 10, 28))
+        draw.text((70, 120), tool.name[:60], fill=(240, 245, 255), font=title_font)
+        draw.text((70, 200), tool.short_desc[:90], fill=(190, 198, 230), font=brand_font)
+        draw.text((70, 540), "LamGen", fill=(122, 111, 255), font=brand_font)
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        img.save(cache_path, "PNG")
+        buf = BytesIO()
+        img.save(buf, "PNG")
+        buf.seek(0)
+        return HttpResponse(buf.getvalue(), content_type="image/png")
+    except Exception:
+        fallback = Path(settings.BASE_DIR) / "static" / "img" / "og-default.png"
+        if fallback.exists():
+            return FileResponse(open(fallback, "rb"), content_type="image/png")
+        return HttpResponse(status=404)
 
 
 @require_GET

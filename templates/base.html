@@ -1,6 +1,6 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" {% if LANGUAGE_CODE == 'ar' %}dir="rtl"{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -19,11 +19,14 @@
     <meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}">
     <meta property="og:type" content="{{ og_type|default:'website' }}">
     <meta property="og:site_name" content="LamGen">
-    <meta property="og:locale" content="en_US">
+    <meta property="og:locale" content="{{ LANGUAGE_CODE|default:'en' }}_{{ LANGUAGE_CODE|default:'en'|upper }}">
     <meta property="og:image" content="{% block og_image %}{% static 'img/og-default.png' %}{% endblock %}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="{{ page_title|default:'LamGen — Free Online Tools' }}">
+    <link rel="alternate" hreflang="x-default" href="{{ request.build_absolute_uri }}">
+    {% include "partials/perf_head.html" %}
+    {% include "partials/critical_css.html" %}
 
     <!-- ── Twitter Card ── -->
     <meta name="twitter:card" content="summary_large_image">
@@ -82,12 +85,11 @@
     </div>
 
     <!-- Global Top Nav -->
-    <div class="top-nav-wrapper">
-      <div class="top-nav-inner">
+    <header class="app-header">
+      <div class="header-inner">
 
         <!-- LEFT: Profile -->
         <div class="nav-left">
-          <!-- Profile dropdown -->
           <div class="nav-dropdown">
             <button class="profile-btn nav-dropdown-toggle"
                     onclick="this.closest('.nav-dropdown').classList.toggle('open')"
@@ -119,92 +121,74 @@
           </div>
         </div>
 
-        <!-- CENTER: Search (suppressed on pages with dedicated search) -->
+        <!-- CENTER: Search -->
         <div class="nav-center">
           {% block nav_search %}
-          <div class="global-search-pill" style="position:relative;overflow:visible;">
-            <i class="bi bi-search" style="color:var(--muted);font-size:0.95rem;flex-shrink:0;"></i>
+          <div class="global-search-pill">
+            <i class="bi bi-search search-icon"></i>
             <input type="text" id="inlineSearchInput"
                    placeholder="Search LamGen…"
-                   style="background:transparent;border:none;color:var(--text);flex:1;outline:none;font-size:0.88rem;font-family:'DM Sans',sans-serif;"
                    autocomplete="off">
-            <div style="display:flex;gap:3px;flex-shrink:0;">
+            <div class="search-kbd-hint">
               <span class="kbd">⌘</span><span class="kbd">K</span>
             </div>
             <!-- Inline results -->
-            <div id="inlineSearchResults"
-                 style="display:none;position:absolute;top:calc(100% + 8px);left:0;width:100%;min-width:min(320px, 100vw);background:rgba(10,12,24,0.96);backdrop-filter:blur(28px);border:1px solid rgba(130,120,255,0.20);border-radius:16px;padding:0.4rem;max-height:380px;overflow-y:auto;box-shadow:0 24px 56px rgba(0,0,0,0.50),inset 0 1px 0 rgba(120,110,255,0.12);z-index:2000;">
-            </div>
+            <div id="inlineSearchResults" class="search-results-popover"></div>
           </div>
           {% endblock nav_search %}
         </div>
 
-        <!-- RIGHT: Brand (anchored) -->
+        <!-- RIGHT: Brand -->
         <a href="{% url 'home' %}" class="nav-brand" aria-label="LamGen Home">
           <span class="nav-brand-name">LamGen</span>
           <div class="nav-brand-mark"><i class="bi bi-cpu"></i></div>
         </a>
 
       </div>
-    </div>
+    </header>
 
-    <!-- Main content Wrapper -->
-    <main class="tools-shell">
-
-
-        <!-- Center Tools Content -->
-        <div class="tools-main">
-            {% block content %}{% endblock %}
-        </div>
-
-        <!-- Default Right Sidebar: Navigation -->
-        <aside class="spatial-panel tools-actions" style="padding:1.25rem 1rem; justify-content:flex-start; overflow-y:auto; display:flex; flex-direction:column; gap:1.5rem;">
-            {% block right_sidebar %}
-
-            <!-- Home -->
-            <a href="{% url 'home' %}"
-               style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:12px; text-decoration:none; color:var(--lg-text); background:{% if request.path == '/' %}rgba(139,127,255,0.16){% else %}transparent{% endif %}; border:1px solid {% if request.path == '/' %}rgba(139,127,255,0.30){% else %}transparent{% endif %}; transition:all 0.18s;"
-               onmouseover="if(!this.style.background.includes('139'))this.style.background='rgba(120,110,255,0.11)'"
-               onmouseout="if(!this.style.background.includes('139'))this.style.background='transparent'">
-                <div style="width:32px; height:32px; border-radius:9px; background:{% if request.path == '/' %}rgba(139,127,255,0.28){% else %}rgba(120,110,255,0.12){% endif %}; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid {% if request.path == '/' %}rgba(139,127,255,0.40){% else %}rgba(120,110,255,0.14){% endif %};">
-                    <i class="bi bi-cpu" style="color:{% if request.path == '/' %}#fff{% else %}var(--lg-violet){% endif %}; font-size:0.95rem;"></i>
-                </div>
-                <span style="font-weight:700; font-size:0.92rem; letter-spacing:0.2px;">Home</span>
-            </a>
-
-            <!-- All Tools -->
-            <a href="{% url 'tools:index' %}"
-               style="display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:12px; text-decoration:none; color:var(--lg-text); background:{% if request.path == '/tools/' %}rgba(139,127,255,0.12){% else %}transparent{% endif %}; border:1px solid {% if request.path == '/tools/' %}rgba(139,127,255,0.22){% else %}transparent{% endif %}; transition:all 0.18s;"
-               onmouseover="if(!this.style.background.includes('139'))this.style.background='rgba(120,110,255,0.11)'"
-               onmouseout="if(!this.style.background.includes('139'))this.style.background='transparent'">
-                <div style="width:32px; height:32px; border-radius:9px; background:rgba(120,110,255,0.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid rgba(120,110,255,0.14);">
-                    <i class="bi bi-grid" style="color:var(--lg-text-muted); font-size:0.9rem;"></i>
-                </div>
-                <span style="font-weight:600; font-size:0.88rem; color:var(--lg-text-muted);">All Tools</span>
-            </a>
-
-            <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(120,110,255,0.14) 30%,rgba(120,110,255,0.14) 70%,transparent); margin:0 0.25rem;"></div>
-
-            <div style="display:flex; flex-direction:column; gap:3px;">
-                <div style="font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--lg-text-helper); padding:0 12px; margin-bottom:4px;">Categories</div>
-                {% for cat in nav_categories %}
-                <a href="{{ cat.get_absolute_url }}"
-                   style="display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:11px; text-decoration:none; color:var(--lg-text); background:{% if request.path == cat.get_absolute_url %}rgba(120,110,255,0.14){% else %}transparent{% endif %}; border:1px solid {% if request.path == cat.get_absolute_url %}rgba(130,120,255,0.20){% else %}transparent{% endif %}; transition:all 0.18s;"
-                   onmouseover="if(!this.style.background.includes('0.14'))this.style.background='rgba(120,110,255,0.08)'"
-                   onmouseout="if(!this.style.background.includes('0.14'))this.style.background='transparent'">
-                    <div style="width:28px; height:28px; border-radius:8px; background:{{ cat.color_from }}18; border:1px solid {{ cat.color_from }}33; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                        <i class="{{ cat.icon }}" style="color:{{ cat.color_from }}; font-size:0.82rem;"></i>
-                    </div>
-                    <span style="font-weight:600; font-size:0.86rem; flex:1;">{{ cat.name }}</span>
-                    {% if cat.active_tools_count > 0 %}
-                    <span style="font-size:0.7rem; color:var(--lg-text-helper); font-weight:700;">{{ cat.active_tools_count }}</span>
-                    {% endif %}
-                </a>
-                {% endfor %}
+    <!-- App Shell -->
+    <div class="app-shell">
+        <main class="app-main">
+            <div class="content-container">
+                {% block content %}{% endblock %}
             </div>
+        </main>
+
+        <!-- Global Sidebar -->
+        <aside class="app-sidebar spatial-panel">
+            {% block right_sidebar %}
+            <nav class="sidebar-nav-v2">
+                <!-- Home -->
+                <a href="{% url 'home' %}" class="sidebar-v2-link {% if request.path == '/' %}active{% endif %}">
+                    <div class="icon-box"><i class="bi bi-cpu"></i></div>
+                    <span class="label">Home</span>
+                </a>
+
+                <!-- All Tools -->
+                <a href="{% url 'tools:index' %}" class="sidebar-v2-link {% if request.path == '/tools/' %}active{% endif %}">
+                    <div class="icon-box"><i class="bi bi-grid"></i></div>
+                    <span class="label">All Tools</span>
+                </a>
+
+                <div class="sidebar-divider"></div>
+
+                <div class="sidebar-group">
+                    <div class="group-label">Categories</div>
+                    {% for cat in nav_categories %}
+                    <a href="{{ cat.get_absolute_url }}" class="sidebar-v2-link {% if request.path == cat.get_absolute_url %}active{% endif %}" style="--accent-color: {{ cat.color_from }};">
+                        <div class="icon-box cat-icon"><i class="{{ cat.icon }}"></i></div>
+                        <span class="label">{{ cat.name }}</span>
+                        {% if cat.active_tools_count > 0 %}
+                        <span class="badge">{{ cat.active_tools_count }}</span>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </nav>
             {% endblock %}
         </aside>
-    </main>
+    </div>
 
     <!-- Floating OS Dock -->
     <nav class="os-dock">
@@ -277,80 +261,84 @@
         const inlineInput = document.getElementById('inlineSearchInput');
         const inlineResults = document.getElementById('inlineSearchResults');
 
-        function toggleInlineSearch(show) {
-            if (show) {
-                inlineResults.style.display = 'block';
-                inlineInput.focus();
-            } else {
-                inlineResults.style.display = 'none';
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                toggleInlineSearch(true);
-            }
-            if (e.key === 'Escape') {
-                toggleInlineSearch(false);
-                inlineInput.blur();
-            }
-        });
-
-        // Hide results when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!inlineInput.contains(e.target) && !inlineResults.contains(e.target)) {
-                toggleInlineSearch(false);
-            }
-        });
-
-        inlineInput.addEventListener('focus', () => {
-            if (inlineInput.value.trim().length > 0) {
-                toggleInlineSearch(true);
-            }
-        });
-
-        let cmdTimeout;
-        inlineInput.addEventListener('input', () => {
-            clearTimeout(cmdTimeout);
-            const q = inlineInput.value.trim();
-            if (q.length < 2) {
-                inlineResults.style.display = 'block';
-                inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Type at least 2 characters to search...</div>';
-                return;
-            }
-
-            inlineResults.style.display = 'block';
-            inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Searching...</div>';
-
-            cmdTimeout = setTimeout(async () => {
-                try {
-                    const res = await fetch(`/tools/search/?q=${encodeURIComponent(q)}`);
-                    const data = await res.json();
-                    
-                    if (data.results.length === 0) {
-                        inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">No results found.</div>';
-                        return;
-                    }
-
-                    inlineResults.innerHTML = data.results.map(r => `
-                        <a href="${r.url}" style="display:flex; align-items:center; gap:12px; padding:9px 10px; border-radius:10px; text-decoration:none; color:var(--lg-text); transition:background 0.15s;" onmouseover="this.style.background='rgba(120,110,255,0.12)'" onmouseout="this.style.background='transparent'">
-                            <div style="width:32px; height:32px; background:${r.category_color_from}22; border:1px solid ${r.category_color_from}44; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                <i class="${r.icon}" style="color:${r.category_color_from}; font-size:0.95rem;"></i>
-                            </div>
-                            <div style="flex:1; overflow:hidden;">
-                                <div style="font-weight:600; font-size:0.88rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; color:var(--lg-text);">${r.name}</div>
-                                <div style="font-size:0.74rem; color:var(--lg-text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${r.category} &bull; ${r.short_desc}</div>
-                            </div>
-                        </a>
-                    `).join('');
-                } catch (e) {
-                    inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--danger); font-size: 0.9rem;">Search failed.</div>';
+        if (inlineInput && inlineResults) {
+            function toggleInlineSearch(show) {
+                if (show) {
+                    inlineResults.style.display = 'block';
+                    inlineInput.focus();
+                } else {
+                    inlineResults.style.display = 'none';
                 }
-            }, 200);
-        });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    toggleInlineSearch(true);
+                }
+                if (e.key === 'Escape') {
+                    toggleInlineSearch(false);
+                    inlineInput.blur();
+                }
+            });
+
+            // Hide results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!inlineInput.contains(e.target) && !inlineResults.contains(e.target)) {
+                    toggleInlineSearch(false);
+                }
+            });
+
+            inlineInput.addEventListener('focus', () => {
+                if (inlineInput.value.trim().length > 0) {
+                    toggleInlineSearch(true);
+                }
+            });
+
+            let cmdTimeout;
+            inlineInput.addEventListener('input', () => {
+                clearTimeout(cmdTimeout);
+                const q = inlineInput.value.trim();
+                if (q.length < 2) {
+                    inlineResults.style.display = 'block';
+                    inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Type at least 2 characters to search...</div>';
+                    return;
+                }
+
+                inlineResults.style.display = 'block';
+                inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Searching...</div>';
+
+                cmdTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/tools/search/?q=${encodeURIComponent(q)}`);
+                        const data = await res.json();
+                        
+                        if (data.results.length === 0) {
+                            inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">No results found.</div>';
+                            return;
+                        }
+
+                        inlineResults.innerHTML = data.results.map(r => `
+                            <a href="${r.url}" style="display:flex; align-items:center; gap:12px; padding:9px 10px; border-radius:10px; text-decoration:none; color:var(--lg-text); transition:background 0.15s;" onmouseover="this.style.background='rgba(120,110,255,0.12)'" onmouseout="this.style.background='transparent'">
+                                <div style="width:32px; height:32px; background:${r.category_color_from}22; border:1px solid ${r.category_color_from}44; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <i class="${r.icon}" style="color:${r.category_color_from}; font-size:0.95rem;"></i>
+                                </div>
+                                <div style="flex:1; overflow:hidden;">
+                                    <div style="font-weight:600; font-size:0.88rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; color:var(--lg-text);">${r.name}</div>
+                                    <div style="font-size:0.74rem; color:var(--lg-text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${r.category} &bull; ${r.short_desc}</div>
+                                </div>
+                            </a>
+                        `).join('');
+                    } catch (e) {
+                        inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--danger); font-size: 0.9rem;">Search failed.</div>';
+                    }
+                }, 200);
+            });
+        }
     </script>
     {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/core/behavioral.js' %}" defer></script>
+    <script src="{% static 'js/core/share-state.js' %}" defer></script>
     <script src="{% static 'js/core/gen-engine.js' %}"></script>
     {% block tool_js %}{% endblock %}
 

@@ -1,7 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from tools.models import Tool, ToolCategory
-from seo.models import SEOPage, SEOCategory
+from seo.models import SEOPage, SEOCategory, LongTailVariant
 
 
 class StaticViewSitemap(Sitemap):
@@ -35,11 +35,7 @@ class ToolSitemap(Sitemap):
         # Boost priority for featured and high-traffic tools
         if obj.is_featured:
             return 0.95
-        if obj.view_count > 1000:
-            return 0.90
-        if obj.view_count > 100:
-            return 0.85
-        return 0.75
+        return 0.80
 
 
 class CategorySitemap(Sitemap):
@@ -61,6 +57,21 @@ class SEOPageSitemap(Sitemap):
 
     def items(self):
         return SEOPage.objects.filter(is_active=True).select_related('category')
+
+    def lastmod(self, obj):
+        return obj.updated_at
+
+    def location(self, obj):
+        return obj.get_absolute_url()
+
+
+class LongTailSitemap(Sitemap):
+    priority = 0.65
+    changefreq = "monthly"
+    protocol = "https"
+
+    def items(self):
+        return LongTailVariant.objects.filter(is_active=True).select_related("tool__category")
 
     def lastmod(self, obj):
         return obj.updated_at
