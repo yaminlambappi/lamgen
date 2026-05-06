@@ -2,38 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ page_title|default:"LamGen — Free Online Tools" }}{% endblock %}</title>
-    <!-- Metadata Engine -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}{{ page_title|default:"LamGen — 265+ Free Online Tools" }}{% endblock %}</title>
+
+    <!-- ── Core SEO ── -->
     {% if meta_description %}<meta name="description" content="{{ meta_description }}">{% endif %}
     {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% else %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
-    <!-- OpenGraph -->
-    <meta property="og:title" content="{{ page_title|default:'LamGen — Free Online Tools' }}">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="author" content="LamGen">
+    <meta name="generator" content="LamGen Tools Platform">
+
+    <!-- ── OpenGraph ── -->
+    <meta property="og:title" content="{{ page_title|default:'LamGen — 265+ Free Online Tools' }}">
     {% if meta_description %}<meta property="og:description" content="{{ meta_description }}">{% endif %}
     <meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}">
     <meta property="og:type" content="{{ og_type|default:'website' }}">
-    <meta property="og:site_name" content="LamGen Tools">
+    <meta property="og:site_name" content="LamGen">
+    <meta property="og:locale" content="en_US">
     {% load static %}
     <meta property="og:image" content="{% block og_image %}{% static 'img/og-default.png' %}{% endblock %}">
-    <!-- Twitter Card -->
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{ page_title|default:'LamGen — Free Online Tools' }}">
+
+    <!-- ── Twitter Card ── -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ page_title|default:'LamGen — Free Online Tools' }}">
+    <meta name="twitter:site" content="@lamgen">
+    <meta name="twitter:title" content="{{ page_title|default:'LamGen — 265+ Free Online Tools' }}">
     {% if meta_description %}<meta name="twitter:description" content="{{ meta_description }}">{% endif %}
-    <!-- JSON-LD Schema -->
+    <meta name="twitter:image" content="{% block twitter_image %}{% static 'img/og-default.png' %}{% endblock %}">
+
+    <!-- ── JSON-LD Schemas ── -->
     {% if schema_json %}<script type="application/ld+json">{{ schema_json|safe }}</script>{% endif %}
+    {% if breadcrumb_schema %}<script type="application/ld+json">{{ breadcrumb_schema|safe }}</script>{% endif %}
+    {% if org_schema %}<script type="application/ld+json">{{ org_schema|safe }}</script>{% endif %}
     {% block extra_schema %}{% endblock %}
-    <!-- Edge Cache & PWA -->
+
+    <!-- ── Favicons ── -->
+    {% load static %}
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'img/favicon.svg' %}">
+    <meta name="msapplication-TileColor" content="#07091A">
+
+    <!-- ── Performance: Edge Cache & PWA ── -->
     <meta http-equiv="Cache-Control" content="public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400">
-    <meta name="theme-color" content="#0b0c18">
-    <!-- Core Web Vitals Optimization -->
+    <meta name="theme-color" content="#07091A">
+    <meta name="color-scheme" content="dark">
+
+    <!-- ── Preconnect for critical resources ── -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+    <!-- ── Fonts: non-blocking ── -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet"></noscript>
+
+    <!-- ── Icons: non-blocking ── -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"></noscript>
+
+    <!-- ── Design System ── -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     {% block extra_css %}{% endblock %}

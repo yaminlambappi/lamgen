@@ -24,8 +24,9 @@ def robots_txt(request):
 # Sitemaps
 def get_sitemaps():
     try:
-        from seo.sitemaps import ToolSitemap, CategorySitemap, SEOPageSitemap
+        from seo.sitemaps import ToolSitemap, CategorySitemap, SEOPageSitemap, StaticViewSitemap
         return {
+            'static': StaticViewSitemap,
             'tools': ToolSitemap,
             'categories': CategorySitemap,
             'seo_pages': SEOPageSitemap,

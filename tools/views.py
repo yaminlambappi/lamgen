@@ -12,17 +12,13 @@ import json
 @cache_control(public=True, max_age=60)
 def index(request):
     """All tools homepage — categorized grid."""
-    categories = ToolCategory.objects.filter(is_active=True).prefetch_related(
-        'tools'
-    )
+    categories = ToolCategory.objects.filter(is_active=True).prefetch_related('tools')
     featured_tools = Tool.objects.filter(is_active=True, is_featured=True).select_related('category')[:8]
     new_tools = Tool.objects.filter(is_active=True, is_new=True).select_related('category')[:6]
     trending = Tool.objects.filter(is_active=True).order_by('-view_count').select_related('category')[:8]
 
-    # Recent tools from session
     recent_slugs = request.session.get('recent_tools', [])
     recent_tools = list(Tool.objects.filter(slug__in=recent_slugs, is_active=True).select_related('category'))
-    # Restore order
     slug_order = {s: i for i, s in enumerate(recent_slugs)}
     recent_tools.sort(key=lambda t: slug_order.get(t.slug, 999))
 
@@ -32,6 +28,11 @@ def index(request):
             ToolBookmark.objects.filter(user=request.user).values_list('tool__slug', flat=True)
         )
 
+    import json as _json
+    from .utils.metadata import build_website_schema, build_organization_schema
+    website_schema = _json.dumps(build_website_schema(request))
+    org_schema = _json.dumps(build_organization_schema(request))
+
     return render(request, 'tools/index.html', {
         'categories': categories,
         'featured_tools': featured_tools,
@@ -39,8 +40,11 @@ def index(request):
         'trending': trending,
         'recent_tools': recent_tools[:5],
         'bookmarked_slugs': bookmarked_slugs,
-        'page_title': 'Home — LamGen',
-        'meta_description': 'LamGen Home. Access your tools, active nodes, and smart systems.',
+        'page_title': 'LamGen — 265+ Free Online Tools for Developers, Students & Writers',
+        'meta_description': 'Free online tools for developers, students, writers and professionals. 265+ tools including JSON formatter, image compressor, word counter, GPA calculator and more. No signup, no ads, 100% private.',
+        'canonical_url': request.build_absolute_uri('/'),
+        'schema_json': website_schema,
+        'org_schema': org_schema,
     })
 
 @cache_control(public=True, max_age=60)
@@ -69,7 +73,7 @@ def tools_index_view(request):
 
 @cache_control(public=True, max_age=600)
 def category_view(request, category_slug):
-    """Category listing page."""
+    """Category listing page — SEO landing hub."""
     category = get_object_or_404(ToolCategory, slug=category_slug, is_active=True)
     tools = list(Tool.objects.filter(category=category, is_active=True).order_by('order', 'name'))
 
@@ -78,8 +82,8 @@ def category_view(request, category_slug):
         bookmarked_slugs = list(
             ToolBookmark.objects.filter(user=request.user, tool__category=category).values_list('tool__slug', flat=True)
         )
-        
-    # Group tools dynamically for mega-menu style
+
+    # Group tools dynamically
     tool_groups = {}
     for tool in tools:
         group_name = "Other Utilities"
@@ -93,18 +97,16 @@ def category_view(request, category_slug):
                 group_name = "Converters"
             elif "generat" in name_lower or "build" in name_lower or "creat" in name_lower:
                 group_name = "Generators"
-            elif "encod" in name_lower or "decod" in name_lower or "hash" in name_lower or "cipher" in name_lower:
+            elif "encod" in name_lower or "decod" in name_lower or "hash" in name_lower:
                 group_name = "Security & Encoding"
             elif "compress" in name_lower or "minif" in name_lower or "optimiz" in name_lower:
                 group_name = "Optimization"
             elif "split" in name_lower or "merg" in name_lower or "extract" in name_lower:
                 group_name = "Manipulation"
-
         if group_name not in tool_groups:
             tool_groups[group_name] = []
         tool_groups[group_name].append(tool)
 
-    # Sort groups alphabetically, but keep "Other Utilities" at the end
     sorted_groups = []
     for k in sorted(tool_groups.keys()):
         if k != "Other Utilities":
@@ -112,13 +114,42 @@ def category_view(request, category_slug):
     if "Other Utilities" in tool_groups:
         sorted_groups.append(("Other Utilities", tool_groups["Other Utilities"]))
 
+    # SEO metadata
+    import json as _json
+    from .utils.metadata import build_breadcrumb_schema, build_category_schema
+
+    cat_name = category.name
+    tool_count = len(tools)
+    meta_title = f'{cat_name} — {tool_count} Free Online Tools | LamGen'[:70]
+    meta_desc = (
+        category.description[:157] + '...'
+        if category.description and len(category.description) > 160
+        else category.description
+        or f'Free {cat_name.lower()} online. {tool_count} tools — no download, no signup, instant results.'
+    )
+
+    breadcrumb_schema = _json.dumps(build_breadcrumb_schema(request, category))
+    category_schema = _json.dumps(build_category_schema(category, tools, request))
+
+    # Featured and trending tools for the landing hub
+    featured = [t for t in tools if t.is_featured][:4]
+    trending = sorted(tools, key=lambda t: -t.view_count)[:6]
+    newest = [t for t in tools if t.is_new][:4]
+
     return render(request, 'tools/category.html', {
         'category': category,
         'tools': tools,
         'tool_groups': sorted_groups,
         'bookmarked_slugs': bookmarked_slugs,
-        'page_title': f'{category.name} — LamGen',
-        'meta_description': category.description[:160] if category.description else f'Free {category.name.lower()} tools online. No download, no signup required.',
+        'featured_tools': featured,
+        'trending_tools': trending,
+        'newest_tools': newest,
+        'tool_count': tool_count,
+        'page_title': meta_title,
+        'meta_description': meta_desc,
+        'canonical_url': request.build_absolute_uri(category.get_absolute_url()),
+        'schema_json': category_schema,
+        'breadcrumb_schema': breadcrumb_schema,
     })
 
 
@@ -156,25 +187,77 @@ def tool_view(request, category_slug, tool_slug):
     if request.user.is_authenticated:
         is_bookmarked = ToolBookmark.objects.filter(user=request.user, tool=tool).exists()
 
-    # Related tools in the same toolset
-    related_tools = Tool.objects.filter(category=category, is_active=True).exclude(id=tool.id)[:10]
+    # All active tools in category (for related tool engine)
+    all_category_tools = list(
+        Tool.objects.filter(category=category, is_active=True)
+        .exclude(id=tool.id)
+        .order_by('order', 'name')
+    )
 
     # Handle missing templates gracefully
     from django.template.loader import get_template, TemplateDoesNotExist
-    
     actual_template = tool.template_name
     try:
         get_template(actual_template)
     except TemplateDoesNotExist:
         actual_template = 'tools/generic_tool.html'
 
+    # ── Full metadata engine ──
+    import json as _json
+    from .utils.metadata import (
+        build_software_application_schema,
+        build_faq_schema,
+        build_breadcrumb_schema,
+        generate_meta_title,
+        generate_meta_description,
+        generate_intro_paragraph,
+        generate_use_cases,
+        generate_faq_items,
+        get_related_tools,
+    )
+
+    # Smart related tools (topical clusters + tag similarity)
+    related_tools = get_related_tools(tool, all_category_tools, limit=8)
+
+    # SEO content generation
+    seo_intro = generate_intro_paragraph(tool.name, tool.short_desc, category.name)
+    seo_use_cases = generate_use_cases(tool.name, tool.tags or '')
+    seo_faq_items = generate_faq_items(tool.name, tool.short_desc, category.name)
+
+    # JSON-LD schemas
+    tool_schema_dict = build_software_application_schema(tool, request)
+    tool_schema = _json.dumps(tool_schema_dict)
+    faq_schema = _json.dumps(build_faq_schema(seo_faq_items))
+    breadcrumb_schema = _json.dumps(build_breadcrumb_schema(request, category, tool))
+
+    # Canonical URL
+    canonical = request.build_absolute_uri(tool.get_absolute_url())
+
+    # Meta title/description — use stored values if set, else generate
+    meta_title = tool.meta_title or generate_meta_title(tool.name, category.name)
+    meta_desc = tool.meta_description or generate_meta_description(
+        tool.name, tool.short_desc, category.name
+    )
+
     return render(request, actual_template, {
         'tool': tool,
         'category': category,
         'is_bookmarked': is_bookmarked,
         'related_tools': related_tools,
-        'page_title': tool.meta_title or f'{tool.name} — Free Online Tool | LamGen',
-        'meta_description': tool.meta_description or tool.short_desc,
+        # SEO metadata
+        'page_title': meta_title,
+        'meta_description': meta_desc,
+        'canonical_url': canonical,
+        'og_type': 'website',
+        # JSON-LD schemas
+        'schema_json': tool_schema,
+        'tool_schema': tool_schema,
+        'faq_schema': faq_schema,
+        'breadcrumb_schema': breadcrumb_schema,
+        # SEO content for template
+        'seo_intro': seo_intro,
+        'seo_use_cases': seo_use_cases,
+        'seo_faq_items': seo_faq_items,
     })
 
 

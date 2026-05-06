@@ -1,137 +1,588 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block extra_schema %}
+{# SoftwareApplication schema — injected by view via schema_json #}
+{% if tool_schema %}<script type="application/ld+json">{{ tool_schema|safe }}</script>{% endif %}
+{% if faq_schema %}<script type="application/ld+json">{{ faq_schema|safe }}</script>{% endif %}
+{% endblock %}
+
 {% block extra_css %}
 <style>
-/* ── Tool page shell ── */
+/* ═══════════════════════════════════════════════════════════
+   LamGen Tool Page System — Premium AI Workspace
+   Applies to all 265+ tool pages via this single template.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Page shell ── */
 .tool-page {
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
-    max-width: 920px;
+    gap: 1.5rem;
+    max-width: 860px;
     margin: 0 auto;
     width: 100%;
+    padding-top: 0.5rem;
 }
 
-/* ── Compact header ── */
-.tool-page-header {
+/* ── Hero header ── */
+.tool-hero {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    padding-top: 0.1rem;
+    gap: 0.6rem;
 }
-.tool-title-row {
+.tool-hero-top {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-top: 0.15rem;
+    align-items: flex-start;
+    gap: 14px;
 }
 .tool-icon-badge {
-    width: 38px; height: 38px;
-    border-radius: 11px;
+    width: 44px; height: 44px;
+    border-radius: 13px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     flex-shrink: 0;
     background: {{ category.color_from }}1A;
     border: 1px solid {{ category.color_from }}38;
     color: {{ category.color_from }};
-    box-shadow: 0 4px 16px {{ category.color_from }}18;
+    box-shadow: 0 4px 20px {{ category.color_from }}18;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
+.tool-icon-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px {{ category.color_from }}28;
+}
+.tool-hero-text { flex: 1; min-width: 0; }
 .tool-page-title {
     font-family: 'Syne', sans-serif;
-    font-size: clamp(1.2rem, 2.8vw, 1.55rem);
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
     font-weight: 800;
-    line-height: 1.2;
+    line-height: 1.15;
     color: var(--lg-text);
-    margin: 0;
-    background: linear-gradient(135deg, #F0F4FF 20%, rgba(220,228,255,0.75) 100%);
+    margin: 0 0 4px;
+    background: linear-gradient(135deg, #EEF2FF 20%, rgba(200,210,255,0.80) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 .tool-page-desc {
-    font-size: 0.84rem;
+    font-size: 0.88rem;
     color: var(--lg-text-muted);
     line-height: 1.55;
-    max-width: 580px;
     margin: 0;
+    max-width: 600px;
 }
+.tool-trust-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+.trust-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: rgba(100,90,255,0.08);
+    border: 1px solid rgba(130,120,255,0.16);
+    border-radius: 50px;
+    font-size: 0.70rem;
+    font-weight: 600;
+    color: var(--lg-text-muted);
+    letter-spacing: 0.2px;
+}
+.trust-pill i { font-size: 0.68rem; color: var(--lg-cyan); }
 
 /* ── Tool canvas ── */
 .tool-canvas {
     background:
-        radial-gradient(800px 400px at 5% 0%, rgba(139,127,255,0.12), transparent 55%),
-        radial-gradient(600px 300px at 95% 10%, rgba(62,236,216,0.08), transparent 50%),
+        radial-gradient(600px 300px at 5% 0%, rgba(100,90,255,0.10), transparent 55%),
+        radial-gradient(500px 250px at 95% 10%, rgba(62,236,216,0.07), transparent 50%),
         var(--lg-card-bg);
     border: 1px solid var(--lg-card-border);
-    border-radius: 18px;
-    padding: 1rem;
+    border-radius: 20px;
+    padding: 1.25rem;
     box-shadow: var(--lg-card-shadow);
     transition: border-color 0.22s, box-shadow 0.22s;
+    position: relative;
+    overflow: hidden;
+}
+.tool-canvas::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 1.25rem; right: 1.25rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, {{ category.color_from }}44, transparent);
+    pointer-events: none;
 }
 .tool-canvas:hover {
-    border-color: rgba(62,236,216,0.20);
+    border-color: rgba(130,120,255,0.24);
     box-shadow: var(--lg-card-hover-shadow);
 }
+.tool-canvas > * + * { margin-top: 1rem; }
+.tool-canvas .dev-tool-wrap > * + * { margin-top: 0.85rem; }
+.tool-canvas .grid-2 { gap: 0.85rem !important; }
 
-/* Internal spacing */
-.tool-canvas > * + * { margin-top: 0.85rem; }
-.tool-canvas .dev-tool-wrap > * + * { margin-top: 0.75rem; }
-.tool-canvas .grid-2 { gap: 0.75rem !important; }
+/* ── Inputs inside canvas ── */
+.tool-canvas textarea,
+.tool-canvas .tool-code,
+.tool-canvas .tool-input,
+.tool-canvas .text-input,
+.tool-canvas .select-input,
+.tool-canvas input[type="text"],
+.tool-canvas input[type="number"],
+.tool-canvas input[type="email"],
+.tool-canvas input[type="search"],
+.tool-canvas input[type="url"],
+.tool-canvas input[type="password"],
+.tool-canvas input[type="datetime-local"] {
+    background: var(--lg-field-bg) !important;
+    border: 1px solid var(--lg-field-border) !important;
+    border-radius: 12px !important;
+    color: var(--lg-text) !important;
+    font-size: 0.90rem !important;
+    line-height: 1.65 !important;
+    padding: 12px 15px !important;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s !important;
+    resize: vertical;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: var(--lg-field-shadow) !important;
+    caret-color: var(--lg-cyan);
+    font-family: 'DM Sans', sans-serif;
+}
+.tool-canvas textarea:focus,
+.tool-canvas .tool-code:focus,
+.tool-canvas .tool-input:focus,
+.tool-canvas .text-input:focus,
+.tool-canvas .select-input:focus,
+.tool-canvas input[type="text"]:focus,
+.tool-canvas input[type="number"]:focus,
+.tool-canvas input[type="email"]:focus,
+.tool-canvas input[type="search"]:focus,
+.tool-canvas input[type="url"]:focus,
+.tool-canvas input[type="password"]:focus,
+.tool-canvas input[type="datetime-local"]:focus {
+    border-color: var(--lg-field-border-focus) !important;
+    box-shadow: var(--lg-field-shadow-focus) !important;
+    background: var(--lg-field-bg-focus) !important;
+}
+.tool-canvas textarea[readonly],
+.tool-canvas input[readonly],
+.tool-canvas textarea.out,
+.tool-canvas .tool-code.out {
+    background: rgba(8,6,22,0.50) !important;
+    border-color: rgba(120,110,255,0.10) !important;
+    box-shadow: 0 4px 16px rgba(0,0,12,0.20) !important;
+    cursor: default;
+}
+.tool-canvas textarea,
+.tool-canvas .tool-code {
+    min-height: clamp(110px, 18vh, 180px) !important;
+    font-variant-ligatures: none;
+}
+.tool-canvas textarea[readonly],
+.tool-canvas .tool-code.out,
+.tool-canvas textarea.out {
+    min-height: clamp(90px, 15vh, 150px) !important;
+}
+.tool-canvas input::placeholder,
+.tool-canvas textarea::placeholder,
+.tool-canvas .tool-code::placeholder,
+.tool-canvas .tool-input::placeholder,
+.tool-canvas .text-input::placeholder {
+    color: var(--lg-placeholder-strong) !important;
+    opacity: 1 !important;
+    font-weight: 400 !important;
+}
+
+/* ── Primary action buttons ── */
+.tool-canvas .btn-go,
+.tool-canvas .btn-nexus,
+.tool-canvas .btn-primary-nexus {
+    height: 40px !important;
+    padding: 0 22px !important;
+    border-radius: 50px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    background: linear-gradient(135deg, #7B6FFF 0%, #3EECD8 100%) !important;
+    border: 1px solid rgba(139,127,255,0.40) !important;
+    color: #fff !important;
+    box-shadow: 0 6px 22px rgba(100,90,255,0.30), 0 2px 8px rgba(0,0,12,0.28) !important;
+    transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 0.18s ease, filter 0.18s ease !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.2px;
+    position: relative;
+    overflow: hidden;
+}
+.tool-canvas .btn-go::before,
+.tool-canvas .btn-nexus::before,
+.tool-canvas .btn-primary-nexus::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    pointer-events: none;
+}
+.tool-canvas .btn-go:hover,
+.tool-canvas .btn-nexus:hover,
+.tool-canvas .btn-primary-nexus:hover {
+    filter: brightness(1.08) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 10px 30px rgba(100,90,255,0.38), 0 4px 12px rgba(0,0,12,0.32) !important;
+}
+.tool-canvas .btn-go:active,
+.tool-canvas .btn-nexus:active,
+.tool-canvas .btn-primary-nexus:active {
+    transform: translateY(0) scale(0.98) !important;
+    filter: brightness(1.02) !important;
+}
+.tool-canvas .btn-go:disabled {
+    opacity: 0.38 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    filter: none !important;
+}
+
+/* ── Secondary / ghost buttons ── */
+.tool-canvas .btn-sm,
+.tool-canvas .btn-ghost-nexus,
+.tool-canvas .btn-nexus-secondary {
+    height: 34px !important;
+    padding: 0 14px !important;
+    border-radius: 50px !important;
+    font-size: 0.78rem !important;
+    font-weight: 500 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    background: rgba(100,90,255,0.09) !important;
+    border: 1px solid rgba(130,120,255,0.18) !important;
+    color: var(--lg-text-muted) !important;
+    transition: all 0.15s ease !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.tool-canvas .btn-sm:hover,
+.tool-canvas .btn-ghost-nexus:hover,
+.tool-canvas .btn-nexus-secondary:hover {
+    background: rgba(100,90,255,0.16) !important;
+    border-color: rgba(140,130,255,0.30) !important;
+    color: var(--lg-text) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 18px rgba(0,0,12,0.24) !important;
+}
+
+/* ── Labels ── */
+.tool-canvas .tool-label {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.9px !important;
+    color: var(--lg-text-muted) !important;
+    margin-bottom: 0.4rem !important;
+    display: block;
+}
+.tool-canvas .input-label,
+.tool-canvas label {
+    color: var(--lg-text-muted);
+    font-size: 0.82rem;
+}
+
+/* ── Status badges ── */
+.tool-canvas .status {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.tool-canvas .status.err {
+    display: flex;
+    background: rgba(255,92,122,0.10);
+    color: var(--lg-danger);
+    border: 1px solid rgba(255,92,122,0.24);
+}
+.tool-canvas .status.ok {
+    display: flex;
+    background: rgba(62,236,216,0.10);
+    color: var(--lg-cyan);
+    border: 1px solid rgba(62,236,216,0.22);
+}
+
+/* ── Upload zones ── */
+.tool-canvas .upload-zone {
+    border: 2px dashed rgba(130,120,255,0.28) !important;
+    background: rgba(100,90,255,0.05) !important;
+    border-radius: 16px !important;
+    transition: border-color 0.2s, background 0.2s !important;
+}
+.tool-canvas .upload-zone:hover,
+.tool-canvas .upload-zone.dragover {
+    border-color: rgba(139,127,255,0.55) !important;
+    background: rgba(100,90,255,0.10) !important;
+}
+
+/* ── Mobile sticky action row ── */
+@media (max-width: 640px) {
+    .tool-canvas .act-row {
+        position: sticky;
+        bottom: 12px;
+        z-index: 5;
+        padding: 10px;
+        margin: 0 -6px;
+        border-radius: 16px;
+        background: rgba(8,6,22,0.88);
+        border: 1px solid rgba(130,120,255,0.20);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 12px 32px rgba(0,0,12,0.40);
+    }
+    .tool-canvas { padding-bottom: 1.5rem; }
+}
+
+/* ── SEO content sections ── */
+.tool-seo-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+.tool-seo-section {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--lg-shadow-sm);
+}
+.tool-seo-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--lg-text);
+    margin: 0 0 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tool-seo-section h2 i {
+    font-size: 0.95rem;
+    color: var(--lg-violet);
+}
+.tool-seo-section h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--lg-text);
+    margin: 1rem 0 0.4rem;
+}
+.tool-seo-section p {
+    font-size: 0.88rem;
+    color: var(--lg-text-muted);
+    line-height: 1.65;
+    margin: 0 0 0.6rem;
+}
+.tool-seo-section ul,
+.tool-seo-section ol {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.tool-seo-section li {
+    font-size: 0.86rem;
+    color: var(--lg-text-muted);
+    line-height: 1.55;
+}
+.tool-seo-section li::marker { color: var(--lg-violet); }
+
+/* How-to steps */
+.how-to-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    counter-reset: step;
+}
+.how-to-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(100,90,255,0.06);
+    border: 1px solid rgba(130,120,255,0.12);
+    border-radius: 12px;
+    counter-increment: step;
+}
+.how-to-step::before {
+    content: counter(step);
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--lg-violet), var(--lg-cyan));
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+}
+.how-to-step p { margin: 0; font-size: 0.86rem; color: var(--lg-text-muted); line-height: 1.5; }
+.how-to-step strong { color: var(--lg-text); }
+
+/* Feature grid */
+.feature-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.feature-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    background: rgba(100,90,255,0.08);
+    border: 1px solid rgba(130,120,255,0.16);
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--lg-text-muted);
+}
+.feature-pill i { color: var(--lg-cyan); font-size: 0.72rem; }
+
+/* FAQ */
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.faq-item {
+    border: 1px solid rgba(130,120,255,0.14);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.faq-q {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 16px;
+    background: rgba(100,90,255,0.07);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--lg-text);
+    transition: background 0.15s;
+}
+.faq-q:hover { background: rgba(100,90,255,0.12); }
+.faq-q i {
+    font-size: 0.75rem;
+    color: var(--lg-text-muted);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+.faq-item.open .faq-q i { transform: rotate(180deg); }
+.faq-a {
+    display: none;
+    padding: 12px 16px 14px;
+    font-size: 0.85rem;
+    color: var(--lg-text-muted);
+    line-height: 1.65;
+    border-top: 1px solid rgba(130,120,255,0.10);
+    background: rgba(8,6,22,0.30);
+}
+.faq-item.open .faq-a { display: block; }
 
 /* ── Related tools ── */
-.tool-related {
-    border-top: 1px solid rgba(120,110,255,0.12);
-    padding-top: 0.85rem;
+.tool-related-section {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: var(--lg-shadow-sm);
 }
 .tool-related-title {
     font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
     color: var(--lg-text-helper);
-    margin-bottom: 0.5rem;
-}
-.tool-related-grid {
+    margin-bottom: 0.75rem;
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-.tool-related-link {
-    display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 11px;
-    background: rgba(100,90,255,0.07);
-    border: 1px solid rgba(120,110,255,0.13);
-    border-radius: 50px;
-    font-size: 0.74rem;
+}
+.tool-related-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(130,120,255,0.14), transparent);
+}
+.tool-related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 7px;
+}
+.tool-related-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    background: rgba(100,90,255,0.06);
+    border: 1px solid rgba(130,120,255,0.12);
+    border-radius: 11px;
+    font-size: 0.80rem;
+    font-weight: 600;
     color: var(--lg-text-muted);
     text-decoration: none;
     transition: all 0.15s;
 }
 .tool-related-link:hover {
-    background: rgba(120,110,255,0.13);
-    border-color: rgba(130,120,255,0.20);
+    background: rgba(100,90,255,0.12);
+    border-color: rgba(140,130,255,0.24);
     color: var(--lg-text);
     transform: translateY(-1px);
 }
-.tool-related-link i { font-size: 0.72rem; }
+.tool-related-link i { font-size: 0.82rem; flex-shrink: 0; }
 
-/* ── SEO section ── */
-.tool-seo-section {
-    font-size: 0.80rem;
-    color: rgba(180,196,230,0.30);
-    line-height: 1.6;
-    padding-top: 0.5rem;
-    border-top: 1px solid rgba(120,110,255,0.10);
+/* ── Trust footer ── */
+.tool-trust-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 1rem 1.25rem;
+    background: rgba(100,90,255,0.05);
+    border: 1px solid rgba(130,120,255,0.12);
+    border-radius: 14px;
+    align-items: center;
+    justify-content: center;
 }
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    color: var(--lg-text-helper);
+    font-weight: 500;
+}
+.trust-item i { color: var(--lg-cyan); font-size: 0.78rem; }
 
 /* ── Mobile ── */
 @media (max-width: 640px) {
-    .tool-page { gap: 0.7rem; }
-    .tool-canvas { padding: 0.9rem; }
-    .tool-page-title { font-size: 1.2rem; }
-    .tool-page-desc { font-size: 0.80rem; }
+    .tool-page { gap: 1.1rem; }
+    .tool-canvas { padding: 1rem; }
+    .tool-page-title { font-size: 1.25rem; }
+    .tool-page-desc { font-size: 0.82rem; }
+    .tool-seo-section { padding: 1.1rem; }
+    .tool-related-grid { grid-template-columns: repeat(2, 1fr); }
+    .tool-trust-footer { gap: 8px; }
 }
 </style>
 {% block tool_css %}{% endblock %}
@@ -139,54 +590,165 @@
 
 
 {% block content %}
-<div class="tool-page">
+<article class="tool-page" itemscope itemtype="https://schema.org/SoftwareApplication">
+    <meta itemprop="applicationCategory" content="UtilitiesApplication">
+    <meta itemprop="operatingSystem" content="Web">
+    <meta itemprop="offers" content='{"@type":"Offer","price":"0","priceCurrency":"USD"}'>
 
-    <!-- Header -->
-    <header class="tool-page-header">
-        <div class="tool-title-row">
+    <!-- ── Hero Header ── -->
+    <header class="tool-hero">
+        <div class="tool-hero-top">
             <div class="tool-icon-badge" aria-hidden="true">
                 <i class="{{ tool.icon }}"></i>
             </div>
-            <h1 class="tool-page-title">{{ tool.name }}</h1>
+            <div class="tool-hero-text">
+                <h1 class="tool-page-title" itemprop="name">{{ tool.name }}</h1>
+                <p class="tool-page-desc" itemprop="description">
+                    {% if tool.description %}{{ tool.description }}{% else %}{{ tool.short_desc }}{% endif %}
+                </p>
+                <div class="tool-trust-pills">
+                    <span class="trust-pill"><i class="bi bi-lightning-charge-fill"></i> Free &amp; Instant</span>
+                    <span class="trust-pill"><i class="bi bi-shield-check"></i> No Upload Required</span>
+                    <span class="trust-pill"><i class="bi bi-lock-fill"></i> 100% Private</span>
+                    <span class="trust-pill"><i class="bi bi-person-x"></i> No Signup</span>
+                </div>
+            </div>
         </div>
-        {% if tool.description %}
-        <p class="tool-page-desc">{{ tool.description }}</p>
-        {% elif tool.short_desc %}
-        <p class="tool-page-desc">{{ tool.short_desc }}</p>
-        {% endif %}
     </header>
 
-    <!-- Tool canvas -->
-    <section class="tool-canvas" aria-label="{{ tool.name }} tool">
+    <!-- ── Main Tool Workspace ── -->
+    <section class="tool-canvas" aria-label="{{ tool.name }} workspace">
         {% block tool_content %}{% endblock %}
     </section>
 
-    <!-- Related tools -->
+    <!-- ── SEO Content Sections ── -->
+    {% block tool_seo %}
+    <div class="tool-seo-wrap">
+
+        <!-- What is this tool — unique per tool via view-generated intro -->
+        <section class="tool-seo-section" aria-labelledby="what-is-heading">
+            <h2 id="what-is-heading"><i class="bi bi-info-circle"></i> What is {{ tool.name }}?</h2>
+            <p>{% if seo_intro %}{{ seo_intro }}{% else %}{{ tool.name }} is a free online tool that lets you {{ tool.short_desc|lower }}. It runs entirely in your browser — no server uploads, no account required, and no data ever leaves your device.{% endif %}</p>
+            <p>Part of the <a href="{% url 'tools:category' category.slug %}" style="color:var(--lg-violet);text-decoration:none;font-weight:600;">{{ category.name }}</a> suite on LamGen — 265+ free tools for developers, students, writers and professionals.</p>
+        </section>
+
+        <!-- How to use -->
+        <section class="tool-seo-section" aria-labelledby="how-to-heading">
+            <h2 id="how-to-heading"><i class="bi bi-play-circle"></i> How to Use {{ tool.name }}</h2>
+            <div class="how-to-steps">
+                <div class="how-to-step"><p><strong>Open the tool</strong> — The workspace loads instantly in your browser. No installation or signup needed.</p></div>
+                <div class="how-to-step"><p><strong>Enter your input</strong> — Paste, type, or upload your content into the workspace above.</p></div>
+                <div class="how-to-step"><p><strong>Get instant results</strong> — Click the action button or press <kbd style="background:rgba(100,90,255,.12);border:1px solid rgba(130,120,255,.22);border-radius:4px;padding:1px 6px;font-size:.78em;">Ctrl+Enter</kbd> to process.</p></div>
+                <div class="how-to-step"><p><strong>Copy or download</strong> — Use the copy button to grab your result, or download it as a file for later use.</p></div>
+            </div>
+        </section>
+
+        <!-- Use cases — unique per tool via view-generated list -->
+        {% if seo_use_cases %}
+        <section class="tool-seo-section" aria-labelledby="use-cases-heading">
+            <h2 id="use-cases-heading"><i class="bi bi-people"></i> Who Uses {{ tool.name }}?</h2>
+            <ul>
+                {% for use_case in seo_use_cases %}
+                <li>{{ use_case }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        <!-- Features -->
+        <section class="tool-seo-section" aria-labelledby="features-heading">
+            <h2 id="features-heading"><i class="bi bi-stars"></i> Key Features</h2>
+            <div class="feature-pills">
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Completely Free</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Works Offline</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> No Data Stored</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Mobile Friendly</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Instant Results</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> No Signup Required</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Copy &amp; Download</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Keyboard Shortcuts</span>
+            </div>
+        </section>
+
+        <!-- FAQ — unique per tool via view-generated items -->
+        <section class="tool-seo-section" aria-labelledby="faq-heading">
+            <h2 id="faq-heading"><i class="bi bi-question-circle"></i> Frequently Asked Questions</h2>
+            <div class="faq-list">
+                {% if seo_faq_items %}
+                {% for faq in seo_faq_items %}
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+                        <span itemprop="name">{{ faq.q }}</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <span itemprop="text">{{ faq.a }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+                        <span itemprop="name">Is {{ tool.name }} completely free?</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="faq-a" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <span itemprop="text">Yes, {{ tool.name }} is 100% free with no hidden costs, no premium tiers, and no usage limits.</span>
+                    </div>
+                </div>
+                {% endif %}
+                {% block tool_faq %}{% endblock %}
+            </div>
+        </section>
+
+        <!-- Why LamGen -->
+        <section class="tool-seo-section" aria-labelledby="why-heading">
+            <h2 id="why-heading"><i class="bi bi-award"></i> Why Use LamGen?</h2>
+            <p>LamGen is a premium AI-powered utility ecosystem with 265+ free tools built for developers, students, writers, and professionals. Every tool is designed to be fast, private, and effortless — no ads, no paywalls, no data collection.</p>
+            <div class="feature-pills" style="margin-top:0.75rem;">
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> 265+ Free Tools</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Zero Data Collection</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> No Ads Ever</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Always Free</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> Browser-Based</span>
+                <span class="feature-pill"><i class="bi bi-check-circle-fill"></i> No Installation</span>
+            </div>
+        </section>
+
+    </div>
+    {% endblock tool_seo %}
+
+    <!-- ── Related Tools ── -->
     {% if related_tools %}
-    <div class="tool-related">
-        <div class="tool-related-title">Related tools</div>
-        <div class="tool-related-grid">
+    <aside class="tool-related-section" aria-label="Related tools">
+        <div class="tool-related-title"><i class="bi bi-grid-3x3-gap"></i> Related Tools</div>
+        <nav class="tool-related-grid" aria-label="Related tools navigation">
             {% for rt in related_tools|slice:":8" %}
             <a href="{{ rt.get_absolute_url }}" class="tool-related-link">
                 <i class="{{ rt.icon }}" style="color:{{ rt.category.color_from }}"></i>
                 {{ rt.name }}
             </a>
             {% endfor %}
-        </div>
-    </div>
+        </nav>
+    </aside>
     {% endif %}
 
-    <!-- SEO -->
-    <div class="tool-seo-section">
-        {{ tool.short_desc }} — runs entirely in your browser. No data is sent to any server.
-    </div>
+    <!-- ── Trust Footer ── -->
+    <footer class="tool-trust-footer" aria-label="Trust indicators">
+        <div class="trust-item"><i class="bi bi-cpu"></i> Runs in your browser</div>
+        <div class="trust-item"><i class="bi bi-shield-lock"></i> Zero data collection</div>
+        <div class="trust-item"><i class="bi bi-lightning-charge"></i> Instant processing</div>
+        <div class="trust-item"><i class="bi bi-person-x"></i> No account needed</div>
+        <div class="trust-item"><i class="bi bi-gift"></i> Always free</div>
+    </footer>
 
-</div>
+</article>
 {% endblock %}
 
 
 {% block extra_js %}
 <script>
+/* Bookmark toggle */
 (function() {
     const btn = document.getElementById('btn-favorite');
     if (!btn) return;
@@ -209,8 +771,22 @@
         } catch(e) {}
     });
 })();
-</script>
-<script>
+
+/* FAQ accordion */
+function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.faq-item.open').forEach(el => {
+        el.classList.remove('open');
+        el.querySelector('.faq-q').setAttribute('aria-expanded', 'false');
+    });
+    if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+    }
+}
+
 /* Global placeholder upgrader */
 (function () {
     function isGeneric(ph) {
@@ -220,11 +796,11 @@
                p === 'input' || p === 'output' || p === '...' || p === 'e.g.' ||
                p === 'example' || p.startsWith('e.g') || p.includes('will appear here');
     }
-    function nearestLabelText(el) {
-        const byFor = el.id ? document.querySelector(`label[for="${CSS.escape(el.id)}"]`) : null;
+    function nearestLabel(el) {
+        const byFor = el.id ? document.querySelector('label[for="' + CSS.escape(el.id) + '"]') : null;
         if (byFor?.textContent) return byFor.textContent.trim();
-        const inGroupLabel = el.closest('.input-group')?.querySelector('.input-label, label');
-        if (inGroupLabel?.textContent) return inGroupLabel.textContent.trim();
+        const inGroup = el.closest('.input-group')?.querySelector('.input-label, label');
+        if (inGroup?.textContent) return inGroup.textContent.trim();
         let node = el.parentElement; let hops = 0;
         while (node && hops < 4) {
             const t = node.querySelector?.('.tool-label');
@@ -233,31 +809,28 @@
         }
         return '';
     }
-    function friendlyFromLabel(label, el) {
+    function friendly(label, el) {
         const l = (label || '').replace(/\*/g, '').trim();
         const isArea = el.tagName === 'TEXTAREA';
-        const isReadOnly = el.hasAttribute('readonly');
-        if (isReadOnly) return 'Output will appear here…';
-        if (!l) return isArea ? 'Paste or type here…' : 'Type here…';
-        const base = l.toLowerCase();
-        if (base.includes('json')) return 'Paste raw JSON here…';
-        if (base.includes('keyword')) return 'Enter your target keyword…';
-        if (base.includes('url')) return 'Paste a URL…';
-        if (base.includes('email')) return 'Enter an email subject/topic…';
-        if (base.includes('topic')) return 'Enter a topic or keyword…';
-        if (base.includes('audience')) return 'Describe your target audience…';
-        if (base.includes('date')) return 'Pick a date and time…';
-        if (base.includes('timestamp')) return 'Paste a Unix timestamp…';
-        return isArea ? `Paste ${l.toLowerCase()} here…` : `Enter ${l.toLowerCase()}…`;
+        if (el.hasAttribute('readonly')) return 'Output will appear here\u2026';
+        if (!l) return isArea ? 'Paste or type here\u2026' : 'Type here\u2026';
+        const b = l.toLowerCase();
+        if (b.includes('json')) return 'Paste raw JSON here\u2026';
+        if (b.includes('keyword')) return 'Enter your target keyword\u2026';
+        if (b.includes('url')) return 'Paste a URL\u2026';
+        if (b.includes('email')) return 'Enter an email subject/topic\u2026';
+        if (b.includes('topic')) return 'Enter a topic or keyword\u2026';
+        if (b.includes('timestamp')) return 'Paste a Unix timestamp\u2026';
+        return isArea ? 'Paste ' + l.toLowerCase() + ' here\u2026' : 'Enter ' + l.toLowerCase() + '\u2026';
     }
     function run() {
         const root = document.querySelector('.tool-canvas');
         if (!root) return;
         root.querySelectorAll('textarea, input').forEach(el => {
-            if (el.type === 'file' || el.type === 'range' || el.type === 'radio' || el.type === 'checkbox') return;
+            if (['file','range','radio','checkbox'].includes(el.type)) return;
             const ph = el.getAttribute('placeholder') || '';
             if (!isGeneric(ph)) return;
-            el.setAttribute('placeholder', friendlyFromLabel(nearestLabelText(el), el));
+            el.setAttribute('placeholder', friendly(nearestLabel(el), el));
         });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
