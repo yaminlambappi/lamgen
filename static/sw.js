@@ -30,6 +30,9 @@ self.addEventListener('fetch', event => {
     
     // Ignore external APIs, ads, and dynamic user routes
     const url = new URL(event.request.url);
+    if (url.pathname.startsWith('/tools/api/')) {
+        return;
+    }
     if (!url.pathname.startsWith('/static/') && !url.pathname.startsWith('/tools/')) {
         return;
     }

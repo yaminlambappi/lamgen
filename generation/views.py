@@ -275,3 +275,120 @@ def edit_outline(request, pk):
     outline.sections = data.get('sections', outline.sections)
     outline.save(update_fields=['sections'])
     return JsonResponse({'success': True})
+
+
+# ---------------------------------------------------------------------------
+# Authenticated media serving via X-Accel-Redirect (Req 5.1, 5.2, 5.3, 5.4)
+# ---------------------------------------------------------------------------
+
+# MIME types that are safe to serve as downloads.
+# We never set Content-Type to an executable type (Req 5.4).
+_SAFE_CONTENT_TYPES = {
+    '.pdf':  'application/pdf',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.doc':  'application/msword',
+    '.txt':  'text/plain',
+    '.png':  'image/png',
+    '.jpg':  'image/jpeg',
+    '.jpeg': 'image/jpeg',
+}
+
+_EXECUTABLE_MIME_TYPES = {
+    'application/x-msdownload',
+    'application/x-executable',
+    'application/x-sh',
+    'text/x-shellscript',
+    'application/x-php',
+}
+
+
+@login_required
+def serve_protected_media(request, path):
+    """
+    Authenticated media-serving view.
+
+    Verifies that the requesting user owns the file referenced by *path*
+    (relative to MEDIA_ROOT), then delegates the actual byte transfer to
+    Nginx via the X-Accel-Redirect mechanism.  External requests to
+    /protected-media/ are blocked by the ``internal`` directive in nginx.conf,
+    so only this view can trigger a real file transfer.
+
+    Ownership rules
+    ---------------
+    uploads/<filename>  — must match a GenerationJob.input_file or
+                          ThesisRequest.input_file owned by request.user.
+    outputs/<filename>  — must match a GenerationJob.output_docx,
+                          GenerationJob.output_pdf, or ThesisRequest.output_file
+                          owned by request.user.
+
+    Requirements: 5.1, 5.2, 5.3, 5.4
+    """
+    # Normalise path — strip leading slashes to prevent directory traversal.
+    # os.path.normpath collapses ".." components; we then reject any path that
+    # still tries to escape the media root.
+    normalised = os.path.normpath(path).lstrip('/')
+    if normalised.startswith('..'):
+        raise Http404('Invalid path.')
+
+    # Determine the top-level prefix (uploads/ or outputs/).
+    parts = normalised.split('/', 1)
+    prefix = parts[0] if parts else ''
+
+    user = request.user
+    owned = False
+
+    if prefix == 'uploads':
+        # Check GenerationJob ownership
+        owned = GenerationJob.objects.filter(
+            user=user,
+            input_file=normalised,
+        ).exists()
+
+        # Check ThesisRequest ownership
+        if not owned:
+            from thesis.models import ThesisRequest
+            owned = ThesisRequest.objects.filter(
+                user=user,
+                input_file=normalised,
+            ).exists()
+
+    elif prefix == 'outputs':
+        # Check GenerationJob ownership (DOCX or PDF)
+        owned = GenerationJob.objects.filter(
+            user=user,
+            output_docx=normalised,
+        ).exists()
+        if not owned:
+            owned = GenerationJob.objects.filter(
+                user=user,
+                output_pdf=normalised,
+            ).exists()
+
+        # Check ThesisRequest ownership
+        if not owned:
+            from thesis.models import ThesisRequest
+            owned = ThesisRequest.objects.filter(
+                user=user,
+                output_file=normalised,
+            ).exists()
+
+    if not owned:
+        # Return 404 rather than 403 to avoid disclosing whether the file
+        # exists but belongs to another user (Req 11.4).
+        raise Http404('File not found.')
+
+    # Determine a safe Content-Type from the file extension (Req 5.4).
+    _, ext = os.path.splitext(normalised)
+    content_type = _SAFE_CONTENT_TYPES.get(ext.lower(), 'application/octet-stream')
+
+    # Build a safe filename for Content-Disposition.
+    filename = os.path.basename(normalised)
+
+    response = HttpResponse()
+    # Let Nginx serve the file bytes; Django only sets headers.
+    response['X-Accel-Redirect'] = f'/protected-media/{normalised}'
+    # Clear Content-Type so Nginx can set it, but we also set a safe fallback.
+    response['Content-Type'] = content_type
+    # Force download — never execute (Req 5.4).
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

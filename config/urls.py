@@ -7,6 +7,15 @@ from django.http import HttpResponse
 from django.contrib.sitemaps.views import sitemap, index as sitemap_index
 from django.views.decorators.cache import cache_page
 from tools.views import og_image_view
+from generation.views import serve_protected_media
+
+# Import new sitemap engine if available, fallback to old
+try:
+    from seo.engine.sitemap import get_sitemaps as get_new_sitemaps, rebuild_all_sitemaps, ping_search_engines
+    USE_NEW_SITEMAP = True
+except ImportError:
+    USE_NEW_SITEMAP = False
+    from seo.sitemaps import get_sitemaps
 
 
 def robots_txt(request):
@@ -17,6 +26,8 @@ def robots_txt(request):
         'Disallow: /accounts/',
         'Disallow: /api/',
         'Disallow: /embed/',
+        'Disallow: *.json',  # block API endpoints
+        'Disallow: /*?*',     # block duplicate query strings
         '',
         f'Sitemap: {settings.SITE_URL}/sitemap.xml',
     ]
@@ -24,30 +35,28 @@ def robots_txt(request):
 
 
 # Sitemaps
-def get_sitemaps():
-    try:
-        from seo.sitemaps import ToolSitemap, CategorySitemap, SEOPageSitemap, StaticViewSitemap, LongTailSitemap
-        from blog.sitemaps import BlogSitemap
-        return {
-            'static': StaticViewSitemap,
-            'tools': ToolSitemap,
-            'categories': CategorySitemap,
-            'seo_pages': SEOPageSitemap,
-            'longtail': LongTailSitemap,
-            'blog': BlogSitemap,
-        }
-    except Exception:
-        return {}
-
-
-sitemaps = get_sitemaps()
+if USE_NEW_SITEMAP:
+    sitemaps = get_new_sitemaps()
+else:
+    sitemaps = get_sitemaps()
 
 from tools.views import index as control_center_view
 
-urlpatterns = [
+_urlpatterns_prefix = []
+if settings.DEBUG:
+    # In development, serve media files directly from disk without auth so
+    # developers can access files without needing to log in.  In production
+    # this block is skipped and the authenticated serve_protected_media view
+    # (below) handles all /media/ requests via Nginx X-Accel-Redirect.
+    _urlpatterns_prefix += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns = _urlpatterns_prefix + [
     path('admin/', admin.site.urls),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('og-image/<slug:category_slug>/<slug:tool_slug>.png', og_image_view, name='og_image'),
+    # Authenticated media serving — replaces direct Nginx /media/ serving (Req 5.1, 5.2, 5.3)
+    # In DEBUG mode the static() patterns above take precedence (matched first).
+    path('media/<path:path>', serve_protected_media, name='serve_protected_media'),
     # Sitemaps with Edge Caching (Paginated for scale)
     path('sitemap.xml', cache_page(86400)(sitemap_index), {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.index'),
     path('sitemap-<section>.xml', cache_page(86400)(sitemap), {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
@@ -67,5 +76,5 @@ urlpatterns += i18n_patterns(
 )
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    pass  # DEBUG media serving is already prepended above
 

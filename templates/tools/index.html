@@ -29,13 +29,13 @@
 
     /* Section zone titles */
     .zone-title {
-        font-family: 'Syne', sans-serif;
-        font-size: 0.72rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: var(--lg-text-muted);
-        margin-bottom: 1rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--lg-text-muted);
+    margin-bottom: 1.25rem;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -114,17 +114,18 @@
         box-shadow: 0 4px 16px var(--cat-color, var(--lg-violet))44;
     }
     .ws-info h3 {
-        font-size: 0.88rem;
-        font-weight: 700;
-        font-family: 'Syne', sans-serif;
-        margin: 0 0 2px;
+        font-size: var(--fs-base);
+        font-weight: var(--fw-bold);
+        font-family: var(--font-display);
+        margin: 0 0 4px;
         color: var(--lg-text);
     }
     .ws-meta {
-        display: flex; align-items: center; gap: 6px;
-        font-size: 0.68rem;
+        display: flex; align-items: center; gap: 8px;
+        font-size: var(--fs-xs);
         color: var(--lg-text-muted);
-        font-family: monospace;
+        font-family: var(--font-primary);
+        font-weight: var(--fw-medium);
     }
     .ws-meta span { display: flex; align-items: center; gap: 4px; }
     .ws-meta span::before {
@@ -154,20 +155,20 @@
     }
     .action-link i { font-size: 1rem; flex-shrink: 0; }
     .action-text {
-        font-size: 0.84rem;
-        font-weight: 600;
+        font-size: var(--fs-base);
+        font-weight: var(--fw-semibold);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         flex: 1;
     }
     .action-label {
-        font-size: 0.62rem;
-        padding: 2px 7px;
+        font-size: var(--fs-xs);
+        padding: 2px 8px;
         background: rgba(120,110,255,0.12);
         border: 1px solid rgba(120,110,255,0.14);
         border-radius: 50px;
-        font-family: monospace;
+        font-family: var(--font-primary);
         text-transform: uppercase;
         color: var(--lg-text-muted);
         flex-shrink: 0;
@@ -175,12 +176,12 @@
 
     /* Panel section label */
     .panel-label {
-        font-size: 0.65rem;
-        font-weight: 700;
+        font-size: var(--fs-xs);
+        font-weight: var(--fw-bold);
         color: var(--lg-text-helper);
         text-transform: uppercase;
-        letter-spacing: 1.2px;
-        margin-bottom: 0.85rem;
+        letter-spacing: 1.5px;
+        margin-bottom: 1rem;
     }
 
     /* Tool grid */
@@ -209,8 +210,8 @@
     .t-icon { font-size: 1.05rem; flex-shrink: 0; }
     .t-details { flex: 1; overflow: hidden; }
     .t-name {
-        font-size: 0.83rem;
-        font-weight: 600;
+        font-size: var(--fs-sm);
+        font-weight: var(--fw-semibold);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -230,7 +231,6 @@
 
 {% block content %}
 <div class="os-shell">
-
     <!-- Active Systems -->
     <div>
         <div class="zone-title" style="color:var(--lg-cyan);"><i class="bi bi-cpu"></i> Active Systems</div>
@@ -255,9 +255,9 @@
             <!-- Mini Games Hub -->
             <div class="panel span-4">
                 <div class="panel-label">Mini Games</div>
-                <div style="margin-bottom:12px;">
-                    <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; color:var(--lg-text);">Fast games for slow moments.</div>
-                    <div style="font-size:0.75rem; color:var(--lg-text-muted);">Launch instantly. No login needed.</div>
+                <div style="margin-bottom:16px;">
+                    <div style="font-family:var(--font-display); font-weight:var(--fw-bold); font-size:var(--fs-base); color:var(--lg-text);">Fast games for slow moments.</div>
+                    <div style="font-size:var(--fs-sm); color:var(--lg-text-muted); font-weight:var(--fw-medium);">Launch instantly. No login needed.</div>
                 </div>
                 <div class="action-list">
                     {% for game in nav_games|slice:":4" %}

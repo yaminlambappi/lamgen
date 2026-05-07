@@ -5,6 +5,7 @@ app_name = 'tools'
 
 urlpatterns = [
     path('', views.tools_index_view, name='index'),
+    path('api/islamic-panel/', views.islamic_panel_api, name='islamic_panel_api'),
     path('search/', views.search_view, name='search'),
     path('trending/', views.trending_view, name='trending'),
     path('bookmark/toggle/', views.toggle_bookmark, name='bookmark'),

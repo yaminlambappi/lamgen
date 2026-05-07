@@ -91,7 +91,9 @@ class LongTailVariant(models.Model):
     )
     variant_slug = models.SlugField(max_length=100)
     keyword_intent = models.CharField(max_length=20, choices=INTENT_CHOICES)
-    unique_intro = models.TextField()
+    unique_intro = models.TextField(help_text="Unique 200-300 word intro for this variant")
+    use_cases = models.JSONField(default=list, help_text="List of use case strings")
+    faq_items = models.JSONField(default=list, help_text="List of {'q', 'a'} FAQ dicts")
     meta_title = models.CharField(max_length=70)
     meta_description = models.CharField(max_length=160)
     is_active = models.BooleanField(default=True)
@@ -115,4 +117,5 @@ class LongTailVariant(models.Model):
 
     @property
     def canonical(self):
-        return self.tool.get_absolute_url()
+        """Self-referential canonical for standalone indexing."""
+        return self.get_absolute_url()

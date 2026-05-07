@@ -1,0 +1,375 @@
+{
+  "meta": {
+    "schema_version": 2,
+    "dataset_name": "LamGen Quran Banner Verified Dataset",
+    "translation_source": "Saheeh International",
+    "arabic_text_source": "Quran.com API v4 Uthmani text",
+    "verification_source": "Quran.com API v4",
+    "entry_count": 40,
+    "ayah_sha256": "aa1b23128d409b4aac0ca0ae7e5e459e53747839fdff999e8245b9343bcd2747",
+    "generated_at": "2026-05-07T13:53:34.095452Z",
+    "sanitization_note": "Canonical translation wording preserved exactly; upstream HTML footnote markers removed during rendering-safe sanitization."
+  },
+  "ayat": [
+    {
+      "verse_key": "1:1",
+      "surah_number": 1,
+      "surah_name": "Al-Fatihah",
+      "ayah_number": 1,
+      "arabic_text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
+      "translation_text": "In the name of Allāh, the Entirely Merciful, the Especially Merciful.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "1:2",
+      "surah_number": 1,
+      "surah_name": "Al-Fatihah",
+      "ayah_number": 2,
+      "arabic_text": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+      "translation_text": "[All] praise is [due] to Allāh, Lord of the worlds -",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "94:6",
+      "surah_number": 94,
+      "surah_name": "Ash-Sharh",
+      "ayah_number": 6,
+      "arabic_text": "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "translation_text": "Indeed, with hardship [will be] ease.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "94:5",
+      "surah_number": 94,
+      "surah_name": "Ash-Sharh",
+      "ayah_number": 5,
+      "arabic_text": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
+      "translation_text": "For indeed, with hardship [will be] ease [i.e., relief].",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "57:4",
+      "surah_number": 57,
+      "surah_name": "Al-Hadid",
+      "ayah_number": 4,
+      "arabic_text": "هُوَ ٱلَّذِى خَلَقَ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ فِى سِتَّةِ أَيَّامٍ ثُمَّ ٱسْتَوَىٰ عَلَى ٱلْعَرْشِ ۚ يَعْلَمُ مَا يَلِجُ فِى ٱلْأَرْضِ وَمَا يَخْرُجُ مِنْهَا وَمَا يَنزِلُ مِنَ ٱلسَّمَآءِ وَمَا يَعْرُجُ فِيهَا ۖ وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ ۚ وَٱللَّهُ بِمَا تَعْمَلُونَ بَصِيرٌ",
+      "translation_text": "It is He who created the heavens and earth in six days and then established Himself above the Throne. He knows what penetrates into the earth and what emerges from it and what descends from the heaven and what ascends therein; and He is with you wherever you are. And Allāh, of what you do, is Seeing.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:153",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 153,
+      "arabic_text": "يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱسْتَعِينُوا۟ بِٱلصَّبْرِ وَٱلصَّلَوٰةِ ۚ إِنَّ ٱللَّهَ مَعَ ٱلصَّـٰبِرِينَ",
+      "translation_text": "O you who have believed, seek help through patience and prayer. Indeed, Allāh is with the patient.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:186",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 186,
+      "arabic_text": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ ۖ أُجِيبُ دَعْوَةَ ٱلدَّاعِ إِذَا دَعَانِ ۖ فَلْيَسْتَجِيبُوا۟ لِى وَلْيُؤْمِنُوا۟ بِى لَعَلَّهُمْ يَرْشُدُونَ",
+      "translation_text": "And when My servants ask you, [O Muḥammad], concerning Me - indeed I am near. I respond to the invocation of the supplicant when he calls upon Me. So let them respond to Me [by obedience] and believe in Me that they may be [rightly] guided.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "3:173",
+      "surah_number": 3,
+      "surah_name": "Ali 'Imran",
+      "ayah_number": 173,
+      "arabic_text": "ٱلَّذِينَ قَالَ لَهُمُ ٱلنَّاسُ إِنَّ ٱلنَّاسَ قَدْ جَمَعُوا۟ لَكُمْ فَٱخْشَوْهُمْ فَزَادَهُمْ إِيمَـٰنًا وَقَالُوا۟ حَسْبُنَا ٱللَّهُ وَنِعْمَ ٱلْوَكِيلُ",
+      "translation_text": "Those to whom people [i.e., hypocrites] said, \"Indeed, the people have gathered against you, so fear them.\" But it [merely] increased them in faith, and they said, \"Sufficient for us is Allāh, and [He is] the best Disposer of affairs.\"",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "12:87",
+      "surah_number": 12,
+      "surah_name": "Yusuf",
+      "ayah_number": 87,
+      "arabic_text": "يَـٰبَنِىَّ ٱذْهَبُوا۟ فَتَحَسَّسُوا۟ مِن يُوسُفَ وَأَخِيهِ وَلَا تَا۟يْـَٔسُوا۟ مِن رَّوْحِ ٱللَّهِ ۖ إِنَّهُۥ لَا يَا۟يْـَٔسُ مِن رَّوْحِ ٱللَّهِ إِلَّا ٱلْقَوْمُ ٱلْكَـٰفِرُونَ",
+      "translation_text": "O my sons, go and find out about Joseph and his brother and despair not of relief from Allāh. Indeed, no one despairs of relief from Allāh except the disbelieving people.\"",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "3:146",
+      "surah_number": 3,
+      "surah_name": "Ali 'Imran",
+      "ayah_number": 146,
+      "arabic_text": "وَكَأَيِّن مِّن نَّبِىٍّ قَـٰتَلَ مَعَهُۥ رِبِّيُّونَ كَثِيرٌ فَمَا وَهَنُوا۟ لِمَآ أَصَابَهُمْ فِى سَبِيلِ ٱللَّهِ وَمَا ضَعُفُوا۟ وَمَا ٱسْتَكَانُوا۟ ۗ وَٱللَّهُ يُحِبُّ ٱلصَّـٰبِرِينَ",
+      "translation_text": "And how many a prophet [fought in battle and] with him fought many religious scholars. But they never lost assurance due to what afflicted them in the cause of Allāh, nor did they weaken or submit. And Allāh loves the steadfast.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:201",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 201,
+      "arabic_text": "وَمِنْهُم مَّن يَقُولُ رَبَّنَآ ءَاتِنَا فِى ٱلدُّنْيَا حَسَنَةً وَفِى ٱلْـَٔاخِرَةِ حَسَنَةً وَقِنَا عَذَابَ ٱلنَّارِ",
+      "translation_text": "But among them is he who says, \"Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.\"",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:216",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 216,
+      "arabic_text": "كُتِبَ عَلَيْكُمُ ٱلْقِتَالُ وَهُوَ كُرْهٌ لَّكُمْ ۖ وَعَسَىٰٓ أَن تَكْرَهُوا۟ شَيْـًٔا وَهُوَ خَيْرٌ لَّكُمْ ۖ وَعَسَىٰٓ أَن تُحِبُّوا۟ شَيْـًٔا وَهُوَ شَرٌّ لَّكُمْ ۗ وَٱللَّهُ يَعْلَمُ وَأَنتُمْ لَا تَعْلَمُونَ",
+      "translation_text": "Battle has been enjoined upon you while it is hateful to you. But perhaps you hate a thing and it is good for you; and perhaps you love a thing and it is bad for you. And Allāh knows, while you know not.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "9:120",
+      "surah_number": 9,
+      "surah_name": "At-Tawbah",
+      "ayah_number": 120,
+      "arabic_text": "مَا كَانَ لِأَهْلِ ٱلْمَدِينَةِ وَمَنْ حَوْلَهُم مِّنَ ٱلْأَعْرَابِ أَن يَتَخَلَّفُوا۟ عَن رَّسُولِ ٱللَّهِ وَلَا يَرْغَبُوا۟ بِأَنفُسِهِمْ عَن نَّفْسِهِۦ ۚ ذَٰلِكَ بِأَنَّهُمْ لَا يُصِيبُهُمْ ظَمَأٌ وَلَا نَصَبٌ وَلَا مَخْمَصَةٌ فِى سَبِيلِ ٱللَّهِ وَلَا يَطَـُٔونَ مَوْطِئًا يَغِيظُ ٱلْكُفَّارَ وَلَا يَنَالُونَ مِنْ عَدُوٍّ نَّيْلًا إِلَّا كُتِبَ لَهُم بِهِۦ عَمَلٌ صَـٰلِحٌ ۚ إِنَّ ٱللَّهَ لَا يُضِيعُ أَجْرَ ٱلْمُحْسِنِينَ",
+      "translation_text": "It was not [proper] for the people of Madīnah and those surrounding them of the bedouins that they remain behind after [the departure of] the Messenger of Allāh or that they prefer themselves over his self. That is because they are not afflicted by thirst or fatigue or hunger in the cause of Allāh, nor do they tread on any ground that enrages the disbelievers, nor do they inflict upon an enemy any infliction but that it is registered for them as a righteous deed. Indeed, Allāh does not allow to be lost the reward of the doers of good.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "65:3",
+      "surah_number": 65,
+      "surah_name": "At-Talaq",
+      "ayah_number": 3,
+      "arabic_text": "وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ ۚ وَمَن يَتَوَكَّلْ عَلَى ٱللَّهِ فَهُوَ حَسْبُهُۥٓ ۚ إِنَّ ٱللَّهَ بَـٰلِغُ أَمْرِهِۦ ۚ قَدْ جَعَلَ ٱللَّهُ لِكُلِّ شَىْءٍ قَدْرًا",
+      "translation_text": "And will provide for him from where he does not expect. And whoever relies upon Allāh - then He is sufficient for him. Indeed, Allāh will accomplish His purpose. Allāh has already set for everything a [decreed] extent.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "20:114",
+      "surah_number": 20,
+      "surah_name": "Taha",
+      "ayah_number": 114,
+      "arabic_text": "فَتَعَـٰلَى ٱللَّهُ ٱلْمَلِكُ ٱلْحَقُّ ۗ وَلَا تَعْجَلْ بِٱلْقُرْءَانِ مِن قَبْلِ أَن يُقْضَىٰٓ إِلَيْكَ وَحْيُهُۥ ۖ وَقُل رَّبِّ زِدْنِى عِلْمًا",
+      "translation_text": "So high [above all] is Allāh, the Sovereign, the Truth. And, [O Muḥammad], do not hasten with [recitation of] the Qur’ān before its revelation is completed to you, and say, \"My Lord, increase me in knowledge.\"",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "42:19",
+      "surah_number": 42,
+      "surah_name": "Ash-Shuraa",
+      "ayah_number": 19,
+      "arabic_text": "ٱللَّهُ لَطِيفٌۢ بِعِبَادِهِۦ يَرْزُقُ مَن يَشَآءُ ۖ وَهُوَ ٱلْقَوِىُّ ٱلْعَزِيزُ",
+      "translation_text": "Allāh is Subtle with His servants; He gives provision to whom He wills. And He is the Powerful, the Exalted in Might.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "33:3",
+      "surah_number": 33,
+      "surah_name": "Al-Ahzab",
+      "ayah_number": 3,
+      "arabic_text": "وَتَوَكَّلْ عَلَى ٱللَّهِ ۚ وَكَفَىٰ بِٱللَّهِ وَكِيلًا",
+      "translation_text": "And rely upon Allāh; and sufficient is Allāh as Disposer of affairs.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "16:128",
+      "surah_number": 16,
+      "surah_name": "An-Nahl",
+      "ayah_number": 128,
+      "arabic_text": "إِنَّ ٱللَّهَ مَعَ ٱلَّذِينَ ٱتَّقَوا۟ وَّٱلَّذِينَ هُم مُّحْسِنُونَ",
+      "translation_text": "Indeed, Allāh is with those who fear Him and those who are doers of good.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "20:25",
+      "surah_number": 20,
+      "surah_name": "Taha",
+      "ayah_number": 25,
+      "arabic_text": "قَالَ رَبِّ ٱشْرَحْ لِى صَدْرِى",
+      "translation_text": "[Moses] said, \"My Lord, expand [i.e., relax] for me my breast [with assurance]",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:255",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 255,
+      "arabic_text": "ٱللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُۥ مَا فِى ٱلسَّمَـٰوَٰتِ وَمَا فِى ٱلْأَرْضِ ۗ مَن ذَا ٱلَّذِى يَشْفَعُ عِندَهُۥٓ إِلَّا بِإِذْنِهِۦ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَىْءٍ مِّنْ عِلْمِهِۦٓ إِلَّا بِمَا شَآءَ ۚ وَسِعَ كُرْسِيُّهُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ ۖ وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ",
+      "translation_text": "Allāh - there is no deity except Him, the Ever-Living, the Self-Sustaining. Neither drowsiness overtakes Him nor sleep. To Him belongs whatever is in the heavens and whatever is on the earth. Who is it that can intercede with Him except by His permission? He knows what is [presently] before them and what will be after them, and they encompass not a thing of His knowledge except for what He wills. His Kursī extends over the heavens and the earth, and their preservation tires Him not. And He is the Most High, the Most Great.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "50:16",
+      "surah_number": 50,
+      "surah_name": "Qaf",
+      "ayah_number": 16,
+      "arabic_text": "وَلَقَدْ خَلَقْنَا ٱلْإِنسَـٰنَ وَنَعْلَمُ مَا تُوَسْوِسُ بِهِۦ نَفْسُهُۥ ۖ وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ ٱلْوَرِيدِ",
+      "translation_text": "And We have already created man and know what his soul whispers to him, and We are closer to him than [his] jugular vein.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:152",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 152,
+      "arabic_text": "فَٱذْكُرُونِىٓ أَذْكُرْكُمْ وَٱشْكُرُوا۟ لِى وَلَا تَكْفُرُونِ",
+      "translation_text": "So remember Me; I will remember you. And be grateful to Me and do not deny Me.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "13:11",
+      "surah_number": 13,
+      "surah_name": "Ar-Ra'd",
+      "ayah_number": 11,
+      "arabic_text": "لَهُۥ مُعَقِّبَـٰتٌ مِّنۢ بَيْنِ يَدَيْهِ وَمِنْ خَلْفِهِۦ يَحْفَظُونَهُۥ مِنْ أَمْرِ ٱللَّهِ ۗ إِنَّ ٱللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا۟ مَا بِأَنفُسِهِمْ ۗ وَإِذَآ أَرَادَ ٱللَّهُ بِقَوْمٍ سُوٓءًا فَلَا مَرَدَّ لَهُۥ ۚ وَمَا لَهُم مِّن دُونِهِۦ مِن وَالٍ",
+      "translation_text": "For him [i.e., each one] are successive [angels] before and behind him who protect him by the decree of Allāh. Indeed, Allāh will not change the condition of a people until they change what is in themselves. And when Allāh intends for a people ill, there is no repelling it. And there is not for them besides Him any patron.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "13:28",
+      "surah_number": 13,
+      "surah_name": "Ar-Ra'd",
+      "ayah_number": 28,
+      "arabic_text": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
+      "translation_text": "Those who have believed and whose hearts are assured by the remembrance of Allāh. Unquestionably, by the remembrance of Allāh hearts are assured.\"",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "93:5",
+      "surah_number": 93,
+      "surah_name": "Ad-Duhaa",
+      "ayah_number": 5,
+      "arabic_text": "وَلَسَوْفَ يُعْطِيكَ رَبُّكَ فَتَرْضَىٰٓ",
+      "translation_text": "And your Lord is going to give you, and you will be satisfied.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "93:4",
+      "surah_number": 93,
+      "surah_name": "Ad-Duhaa",
+      "ayah_number": 4,
+      "arabic_text": "وَلَلْـَٔاخِرَةُ خَيْرٌ لَّكَ مِنَ ٱلْأُولَىٰ",
+      "translation_text": "And the Hereafter is better for you than the first [life].",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "11:88",
+      "surah_number": 11,
+      "surah_name": "Hud",
+      "ayah_number": 88,
+      "arabic_text": "قَالَ يَـٰقَوْمِ أَرَءَيْتُمْ إِن كُنتُ عَلَىٰ بَيِّنَةٍ مِّن رَّبِّى وَرَزَقَنِى مِنْهُ رِزْقًا حَسَنًا ۚ وَمَآ أُرِيدُ أَنْ أُخَالِفَكُمْ إِلَىٰ مَآ أَنْهَىٰكُمْ عَنْهُ ۚ إِنْ أُرِيدُ إِلَّا ٱلْإِصْلَـٰحَ مَا ٱسْتَطَعْتُ ۚ وَمَا تَوْفِيقِىٓ إِلَّا بِٱللَّهِ ۚ عَلَيْهِ تَوَكَّلْتُ وَإِلَيْهِ أُنِيبُ",
+      "translation_text": "He said, \"O my people, have you considered: if I am upon clear evidence from my Lord and He has provided me with a good provision from Him...? And I do not intend to differ from you in that which I have forbidden you; I only intend reform as much as I am able. And my success is not but through Allāh. Upon Him I have relied, and to Him I return.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "62:11",
+      "surah_number": 62,
+      "surah_name": "Al-Jumu'ah",
+      "ayah_number": 11,
+      "arabic_text": "وَإِذَا رَأَوْا۟ تِجَـٰرَةً أَوْ لَهْوًا ٱنفَضُّوٓا۟ إِلَيْهَا وَتَرَكُوكَ قَآئِمًا ۚ قُلْ مَا عِندَ ٱللَّهِ خَيْرٌ مِّنَ ٱللَّهْوِ وَمِنَ ٱلتِّجَـٰرَةِ ۚ وَٱللَّهُ خَيْرُ ٱلرَّٰزِقِينَ",
+      "translation_text": "But [on one occasion] when they saw a transaction or a diversion, [O Muḥammad], they rushed to it and left you standing. Say, \"What is with Allāh is better than diversion and than a transaction, and Allāh is the best of providers.\"",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "11:44",
+      "surah_number": 11,
+      "surah_name": "Hud",
+      "ayah_number": 44,
+      "arabic_text": "وَقِيلَ يَـٰٓأَرْضُ ٱبْلَعِى مَآءَكِ وَيَـٰسَمَآءُ أَقْلِعِى وَغِيضَ ٱلْمَآءُ وَقُضِىَ ٱلْأَمْرُ وَٱسْتَوَتْ عَلَى ٱلْجُودِىِّ ۖ وَقِيلَ بُعْدًا لِّلْقَوْمِ ٱلظَّـٰلِمِينَ",
+      "translation_text": "And it was said, \"O earth, swallow your water, and O sky, withhold [your rain].\" And the water subsided, and the matter was accomplished, and it [i.e., the ship] came to rest on the [mountain of] Jūdiyy. And it was said, \"Away with the wrongdoing people.\"",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "112:1",
+      "surah_number": 112,
+      "surah_name": "Al-Ikhlas",
+      "ayah_number": 1,
+      "arabic_text": " قُلْ هُوَ ٱللَّهُ أَحَدٌ",
+      "translation_text": "Say, \"He is Allāh, [who is] One,",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:195",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 195,
+      "arabic_text": "وَأَنفِقُوا۟ فِى سَبِيلِ ٱللَّهِ وَلَا تُلْقُوا۟ بِأَيْدِيكُمْ إِلَى ٱلتَّهْلُكَةِ ۛ وَأَحْسِنُوٓا۟ ۛ إِنَّ ٱللَّهَ يُحِبُّ ٱلْمُحْسِنِينَ",
+      "translation_text": "And spend in the way of Allāh and do not throw [yourselves] with your [own] hands into destruction [by refraining]. And do good; indeed, Allāh loves the doers of good.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:173",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 173,
+      "arabic_text": "إِنَّمَا حَرَّمَ عَلَيْكُمُ ٱلْمَيْتَةَ وَٱلدَّمَ وَلَحْمَ ٱلْخِنزِيرِ وَمَآ أُهِلَّ بِهِۦ لِغَيْرِ ٱللَّهِ ۖ فَمَنِ ٱضْطُرَّ غَيْرَ بَاغٍ وَلَا عَادٍ فَلَآ إِثْمَ عَلَيْهِ ۚ إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ",
+      "translation_text": "He has only forbidden to you dead animals, blood, the flesh of swine, and that which has been dedicated to other than Allāh. But whoever is forced [by necessity], neither desiring [it] nor transgressing [its limit], there is no sin upon him. Indeed, Allāh is Forgiving and Merciful.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:194",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 194,
+      "arabic_text": "ٱلشَّهْرُ ٱلْحَرَامُ بِٱلشَّهْرِ ٱلْحَرَامِ وَٱلْحُرُمَـٰتُ قِصَاصٌ ۚ فَمَنِ ٱعْتَدَىٰ عَلَيْكُمْ فَٱعْتَدُوا۟ عَلَيْهِ بِمِثْلِ مَا ٱعْتَدَىٰ عَلَيْكُمْ ۚ وَٱتَّقُوا۟ ٱللَّهَ وَٱعْلَمُوٓا۟ أَنَّ ٱللَّهَ مَعَ ٱلْمُتَّقِينَ",
+      "translation_text": "[Battle in] the sacred month is for [aggression committed in] the sacred month, and for [all] violations is legal retribution. So whoever has assaulted you, then assault him in the same way that he has assaulted you. And fear Allāh and know that Allāh is with those who fear Him.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:185",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 185,
+      "arabic_text": "شَهْرُ رَمَضَانَ ٱلَّذِىٓ أُنزِلَ فِيهِ ٱلْقُرْءَانُ هُدًى لِّلنَّاسِ وَبَيِّنَـٰتٍ مِّنَ ٱلْهُدَىٰ وَٱلْفُرْقَانِ ۚ فَمَن شَهِدَ مِنكُمُ ٱلشَّهْرَ فَلْيَصُمْهُ ۖ وَمَن كَانَ مَرِيضًا أَوْ عَلَىٰ سَفَرٍ فَعِدَّةٌ مِّنْ أَيَّامٍ أُخَرَ ۗ يُرِيدُ ٱللَّهُ بِكُمُ ٱلْيُسْرَ وَلَا يُرِيدُ بِكُمُ ٱلْعُسْرَ وَلِتُكْمِلُوا۟ ٱلْعِدَّةَ وَلِتُكَبِّرُوا۟ ٱللَّهَ عَلَىٰ مَا هَدَىٰكُمْ وَلَعَلَّكُمْ تَشْكُرُونَ",
+      "translation_text": "The month of Ramaḍān [is that] in which was revealed the Qur’ān, a guidance for the people and clear proofs of guidance and criterion. So whoever sights [the crescent of] the month, let him fast it; and whoever is ill or on a journey - then an equal number of other days. Allāh intends for you ease and does not intend for you hardship and [wants] for you to complete the period and to glorify Allāh for that [to] which He has guided you; and perhaps you will be grateful.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "2:155",
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "ayah_number": 155,
+      "arabic_text": "وَلَنَبْلُوَنَّكُم بِشَىْءٍ مِّنَ ٱلْخَوْفِ وَٱلْجُوعِ وَنَقْصٍ مِّنَ ٱلْأَمْوَٰلِ وَٱلْأَنفُسِ وَٱلثَّمَرَٰتِ ۗ وَبَشِّرِ ٱلصَّـٰبِرِينَ",
+      "translation_text": "And We will surely test you with something of fear and hunger and a loss of wealth and lives and fruits, but give good tidings to the patient,",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "108:1",
+      "surah_number": 108,
+      "surah_name": "Al-Kawthar",
+      "ayah_number": 1,
+      "arabic_text": " إِنَّآ أَعْطَيْنَـٰكَ ٱلْكَوْثَرَ",
+      "translation_text": "Indeed, We have granted you, [O Muḥammad], al-Kawthar.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "94:1",
+      "surah_number": 94,
+      "surah_name": "Ash-Sharh",
+      "ayah_number": 1,
+      "arabic_text": " أَلَمْ نَشْرَحْ لَكَ صَدْرَكَ",
+      "translation_text": "Did We not expand for you, [O Muḥammad], your breast?",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "94:4",
+      "surah_number": 94,
+      "surah_name": "Ash-Sharh",
+      "ayah_number": 4,
+      "arabic_text": "وَرَفَعْنَا لَكَ ذِكْرَكَ",
+      "translation_text": "And raised high for you your repute.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "3:8",
+      "surah_number": 3,
+      "surah_name": "Ali 'Imran",
+      "ayah_number": 8,
+      "arabic_text": "رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِن لَّدُنكَ رَحْمَةً ۚ إِنَّكَ أَنتَ ٱلْوَهَّابُ",
+      "translation_text": "[Who say], \"Our Lord, let not our hearts deviate after You have guided us and grant us from Yourself mercy. Indeed, You are the Bestower.",
+      "translation_source": "Saheeh International"
+    },
+    {
+      "verse_key": "21:87",
+      "surah_number": 21,
+      "surah_name": "Al-Anbya",
+      "ayah_number": 87,
+      "arabic_text": "وَذَا ٱلنُّونِ إِذ ذَّهَبَ مُغَـٰضِبًا فَظَنَّ أَن لَّن نَّقْدِرَ عَلَيْهِ فَنَادَىٰ فِى ٱلظُّلُمَـٰتِ أَن لَّآ إِلَـٰهَ إِلَّآ أَنتَ سُبْحَـٰنَكَ إِنِّى كُنتُ مِنَ ٱلظَّـٰلِمِينَ",
+      "translation_text": "And [mention] the man of the fish [i.e., Jonah], when he went off in anger and thought that We would not decree [anything] upon him. And he called out within the darknesses, \"There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.\"",
+      "translation_source": "Saheeh International"
+    }
+  ]
+}

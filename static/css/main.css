@@ -27,11 +27,12 @@
     --lg-border-2: rgba(140,130,255,0.22);   /* elevated border */
     --lg-border-3: rgba(140,130,255,0.34);   /* active/focus border */
 
-    /* ── Text: Cool-white with blue tint, not warm gray ── */
-    --lg-text:        #EEF2FF;               /* primary — blue-white */
-    --lg-text-2:      rgba(210,218,255,0.90);/* secondary */
-    --lg-text-muted:  rgba(170,185,240,0.68);/* muted — blue-gray, not ash */
-    --lg-text-helper: rgba(140,158,220,0.50);/* helper / caption */
+    /* ── Text: Warm luminous yellow system ── */
+    --lg-text:        #F5E9B8;               /* primary warm luminous yellow */
+    --lg-text-2:      rgba(234,214,142,0.92);/* secondary soft golden-yellow */
+    --lg-text-muted:  rgba(210,184,108,0.78);/* muted golden-yellow */
+    --lg-text-helper: rgba(178,148,78,0.66); /* helper / subtle amber */
+    --lg-text-accent: #FFE37A;               /* important count/stats accent */
 
     /* ── Accent: Electric teal + intelligent violet ── */
     --lg-cyan:          #3EECD8;
@@ -122,6 +123,32 @@
     --content-max-width: 1440px;
     --shell-padding: clamp(1rem, 3vw, 2rem);
     --shell-gap: clamp(1.5rem, 4vw, 2.5rem);
+    --spiritual-banner-height: 100px;
+    --spiritual-banner-height-mobile: auto;
+    --layout-top-offset: 0.35rem;
+
+    /* ── Typography System — Inter & Space Grotesk ── */
+    --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-display: 'Space Grotesk', sans-serif;
+    
+    /* Fluid scale using clamp() — (min, viewport-preferred, max) */
+    --fs-xs:   clamp(0.7rem, 1vw, 0.8rem);
+    --fs-sm:   clamp(0.8rem, 1.2vw, 0.9rem);
+    --fs-base: clamp(0.95rem, 1.5vw, 1.05rem);
+    --fs-md:   clamp(1.1rem, 2vw, 1.25rem);
+    --fs-lg:   clamp(1.35rem, 3vw, 1.75rem);
+    --fs-xl:   clamp(1.75rem, 4vw, 2.5rem);
+    --fs-xxl:  clamp(2.5rem, 6vw, 4.5rem);
+    
+    --lh-base: 1.7;
+    --lh-tight: 1.25;
+    --lh-loose: 1.9;
+
+    --fw-light: 300;
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
 }
 
 /* ================================================================
@@ -131,12 +158,13 @@ html, body {
     height: 100%;
     background: var(--lg-bg);
     color: var(--lg-text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    line-height: 1.6;
+    font-family: var(--font-primary);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
+    font-weight: var(--fw-medium);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-image: radial-gradient(ellipse 100% 50% at 50% 0%, rgba(100,90,255,0.12) 0%, transparent 65%);
@@ -402,6 +430,779 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 }
+
+/* ================================================================
+   GLOBAL SPIRITUAL INFO BANNER — Premium Spiritual Dashboard
+   Typography: Layered white tones. Cyan only for active/timers.
+   ================================================================ */
+
+/* ── Spiritual typography tokens ── */
+:root {
+    --sp-white-primary:    #F0F4FF;               /* luminous white */
+    --sp-white-secondary:  rgba(220, 228, 255, 0.88); /* soft silver-white */
+    --sp-white-muted:      rgba(180, 192, 230, 0.62); /* cool gray-white */
+    --sp-white-subtle:     rgba(150, 165, 210, 0.44); /* very subtle */
+    --sp-cyan-active:      #3EECD8;               /* cyan — active only */
+    --sp-cyan-glow:        rgba(62, 236, 216, 0.18);
+}
+
+.islamic-bar-wrap {
+    width: 100%;
+    margin-bottom: 1rem;
+    pointer-events: auto;
+}
+
+.islamic-bar {
+    position: relative;
+    background: rgba(10, 12, 28, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        0 0 20px rgba(255, 255, 255, 0.08),
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+}
+
+.islamic-bar:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.2),
+        0 0 30px rgba(255, 255, 255, 0.12),
+        0 12px 40px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.islamic-bar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1.2rem;
+    gap: 1.5rem;
+    min-height: 60px;
+}
+
+/* Islamic Item Layout */
+.islamic-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+}
+
+.item-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    font-family: var(--font-display);
+}
+
+.item-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    font-family: var(--font-display);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.ayat-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.08rem;
+    min-width: 0;
+    max-width: 90%;
+    overflow: hidden;
+}
+
+.item-value.ayat-text {
+    font-family: "Noto Sans Arabic", "Amiri Quran", "Traditional Arabic", "Scheherazade New", "Amiri", "Arial Unicode MS", serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    text-align: center;
+    direction: rtl;
+    line-height: 1.1;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    unicode-bidi: embed;
+    font-variant: normal;
+    font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.ayat-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    text-align: center;
+    width: 100%;
+}
+
+.ayat-translation {
+    font-size: 0.5rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: var(--font-display);
+    line-height: 1.0;
+    font-style: italic;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.ayat-reference {
+    font-size: 0.45rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Next Prayer Info */
+.next-prayer-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    min-width: 320px;
+}
+
+.next-prayer-details {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.75rem;
+}
+
+/* Azan Info */
+.azan-info {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.azan-label {
+    color: var(--lg-text-muted);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.azan-name {
+    color: var(--lg-cyan-bright);
+    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+}
+
+.azan-time {
+    color: var(--lg-text);
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* Salat Info */
+.salat-info {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.salat-label {
+    color: var(--lg-text-muted);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.salat-rakat {
+    color: var(--lg-text);
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* Ayat Info */
+.ayat-info {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    max-width: 120px;
+}
+
+
+.countdown {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--lg-text-accent);
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+}
+
+/* Qibla Button */
+.qibla-section {
+    flex-shrink: 0;
+}
+
+.qibla-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(62, 236, 216, 0.08);
+    border: 1px solid rgba(62, 236, 216, 0.20);
+    border-radius: 8px;
+    color: var(--lg-cyan-bright);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.qibla-btn:hover {
+    background: rgba(62, 236, 216, 0.12);
+    border-color: rgba(62, 236, 216, 0.30);
+    transform: translateY(-1px);
+}
+
+.qibla-btn i {
+    font-size: 0.8rem;
+}
+
+.spiritual-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(135deg, rgba(62, 236, 216, 0.04) 0%, transparent 42%, rgba(139, 127, 255, 0.04) 100%);
+    pointer-events: none;
+}
+
+.spiritual-glow-layer {
+    position: absolute;
+    inset: -20%;
+    background:
+        radial-gradient(circle at 15% 50%, rgba(62, 236, 216, 0.06), transparent 40%),
+        radial-gradient(circle at 85% 50%, rgba(139, 127, 255, 0.05), transparent 40%);
+    filter: blur(40px);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.spiritual-cards-track {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(380px, 1.8fr) repeat(4, minmax(240px, 1fr));
+    gap: 1rem;
+    padding: 1.2rem;
+    align-items: stretch;
+}
+
+.islamic-card {
+    position: relative;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.2rem;
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(14, 17, 37, 0.94) 0%, rgba(10, 12, 28, 0.90) 100%);
+    border: 1px solid rgba(134, 124, 255, 0.16);
+    box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(155, 146, 255, 0.08),
+        0 0 0 1px rgba(62, 236, 216, 0.04);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    overflow: hidden;
+}
+
+.islamic-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(62, 236, 216, 0.03), transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139, 127, 255, 0.02), transparent 50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.islamic-card:hover::after {
+    opacity: 1;
+}
+
+.islamic-card::before {
+    content: "";
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(155, 146, 255, 0.32), transparent);
+    pointer-events: none;
+}
+
+.islamic-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(134, 124, 255, 0.28);
+    box-shadow:
+        0 20px 44px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(170, 161, 255, 0.12),
+        0 0 0 1px rgba(62, 236, 216, 0.08);
+}
+
+/* Enhanced prayer card styling */
+.islamic-prayer-card {
+    background:
+        linear-gradient(180deg, rgba(16, 19, 41, 0.96) 0%, rgba(12, 14, 34, 0.92) 100%);
+    border: 1px solid rgba(134, 124, 255, 0.20);
+}
+
+.islamic-prayer-card:hover {
+    border-color: rgba(134, 124, 255, 0.32);
+    box-shadow:
+        0 22px 48px rgba(0, 0, 0, 0.36),
+        inset 0 1px 0 rgba(170, 161, 255, 0.14),
+        0 0 0 1px rgba(62, 236, 216, 0.10);
+}
+
+.spiritual-label {
+    font-size: 0.67rem;
+    text-transform: uppercase;
+    letter-spacing: 1.7px;
+    color: var(--sp-white-subtle);
+    font-weight: 600;
+    margin: 0;
+}
+
+.islamic-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.islamic-prayer-card {
+    background:
+        linear-gradient(180deg, rgba(11, 16, 34, 0.98) 0%, rgba(9, 13, 31, 0.92) 100%);
+}
+
+.islamic-location {
+    margin: 0.22rem 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 1.6vw, 1.28rem);
+    font-weight: 700;
+    color: var(--sp-white-primary);
+    letter-spacing: -0.03em;
+}
+
+.islamic-prayer-meta {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.islamic-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    padding: 0.34rem 0.62rem;
+    border-radius: 999px;
+    background: rgba(100, 90, 255, 0.09);
+    border: 1px solid rgba(140, 130, 255, 0.18);
+    color: var(--sp-white-secondary);
+    font-size: 0.68rem;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+
+.islamic-meta-chip i,
+.islamic-card-icon i {
+    color: var(--lg-cyan);
+}
+
+.islamic-date-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+    color: var(--sp-white-muted);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.islamic-date-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(62, 236, 216, 0.55);
+}
+
+.islamic-next-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+}
+
+.islamic-next-block {
+    padding: 0.88rem 0.92rem;
+    border-radius: 18px;
+    background: rgba(5, 9, 21, 0.42);
+    border: 1px solid rgba(141, 132, 255, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+}
+
+.islamic-kicker {
+    font-size: 0.65rem;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: var(--sp-white-subtle);
+}
+
+.islamic-next-name {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    color: var(--lg-cyan-bright);
+}
+
+.islamic-next-time,
+.islamic-source-note {
+    font-size: 0.74rem;
+    color: var(--sp-white-muted);
+    line-height: 1.45;
+}
+
+.spiritual-countdown {
+    margin: 0;
+    font-size: clamp(1.15rem, 1.95vw, 1.4rem);
+    font-weight: 700;
+    color: var(--sp-white-primary);
+    font-family: var(--font-display);
+    letter-spacing: 0.03em;
+}
+
+.islamic-prayer-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.48rem;
+}
+
+.prayer-mini-card {
+    display: grid;
+    gap: 0.24rem;
+    justify-items: center;
+    align-content: center;
+    min-height: 78px;
+    padding: 0.6rem 0.4rem;
+    border-radius: 18px;
+    background: rgba(9, 11, 26, 0.76);
+    border: 1px solid rgba(130, 120, 255, 0.12);
+    color: var(--sp-white-muted);
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.prayer-mini-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent, rgba(130, 120, 255, 0.03));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.prayer-mini-card:hover::before {
+    opacity: 1;
+}
+
+.prayer-mini-icon {
+    font-size: 0.88rem;
+    line-height: 1;
+}
+
+.prayer-mini-name {
+    font-size: 0.68rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.prayer-mini-time {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    color: var(--sp-white-primary);
+}
+
+.prayer-status-current {
+    border-color: rgba(255, 220, 135, 0.32);
+    background: rgba(255, 210, 96, 0.09);
+    box-shadow: 
+        0 0 0 1px rgba(255, 220, 135, 0.15),
+        inset 0 0 0 1px rgba(255, 220, 135, 0.08);
+    animation: prayerPulse 3s ease-in-out infinite;
+}
+
+.prayer-status-current .prayer-mini-icon i,
+.prayer-status-current .prayer-mini-name {
+    color: #ffd687;
+    text-shadow: 0 0 8px rgba(255, 214, 135, 0.4);
+}
+
+.prayer-status-next {
+    border-color: rgba(62, 236, 216, 0.32);
+    background: rgba(62, 236, 216, 0.10);
+    box-shadow: 
+        0 0 0 1px rgba(62, 236, 216, 0.12),
+        inset 0 0 0 1px rgba(62, 236, 216, 0.06);
+}
+
+.prayer-status-next .prayer-mini-icon i,
+.prayer-status-next .prayer-mini-name,
+.prayer-status-next .prayer-mini-time {
+    color: var(--lg-cyan-bright);
+    text-shadow: 0 0 6px rgba(62, 236, 216, 0.3);
+}
+
+@keyframes prayerPulse {
+    0%, 100% { 
+        box-shadow: 
+            0 0 0 1px rgba(255, 220, 135, 0.15),
+            inset 0 0 0 1px rgba(255, 220, 135, 0.08);
+    }
+    50% { 
+        box-shadow: 
+            0 0 0 2px rgba(255, 220, 135, 0.25),
+            inset 0 0 0 1px rgba(255, 220, 135, 0.12);
+    }
+}
+
+.prayer-status-next .prayer-mini-icon i,
+.prayer-status-next .prayer-mini-name,
+.prayer-status-next .prayer-mini-time {
+    color: var(--sp-cyan-active);
+}
+
+.islamic-card-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(62, 236, 216, 0.08);
+    border: 1px solid rgba(62, 236, 216, 0.16);
+    flex-shrink: 0;
+}
+
+.islamic-narrator {
+    margin: 0.22rem 0 0;
+    color: var(--sp-white-subtle);
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
+.islamic-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.52rem;
+    flex: 1;
+}
+
+.ayat-ar.islamic-arabic-text {
+    margin: 0;
+    font-size: clamp(1.05rem, 1.65vw, 1.32rem);
+    color: var(--sp-white-primary);
+    line-height: 1.72;
+    font-weight: 400;
+    font-family: "Traditional Arabic", "Scheherazade New", "Amiri", serif;
+    text-align: right;
+    direction: rtl;
+    text-shadow: 0 0 24px rgba(240, 244, 255, 0.06);
+}
+
+.ayat-tr.islamic-translation-text {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--sp-white-secondary);
+    line-height: 1.58;
+    font-weight: 400;
+}
+
+.islamic-card-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.26rem;
+}
+
+.islamic-card-footer cite {
+    display: block;
+    font-style: normal;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--sp-white-subtle);
+    letter-spacing: 0.3px;
+}
+
+.ayat-source {
+    margin: 0;
+    font-size: 0.68rem;
+    color: var(--sp-white-subtle);
+    line-height: 1.35;
+}
+
+@media (max-width: 1100px) {
+    .spiritual-cards-track {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .islamic-prayer-card {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 920px) {
+    .spiritual-cards-track {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .islamic-prayer-card {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .islamic-bar-wrap {
+        margin-bottom: 0.85rem;
+    }
+
+    .islamic-bar {
+        border-radius: 12px;
+    }
+
+    .islamic-bar-content {
+        padding: 0.6rem 0.8rem;
+        gap: 0.8rem;
+        min-height: 50px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .islamic-bar-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .islamic-item {
+        min-width: 120px;
+        flex-shrink: 0;
+    }
+
+    .item-label {
+        font-size: 0.55rem;
+        letter-spacing: 0.6px;
+    }
+
+    .item-value {
+        font-size: 0.75rem;
+    }
+
+    .ayat-container {
+        gap: 0.05rem;
+        max-width: 85%;
+    }
+
+    .item-value.ayat-text {
+        font-size: 0.65rem;
+        max-width: 90px;
+    }
+
+    .ayat-translation {
+        font-size: 0.45rem;
+        max-width: 95px;
+        line-height: 0.9;
+    }
+
+    .ayat-reference {
+        font-size: 0.4rem;
+        letter-spacing: 0.1px;
+        max-width: 90px;
+    }
+}
+
+@media (max-width: 560px) {
+    .spiritual-cards-track {
+        grid-auto-columns: minmax(258px, 88vw);
+    }
+
+    .islamic-card {
+        padding: 0.9rem;
+        border-radius: 20px;
+    }
+
+    .islamic-prayer-grid {
+        gap: 0.35rem;
+    }
+
+    .prayer-mini-card {
+        min-height: 68px;
+        padding: 0.48rem 0.28rem;
+    }
+
+    .prayer-mini-name {
+        font-size: 0.64rem;
+    }
+
+    .prayer-mini-time {
+        font-size: 0.75rem;
+    }
+
+    .ayat-ar.islamic-arabic-text {
+        font-size: 1.02rem;
+    }
+
+    .ayat-tr.islamic-translation-text {
+        font-size: 0.77rem;
+    }
+}
 .header-inner {
     width: 100%;
     max-width: var(--bp-xxl);
@@ -415,7 +1216,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 .nav-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     text-decoration: none;
     order: 3;
 }
@@ -428,9 +1229,9 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     box-shadow: 0 0 20px rgba(139,127,255,0.4);
 }
 .nav-brand-name {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.1rem;
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-md);
     background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -471,7 +1272,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     outline: none;
     padding: 0 10px;
 }
-.search-icon { color: var(--lg-text-muted); font-size: 1rem; }
+.search-icon { color: var(--lg-text-muted); font-size: var(--fs-base); }
 .search-kbd-hint { display: flex; gap: 4px; opacity: 0.6; }
 
 .nav-left { order: 1; display: flex; align-items: center; gap: 10px; }
@@ -532,7 +1333,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     border: 1px solid rgba(130,120,255,0.18);
     display: flex; align-items: center; justify-content: center;
     color: var(--lg-text-muted);
-    font-size: 0.95rem;
+    font-size: var(--fs-base);
     cursor: pointer;
     text-decoration: none;
     transition: all 0.18s cubic-bezier(0.4,0,0.2,1);
@@ -592,9 +1393,9 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     border-radius: 9px;
     color: var(--lg-text-muted);
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: var(--fs-base);
     background: none; border: none; cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-primary);
     transition: all 0.15s;
     text-align: left;
 }
@@ -605,8 +1406,8 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 .nav-dropdown-menu .divider { height: 1px; background: rgba(120,110,255,0.14); margin: 4px 0; }
 .nav-dropdown-menu .menu-label {
     padding: 7px 12px;
-    font-size: 0.75rem;
-    font-weight: 700;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
     color: var(--lg-text);
     letter-spacing: 0.3px;
 }
@@ -625,7 +1426,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     width: 100%;
     max-width: var(--bp-xxl);
     margin: 0 auto;
-    padding: calc(var(--nav-height) + 2rem) var(--shell-padding) 4rem;
+    padding: calc(var(--nav-height) + var(--layout-top-offset)) var(--shell-padding) 4rem;
     gap: var(--shell-gap);
     min-height: 100vh;
 }
@@ -645,10 +1446,10 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     width: var(--sidebar-width);
     flex-shrink: 0;
     position: sticky;
-    top: calc(var(--nav-height) + 2rem);
+    top: calc(var(--nav-height) + 1.5rem);
     height: auto;
     min-height: 100%;
-    max-height: calc(100vh - var(--nav-height) - 4rem);
+    max-height: calc(100vh - var(--nav-height) - 3rem);
     display: flex;
     flex-direction: column;
     overflow: visible;
@@ -715,10 +1516,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 
 /* Responsive Transitions */
 @media (max-width: 1280px) {
-    .app-sidebar { width: var(--sidebar-width-tablet); }
-}
-
-@media (max-width: 1024px) {
+    /* Banner width handled by flow */
     .app-sidebar { 
         width: 80px; 
         padding: 1.5rem 0.75rem;
@@ -743,7 +1541,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 @media (max-width: 768px) {
     .app-shell { 
         flex-direction: column;
-        padding-top: calc(var(--nav-height-mobile) + 1rem);
+        padding-top: calc(var(--nav-height-mobile) + 0.45rem);
         padding-bottom: 100px; /* Space for dock */
     }
     .app-sidebar { display: none; } /* Hidden on mobile, use dock */
@@ -929,7 +1727,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     border-radius: 13px;
     color: var(--lg-text-muted);
     text-decoration: none;
-    font-size: 1.3rem;
+    font-size: var(--fs-lg);
     transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
     background: rgba(100,90,255,0.08);
     border: 1px solid rgba(130,120,255,0.14);
@@ -956,8 +1754,8 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     backdrop-filter: blur(16px);
     padding: 4px 10px;
     border-radius: 6px;
-    font-size: 0.72rem;
-    font-family: 'DM Sans', sans-serif;
+    font-size: var(--fs-xs);
+    font-family: var(--font-primary);
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
@@ -1000,7 +1798,7 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     backdrop-filter: blur(28px);
     border: 1px solid rgba(130,120,255,0.20);
     border-radius: 14px;
-    font-size: 0.875rem;
+    font-size: var(--fs-base);
     color: var(--lg-text);
     box-shadow: 0 16px 40px rgba(0,0,0,0.44), inset 0 1px 0 rgba(255,255,255,0.07);
     animation: fadeUp 0.3s ease forwards;
@@ -1010,7 +1808,7 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
 .nexus-toast.danger  { border-color: rgba(255,92,122,0.35); }
 .nexus-toast .toast-close {
     margin-left: auto; background: none; border: none;
-    color: var(--lg-text-muted); cursor: pointer; font-size: 1rem;
+    color: var(--lg-text-muted); cursor: pointer; font-size: var(--fs-base);
     transition: color 0.15s;
 }
 .nexus-toast .toast-close:hover { color: var(--lg-text); }
@@ -1045,8 +1843,8 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     color: #fff !important;
     border: 1px solid rgba(139,127,255,0.40);
     border-radius: 50px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600; font-size: 0.92rem;
+    font-family: var(--font-primary);
+    font-weight: var(--fw-semibold); font-size: var(--fs-base);
     cursor: pointer; text-decoration: none;
     letter-spacing: 0.2px;
     transition: transform 0.20s cubic-bezier(0.34,1.56,0.64,1),
@@ -1091,8 +1889,8 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     color: var(--lg-text) !important;
     border: 1px solid rgba(130,120,255,0.22);
     border-radius: 50px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500; font-size: 0.92rem;
+    font-family: var(--font-primary);
+    font-weight: var(--fw-medium); font-size: var(--fs-base);
     cursor: pointer; text-decoration: none;
     letter-spacing: 0.2px;
     transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1),
@@ -1126,8 +1924,8 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     color: var(--lg-danger) !important;
     border: 1px solid rgba(255,92,122,0.32);
     border-radius: 50px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600; font-size: 0.92rem;
+    font-family: var(--font-primary);
+    font-weight: var(--fw-semibold); font-size: var(--fs-base);
     cursor: pointer; text-decoration: none;
     transition: all 0.18s ease;
     box-shadow: 0 4px 16px rgba(0,0,0,0.24);
@@ -1148,8 +1946,8 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     color: var(--lg-text-muted) !important;
     border: 1px solid rgba(130,120,255,0.18);
     border-radius: 50px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500; font-size: 0.78rem;
+    font-family: var(--font-primary);
+    font-weight: var(--fw-medium); font-size: var(--fs-sm);
     cursor: pointer; text-decoration: none;
     transition: all 0.15s ease;
 }
@@ -1169,7 +1967,7 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     border-radius: 12px;
     color: var(--lg-text-muted);
     cursor: pointer; text-decoration: none;
-    font-size: 1rem;
+    font-size: var(--fs-base);
     transition: all 0.18s cubic-bezier(0.34,1.56,0.64,1);
 }
 .btn-icon-nexus:hover {
@@ -1187,8 +1985,8 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     background: rgba(100,90,255,0.08);
     border: 1px solid rgba(130,120,255,0.16);
     border-radius: 50px;
-    font-size: 0.76rem;
-    font-weight: 600;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
     color: var(--lg-text-muted);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -1215,8 +2013,8 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     background: rgba(62,236,216,0.10);
     border: 1px solid rgba(62,236,216,0.24);
     border-radius: 8px;
-    font-size: 0.74rem;
-    font-weight: 600;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
     color: var(--lg-cyan);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -1263,8 +2061,8 @@ main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative;
     border: 1px solid var(--lg-field-border);
     border-radius: 12px;
     color: var(--lg-text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem;
+    font-family: var(--font-primary);
+    font-size: var(--fs-base);
     transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
     outline: none;
     box-shadow: var(--lg-field-shadow);
@@ -1291,8 +2089,8 @@ textarea.nexus-input, textarea.input-nexus { line-height: 1.6; resize: vertical;
     border: 1px solid var(--lg-field-border) !important;
     border-radius: 10px !important;
     color: var(--lg-text) !important;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
+    font-family: var(--font-primary);
+    font-size: var(--fs-base);
     transition: border-color 0.18s, box-shadow 0.18s;
     outline: none;
     box-shadow: none !important;
@@ -1316,15 +2114,15 @@ textarea.form-control { resize: vertical; }
     display: inline-flex; align-items: center; gap: 5px;
     padding: 4px 11px;
     border-radius: 50px;
-    font-size: 0.72rem;
-    font-weight: 700;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
     letter-spacing: 0.2px;
 }
 .badge-completed  { background: rgba(46,232,184,0.12);  color: var(--lg-success); border: 1px solid rgba(46,232,184,0.28); }
 .badge-processing { background: rgba(245,166,35,0.12);  color: var(--lg-warning); border: 1px solid rgba(245,166,35,0.28); }
 .badge-pending    { background: rgba(100,90,255,0.10);  color: var(--lg-text-muted); border: 1px solid rgba(130,120,255,0.18); }
 .badge-failed     { background: rgba(255,92,122,0.12);   color: var(--lg-danger);  border: 1px solid rgba(255,92,122,0.28); }
-.badge-new        { background: rgba(62,236,216,0.14);   color: var(--lg-cyan);    border: 1px solid rgba(62,236,216,0.30); }
+.badge-new        { background: rgba(255,227,122,0.15);  color: var(--lg-text-accent); border: 1px solid rgba(255,227,122,0.34); }
 .badge-featured   { background: rgba(139,127,255,0.14);  color: var(--lg-violet-bright); border: 1px solid rgba(139,127,255,0.30); }
 
 .pulse-dot {
@@ -1357,8 +2155,8 @@ textarea.form-control { resize: vertical; }
     box-shadow: 0 40px 80px rgba(0,0,0,0.60), inset 0 1px 0 rgba(255,255,255,0.09);
     animation: fadeUp 0.28s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
 }
-.nexus-modal h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--lg-text); }
-.nexus-modal p  { color: var(--lg-text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+.nexus-modal h3 { font-family: var(--font-display); font-size: var(--fs-md); margin-bottom: 0.75rem; color: var(--lg-text); }
+.nexus-modal p  { color: var(--lg-text-muted); font-size: var(--fs-base); margin-bottom: 1.5rem; }
 .nexus-modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
 /* ================================================================
@@ -1372,7 +2170,7 @@ textarea.form-control { resize: vertical; }
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 1rem;
-    font-size: 0.85rem;
+    font-size: var(--fs-sm);
     color: var(--lg-text-muted);
 }
 .nexus-footer .footer-brand {
@@ -1397,16 +2195,19 @@ textarea.form-control { resize: vertical; }
 /* ================================================================
    UTILITY
    ================================================================ */
-.text-accent         { color: var(--lg-cyan); }
+.text-accent         { color: var(--lg-text-accent); }
 .text-primary-nexus  { color: var(--lg-violet); }
 .text-muted-nexus    { color: var(--lg-text-muted); }
 .text-success-nexus  { color: var(--lg-success); }
 .text-danger-nexus   { color: var(--lg-danger); }
 
 .section-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1.8rem;
+    font-family: var(--font-display);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-xl);
+    letter-spacing: -1px;
+    line-height: var(--lh-tight);
+}
     color: var(--lg-text);
 }
 .invalid-msg { color: var(--lg-danger); font-size: 0.8rem; margin-top: 4px; }
@@ -1511,9 +2312,9 @@ textarea.form-control { resize: vertical; }
     height: 38px !important;
     padding: 0 20px !important;
     border-radius: 50px !important;
-    font-size: 0.86rem !important;
-    font-weight: 600 !important;
-    font-family: 'DM Sans', sans-serif !important;
+    font-size: var(--fs-base) !important;
+    font-weight: var(--fw-semibold) !important;
+    font-family: var(--font-primary) !important;
     background: linear-gradient(135deg, #7B6FFF 0%, #3EECD8 100%) !important;
     border: 1px solid rgba(139,127,255,0.40) !important;
     color: #fff !important;
@@ -1554,9 +2355,9 @@ textarea.form-control { resize: vertical; }
     height: 32px !important;
     padding: 0 14px !important;
     border-radius: 50px !important;
-    font-size: 0.78rem !important;
-    font-weight: 500 !important;
-    font-family: 'DM Sans', sans-serif !important;
+    font-size: var(--fs-sm) !important;
+    font-weight: var(--fw-medium) !important;
+    font-family: var(--font-primary) !important;
     background: rgba(100,90,255,0.09) !important;
     border: 1px solid rgba(130,120,255,0.18) !important;
     color: var(--lg-text-muted) !important;
@@ -1578,17 +2379,18 @@ textarea.form-control { resize: vertical; }
 
 /* Labels inside tool canvas */
 .tool-canvas .tool-label {
-    font-size: 0.70rem !important;
-    font-weight: 700 !important;
+    font-size: var(--fs-xs) !important;
+    font-weight: var(--fw-bold) !important;
     text-transform: uppercase !important;
     letter-spacing: 0.8px !important;
     color: var(--lg-text-muted) !important;
+    font-family: var(--font-display) !important;
     margin-bottom: 0.35rem !important;
 }
 .tool-canvas .input-label,
 .tool-canvas label {
     color: var(--lg-text-muted);
-    font-size: 0.82rem;
+    font-size: var(--fs-sm);
 }
 
 /* Status badges */
@@ -1637,7 +2439,7 @@ h3 { font-size: clamp(1.1rem, 3vw, 1.6rem); }
 
 @media (max-width: 480px) {
     .app-shell {
-        padding: calc(var(--nav-height-mobile) + 1rem) 0.75rem 80px;
+        padding: calc(var(--nav-height-mobile) + 0.45rem) 0.75rem 80px;
     }
     .spatial-panel {
         padding: 1.25rem 1rem;

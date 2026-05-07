@@ -8,6 +8,7 @@ from django.db.models import Q, F
 from django.core.cache import cache
 from django.conf import settings
 from .models import Tool, ToolCategory, ToolBookmark, ToolUsageHistory
+from .services.islamic_panel import PrayerTimesService
 from seo.models import LongTailVariant
 from tools.data.elite_content import ELITE_TOOL_DATA
 from .utils.rate_limit import rate_limit
@@ -227,13 +228,29 @@ def tool_view(request, category_slug, tool_slug):
         get_related_tools,
     )
 
-    # Smart related tools (topical clusters + tag similarity)
-    related_tools = get_related_tools(tool, all_category_tools, limit=8)
+    # Get related tools
+    related_tools = get_related_tools(tool, all_category_tools)
 
-    # SEO content generation
-    seo_intro = generate_intro_paragraph(tool.name, tool.short_desc, category.name)
-    seo_use_cases = generate_use_cases(tool.name, tool.tags or '')
-    seo_faq_items = generate_faq_items(tool.name, tool.short_desc, category.name)
+    # Use stored SEO content if present; otherwise generate and save
+    if not tool.seo_intro:
+        tool.seo_intro = generate_intro_paragraph(tool.name, tool.short_desc, category.name)
+        tool.use_cases = generate_use_cases(tool.name, tool.tags or '')
+        tool.faq_items = generate_faq_items(tool.name, tool.short_desc, category.name)
+        # Save async via Celery to avoid blocking response, or sync for now
+        from django.conf import settings
+        if not settings.DEBUG:
+            from .tasks import update_tool_seo_content
+            update_tool_seo_content.delay(tool.pk)
+        else:
+            Tool.objects.filter(pk=tool.pk).update(
+                seo_intro=tool.seo_intro,
+                use_cases=tool.use_cases,
+                faq_items=tool.faq_items,
+            )
+
+    seo_intro = tool.seo_intro
+    seo_use_cases = tool.use_cases or generate_use_cases(tool.name, tool.tags or '')
+    seo_faq_items = tool.faq_items or generate_faq_items(tool.name, tool.short_desc, category.name)
 
     # JSON-LD schemas
     tool_schema_dict = build_software_application_schema(tool, request)
@@ -288,6 +305,16 @@ def longtail_view(request, category_slug, tool_slug, variant_slug):
     )
     from .utils.metadata import get_related_tools, generate_use_cases, generate_faq_items
     related_tools = get_related_tools(tool, all_category_tools, limit=8)
+    
+    # Use stored SEO content from variant, fallback to generated
+    seo_intro = variant.unique_intro
+    seo_use_cases = variant.use_cases or generate_use_cases(tool.name, tool.tags or '')
+    seo_faq_items = variant.faq_items or generate_faq_items(tool.name, tool.short_desc, category.name)
+    
+    # SELF-REFERENTIAL CANONICAL: Each longtail page indexes independently
+    # with its own unique content to avoid duplicate content issues
+    canonical = request.build_absolute_uri(variant.get_absolute_url())
+    
     return render(request, tool.template_name, {
         'tool': tool,
         'category': category,
@@ -296,10 +323,10 @@ def longtail_view(request, category_slug, tool_slug, variant_slug):
         'related_tools': related_tools,
         'page_title': variant.meta_title,
         'meta_description': variant.meta_description,
-        'canonical_url': request.build_absolute_uri(tool.get_absolute_url()),
-        'seo_intro': variant.unique_intro,
-        'seo_use_cases': generate_use_cases(tool.name, tool.tags or ''),
-        'seo_faq_items': generate_faq_items(tool.name, tool.short_desc, category.name),
+        'canonical_url': canonical,
+        'seo_intro': seo_intro,
+        'seo_use_cases': seo_use_cases,
+        'seo_faq_items': seo_faq_items,
     })
 
 
@@ -420,6 +447,16 @@ def search_view(request):
         })
 
     return JsonResponse({'results': results})
+
+
+@require_GET
+@cache_control(private=True, max_age=300)
+def islamic_panel_api(request):
+    """Location-aware prayer snapshot for the global Islamic utility strip."""
+    latitude = request.GET.get('lat')
+    longitude = request.GET.get('lon')
+    snapshot = PrayerTimesService.get_snapshot(latitude=latitude, longitude=longitude)
+    return JsonResponse(snapshot)
 
 
 @require_POST

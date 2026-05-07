@@ -14,6 +14,11 @@ shell:
 
 migrate:
 	python3 manage.py migrate
+make-migration:
+	python3 manage.py makemigrations
+
+require:
+	pip install -r requirements.txt
 
 seed:
 	python3 manage.py seed_tools

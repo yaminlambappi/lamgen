@@ -52,8 +52,14 @@ class Tool(models.Model):
     view_count = models.BigIntegerField(default=0)
     usage_count = models.BigIntegerField(default=0)
     tags = models.CharField(max_length=500, blank=True, help_text='Comma-separated tags')
+    
+    # SEO fields
     meta_title = models.CharField(max_length=70, blank=True)
     meta_description = models.CharField(max_length=160, blank=True)
+    seo_intro = models.TextField(blank=True, help_text='Unique 200-300 word intro for tool page')
+    use_cases = models.JSONField(default=list, blank=True, help_text='List of use case descriptions')
+    faq_items = models.JSONField(default=list, blank=True, help_text='List of {"q": question, "a": answer} dicts')
+    
     order = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

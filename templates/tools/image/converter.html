@@ -75,7 +75,15 @@
     const canvas = document.getElementById('conversion-canvas');
     const ctx = canvas.getContext('2d');
 
-    dropZone.addEventListener('click', () => fileInput.click());
+    let isProcessing = false; // Flag to prevent multiple triggers
+
+    dropZone.addEventListener('click', (e) => {
+        if (!isProcessing) {
+            isProcessing = true;
+            fileInput.click();
+            setTimeout(() => { isProcessing = false; }, 200);
+        }
+    });
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -90,7 +98,13 @@
         handleFiles(e.dataTransfer.files);
     });
 
-    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+    fileInput.addEventListener('change', (e) => { 
+        if (!isProcessing) {
+            isProcessing = true;
+            handleFiles(e.target.files);
+            setTimeout(() => { isProcessing = false; }, 200);
+        }
+    });
 
     function handleFiles(files) {
         Array.from(files).forEach(file => {

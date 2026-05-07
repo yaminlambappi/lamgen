@@ -78,12 +78,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('file-input');
   let origImg = new Image(), origFile = null;
   let origW = 0, origH = 0;
+  let isProcessing = false; // Flag to prevent multiple triggers
 
-  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('click', (e) => {
+    if (!isProcessing) {
+      isProcessing = true;
+      fileInput.click();
+      setTimeout(() => { isProcessing = false; }, 200);
+    }
+  });
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
   dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+  fileInput.addEventListener('change', e => { 
+    if (e.target.files[0] && !isProcessing) {
+      isProcessing = true;
+      handleFile(e.target.files[0]);
+      setTimeout(() => { isProcessing = false; }, 200);
+    }
+});
 
   document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', () => {
     const isPct = document.getElementById('mode-pct').checked;
