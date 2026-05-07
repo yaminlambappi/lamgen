@@ -131,34 +131,148 @@ function isBase64(str) {
   return /^[A-Za-z0-9+/]*={0,2}$/.test(s) && s.length % 4 === 0 && s.length > 0;
 }
 
-function doEncode() {
-  const input = document.getElementById('textIn').value;
-  if (!input) { showErr('st','No input'); return; }
-  hideStatus('st');
-  try {
-    const out = encodeB64(input);
-    document.getElementById('textOut').value = out;
-    setStats(input.length, out.length);
-    showOk('st','Encoded successfully');
-  } catch(e) { showErr('st', e.message); }
-}
-
-function doDecode() {
+async function doEncode() {
   const input = document.getElementById('textIn').value.trim();
   if (!input) { showErr('st','No input'); return; }
   hideStatus('st');
+  
+  // Show loading state
+  const btn = document.querySelector('.btn-encode');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Encoding...';
+  btn.disabled = true;
+  
   try {
-    const out = decodeB64(input);
-    document.getElementById('textOut').value = out;
-    setStats(input.length, out.length);
-    showOk('st','Decoded successfully');
-  } catch(e) { showErr('st','Invalid Base64: ' + e.message); }
+    // Try backend API first
+    const response = await fetch('/api/base64-encoder/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        data: input,
+        options: {
+          operation: 'encode',
+          is_file: false,
+          output_format: 'base64'
+        }
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      document.getElementById('textOut').value = result.data.result;
+      const stats = result.data.stats;
+      document.getElementById('stats').innerHTML = `
+        <span class="meta-item"><i class="bi bi-arrow-right"></i> Input: ${stats.input_size} chars</span>
+        <span class="meta-item"><i class="bi bi-arrow-left"></i> Output: ${stats.output_size} chars</span>
+        <span class="meta-item"><i class="bi bi-percent"></i> Ratio: ${(stats.compression_ratio * 100).toFixed(1)}%</span>
+        <span class="meta-item"><i class="bi bi-cpu"></i> ${result.metadata.processing_time}s</span>
+      `;
+      showOk('st','Encoded successfully');
+    } else {
+      throw new Error(result.message);
+    }
+  } catch (error) {
+    // Fallback to client-side processing
+    console.log('Backend unavailable, using client-side processing');
+    try {
+      const out = encodeB64(input);
+      document.getElementById('textOut').value = out;
+      setStats(input.length, out.length);
+      showOk('st','Encoded successfully (Client-side)');
+    } catch(e) { 
+      showErr('st', e.message); 
+    }
+  } finally {
+    // Restore button state
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+
+async function doDecode() {
+  const input = document.getElementById('textIn').value.trim();
+  if (!input) { showErr('st','No input'); return; }
+  hideStatus('st');
+  
+  // Show loading state
+  const btn = document.querySelector('.btn-decode');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Decoding...';
+  btn.disabled = true;
+  
+  try {
+    // Try backend API first
+    const response = await fetch('/api/base64-encoder/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        data: input,
+        options: {
+          operation: 'decode',
+          is_file: false
+        }
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      document.getElementById('textOut').value = result.data.result;
+      const stats = result.data.stats;
+      document.getElementById('stats').innerHTML = `
+        <span class="meta-item"><i class="bi bi-arrow-right"></i> Input: ${stats.input_size} chars</span>
+        <span class="meta-item"><i class="bi bi-arrow-left"></i> Output: ${stats.output_size} chars</span>
+        <span class="meta-item"><i class="bi bi-percent"></i> Ratio: ${(stats.decompression_ratio * 100).toFixed(1)}%</span>
+        <span class="meta-item"><i class="bi bi-cpu"></i> ${result.metadata.processing_time}s</span>
+      `;
+      showOk('st','Decoded successfully');
+    } else {
+      throw new Error(result.message);
+    }
+  } catch (error) {
+    // Fallback to client-side processing
+    console.log('Backend unavailable, using client-side processing');
+    try {
+      const out = decodeB64(input);
+      document.getElementById('textOut').value = out;
+      setStats(input.length, out.length);
+      showOk('st','Decoded successfully (Client-side)');
+    } catch(e) { 
+      showErr('st','Invalid Base64: ' + e.message); 
+    }
+  } finally {
+    // Restore button state
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
 }
 
 function autoDetect() {
   const input = document.getElementById('textIn').value.trim();
   if (!input) { showErr('st','No input'); return; }
   if (isBase64(input)) doDecode(); else doEncode();
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
 }
 
 function setStats(inLen, outLen) {

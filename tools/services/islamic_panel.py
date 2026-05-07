@@ -386,75 +386,56 @@ class PrayerTimesService:
         except Exception:
             pass
 
-    @staticmethod
-    def _get_daily_ayat():
-        """Get a daily Quranic Ayat for the prayer bar with enhanced data"""
-        daily_ayats = [
-            {
-                "arabic": "قُلْ هُوَ اللَّهُ أَحَدٌ",
-                "translation": "Say, 'He is Allah, [who is] One.'",
-                "surah": "Surah Al-Ikhlas",
-                "ayah": "112:1"
-            },
-            {
-                "arabic": "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ",
-                "translation": "Allah - there is no deity except Him, the Ever-Living, the Sustainer of existence.",
-                "surah": "Surah Al-Baqarah",
-                "ayah": "2:255"
-            },
-            {
-                "arabic": "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ",
-                "translation": "And when My servants ask you concerning Me, indeed I am near.",
-                "surah": "Surah Al-Baqarah",
-                "ayah": "2:186"
-            },
-            {
-                "arabic": "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ",
-                "translation": "So remember Me; I will remember you.",
-                "surah": "Surah Al-Baqarah",
-                "ayah": "2:152"
-            },
-            {
-                "arabic": "رَبَّنَا لَا تُؤَاخِذْنَا إِن نَّسِينَا أَوْ أَخْطَأْنَا",
-                "translation": "Our Lord, do not impose blame upon us if we forget or error.",
-                "surah": "Surah Al-Baqarah",
-                "ayah": "2:286"
-            },
-            {
-                "arabic": "وَتَوَكَّلْ عَلَى اللَّهِ ۚ وَكَفَى بِاللَّهِ وَكِيلًا",
-                "translation": "And rely upon Allah; and sufficient is Allah as Disposer of affairs.",
-                "surah": "Surah Al-Ahzab",
-                "ayah": "33:3"
-            },
-            {
-                "arabic": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
-                "translation": "In the name of Allah, the Entirely Merciful, the Especially Merciful.",
-                "surah": "Surah Al-Fatihah",
-                "ayah": "1:1"
-            },
-            {
-                "arabic": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
-                "translation": "All praise is due to Allah, Lord of the worlds.",
-                "surah": "Surah Al-Fatihah",
-                "ayah": "1:2"
-            },
-            {
-                "arabic": "الرَّحْمَٰنِ الرَّحِيمِ",
-                "translation": "The Entirely Merciful, the Especially Merciful.",
-                "surah": "Surah Al-Fatihah",
-                "ayah": "1:3"
-            },
-            {
-                "arabic": "مَالِكِ يَوْمِ الدِّينِ",
-                "translation": "Sovereign of the Day of Recompense.",
-                "surah": "Surah Al-Fatihah",
-                "ayah": "1:4"
-            }
-        ]
+    @classmethod
+    def _get_daily_ayat(cls):
+        """Get a dynamic rotating Quranic Ayat from the verified dataset with intelligent caching.
         
+        Uses a rotating selection based on date to prevent repeating the same ayat frequently
+        while maintaining cache efficiency. The same ayat is shown all day but changes daily.
+        """
         today = timezone.localdate()
-        index = today.toordinal() % len(daily_ayats)
-        return daily_ayats[index]
+        cache_key = f"islamic:daily_ayat:{today.isoformat()}"
+        cached_ayat = cls._cache_get(cache_key)
+        
+        if cached_ayat is not None:
+            return cached_ayat
+        
+        # Load the verified Quran dataset
+        try:
+            ayah_map = QuranDatasetService.get_ayah_map()
+            if not ayah_map:
+                return cls._get_fallback_ayat()
+            
+            ayat_list = list(ayah_map.values())
+            
+            # Use date-based rotation to select an ayat
+            # This ensures the same ayat is shown all day, but changes daily
+            index = today.toordinal() % len(ayat_list)
+            selected = ayat_list[index]
+            
+            ayat_data = {
+                "arabic": selected.get("arabic_text", ""),
+                "translation": selected.get("translation_text", ""),
+                "surah": f"Surah {selected.get('surah_name', '')}",
+                "ayah": selected.get("verse_key", ""),
+            }
+            
+            cls._cache_set(cache_key, ayat_data, 60 * 60 * 24)  # Cache for 24 hours
+            return ayat_data
+            
+        except Exception:
+            return cls._get_fallback_ayat()
+    
+    @staticmethod
+    def _get_fallback_ayat():
+        """Fallback ayat data if Quran dataset is unavailable."""
+        return {
+            "arabic": "قُلْ هُوَ اللَّهُ أَحَدٌ",
+            "translation": "Say, 'He is Allah, [who is] One.'",
+            "surah": "Surah Al-Ikhlas",
+            "ayah": "112:1"
+        }
+
 
 
 class IslamicContentService:

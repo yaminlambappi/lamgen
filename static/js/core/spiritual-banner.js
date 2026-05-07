@@ -2,7 +2,14 @@
  * LamGen Global Islamic Utility Strip
  * -----------------------------------
  * Server-rendered static Qur'an / dua / reminder / hadith cards.
- * Client-enhanced prayer card with location-aware timings and countdown.
+ * Client-enhanced prayer card with location-aware timings, dynamic ayat, and auto-refresh.
+ * 
+ * Features:
+ * - Real-time prayer time updates based on user location
+ * - Automatic refresh every 30 minutes or when day changes
+ * - Dynamic ayat rotation that refreshes daily
+ * - Countdown timer to next prayer
+ * - Fallback caching for offline functionality
  */
 (function () {
     "use strict";
@@ -18,6 +25,7 @@
         nextPrayerTime: document.getElementById("islamicNextPrayerTime"),
         salatRakat: document.getElementById("islamicSalatRakat"),
         dailyAyat: document.getElementById("islamicDailyAyat"),
+        ayatMeta: document.getElementById("islamicAyatMeta"),
     };
 
     const STATIC_RAKAT = {
@@ -28,11 +36,16 @@
         Isha: "4 Farz + 2 Sunnah + 3 Witr",
     };
     const CACHE_KEY = "lamgen:islamic-panel:snapshot:v1";
-    const CACHE_TTL_MS = 1000 * 60 * 30;
+    const CACHE_TTL_MS = 1000 * 60 * 30;  // 30 minutes
+    const AUTO_REFRESH_INTERVAL_MS = 1000 * 60 * 30;  // 30 minutes
+    const COUNTDOWN_TICK_MS = 1000;  // 1 second
 
     let nextPrayerAt = root.dataset.nextPrayerAt || "";
+    let lastRefreshDate = null;
     let countdownTimer = null;
     let refreshTimer = null;
+    let autoRefreshTimer = null;
+    let cachedSnapshot = null;
 
     function msToCountdown(ms) {
         const total = Math.max(0, Math.floor(ms / 1000));
@@ -63,48 +76,74 @@
         return { hours, minutes };
     }
 
-    function normalizeNextPrayer(snapshot) {
+    /**
+     * Calculate next prayer with real-time awareness
+     * Considers current time and day rollover
+     */
+    function calculateNextPrayer(snapshot) {
         if (!snapshot || !Array.isArray(snapshot.prayers) || snapshot.prayers.length === 0) {
             return snapshot;
         }
+        
         const now = new Date();
-        let next = null;
+        let nextPrayer = null;
+        let nextAt = null;
 
+        // Try to find next prayer today
         snapshot.prayers.forEach((prayer) => {
             const parsed = parseHHMM(prayer.time_24);
             if (!parsed) return;
+            
             const prayerTime = new Date(now);
             prayerTime.setHours(parsed.hours, parsed.minutes, 0, 0);
+            
+            // If prayer time has passed today, skip it
             if (prayerTime <= now) {
-                prayerTime.setDate(prayerTime.getDate() + 1);
+                return;
             }
-            if (!next || prayerTime < next.at) {
-                next = { prayer, at: prayerTime };
+            
+            if (!nextPrayer || prayerTime < nextAt) {
+                nextPrayer = prayer;
+                nextAt = prayerTime;
             }
         });
 
-        if (!next) return snapshot;
+        // If no prayer found today, get first prayer tomorrow
+        if (!nextPrayer && snapshot.prayers.length > 0) {
+            const firstPrayer = snapshot.prayers[0];
+            const parsed = parseHHMM(firstPrayer.time_24);
+            if (parsed) {
+                nextAt = new Date(now);
+                nextAt.setHours(parsed.hours, parsed.minutes, 0, 0);
+                nextAt.setDate(nextAt.getDate() + 1);
+                nextPrayer = firstPrayer;
+            }
+        }
+
+        if (!nextPrayer || !nextAt) return snapshot;
+        
         return {
             ...snapshot,
             next_prayer: {
                 ...snapshot.next_prayer,
-                name: next.prayer.name,
-                display_time: next.prayer.display_time,
-                timestamp: next.at.toISOString(),
-                rakat: STATIC_RAKAT[next.prayer.name] || (snapshot.next_prayer && snapshot.next_prayer.rakat) || "4 Farz + 2 Sunnah + 3 Witr",
+                name: nextPrayer.name,
+                display_time: nextPrayer.display_time,
+                timestamp: nextAt.toISOString(),
+                rakat: STATIC_RAKAT[nextPrayer.name] || (snapshot.next_prayer && snapshot.next_prayer.rakat) || "4 Farz + 2 Sunnah + 3 Witr",
             },
         };
     }
 
     function isBadValue(value) {
         const normalized = String(value || "").trim().toLowerCase();
-        return !normalized || normalized === "prayer sync" || normalized === "--:--";
+        return !normalized || normalized === "prayer sync" || normalized === "--:--" || normalized === "null";
     }
 
     function cacheSnapshot(snapshot) {
         try {
             const payload = { storedAt: Date.now(), snapshot };
             window.localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+            cachedSnapshot = snapshot;
         } catch (_) {
             // Ignore storage errors
         }
@@ -123,9 +162,14 @@
         }
     }
 
+    /**
+     * Apply snapshot to UI elements
+     * Includes validation and fallbacks for reliability
+     */
     function applySnapshot(snapshot) {
         if (!snapshot) return;
-        const normalized = normalizeNextPrayer(snapshot);
+        
+        const normalized = calculateNextPrayer(snapshot);
         const currentName = el.nextPrayerName ? (el.nextPrayerName.textContent || "").trim() : "";
         const currentTime = el.nextPrayerTime ? (el.nextPrayerTime.textContent || "").trim() : "";
         const resolvedName = normalized.next_prayer && normalized.next_prayer.name;
@@ -133,20 +177,48 @@
         const safeName = isBadValue(resolvedName) ? (isBadValue(currentName) ? "Isha" : currentName) : resolvedName;
         const safeTime = isBadValue(resolvedTime) ? (isBadValue(currentTime) ? "7:40 PM" : currentTime) : resolvedTime;
 
-        if (el.nextPrayerName) {
+        // Update prayer name
+        if (el.nextPrayerName && el.nextPrayerName.textContent !== safeName) {
             el.nextPrayerName.textContent = safeName;
         }
-        if (el.nextPrayerTime) {
+        
+        // Update prayer time
+        if (el.nextPrayerTime && el.nextPrayerTime.textContent !== safeTime) {
             el.nextPrayerTime.textContent = safeTime;
         }
+        
+        // Update rakat
         if (el.salatRakat) {
-            el.salatRakat.textContent = STATIC_RAKAT[safeName] || normalized.next_prayer?.rakat || "4 Farz + 2 Sunnah + 3 Witr";
+            const safeRakat = STATIC_RAKAT[safeName] || normalized.next_prayer?.rakat || "4 Farz + 2 Sunnah + 3 Witr";
+            if (el.salatRakat.textContent !== safeRakat) {
+                el.salatRakat.textContent = safeRakat;
+            }
         }
-        if (el.dailyAyat) {
-            el.dailyAyat.textContent = normalized.daily_ayat || "قُلْ هُوَ ٱللَّهُ أَحَدٌ";
+        
+        // Update ayat (only if it has changed or is empty)
+        if (el.dailyAyat && normalized.daily_ayat) {
+            const arabicText = normalized.daily_ayat.arabic || "";
+            const currentArabic = (el.dailyAyat.textContent || "").trim();
+            if (arabicText && currentArabic !== arabicText) {
+                el.dailyAyat.textContent = arabicText;
+                
+                // Update ayat metadata if available
+                if (el.ayatMeta && normalized.daily_ayat.translation && normalized.daily_ayat.ayah) {
+                    el.ayatMeta.innerHTML = `
+                        <span class="ayat-translation">${normalized.daily_ayat.translation}</span>
+                        <span class="ayat-reference">${normalized.daily_ayat.surah} (${normalized.daily_ayat.ayah})</span>
+                    `;
+                }
+            }
         }
+        
+        // Update next prayer timestamp for countdown
         nextPrayerAt = (normalized.next_prayer && normalized.next_prayer.timestamp) || nextPrayerAt;
-        renderPrayerGrid(normalized.prayers);
+        
+        // Render prayer grid if available
+        if (snapshot.prayers) {
+            renderPrayerGrid(snapshot.prayers);
+        }
     }
 
     function showQiblaDirection(qiblaBearing) {
@@ -197,29 +269,48 @@
         }, 100);
     }
 
+    /**
+     * Countdown ticker - updates every second
+     */
     function tickCountdown() {
-        if (!el.countdown) return;
-        if (!nextPrayerAt) {
-            el.countdown.textContent = "--:--:--";
-            return;
-        }
+        if (!nextPrayerAt) return;
 
-        const diff = new Date(nextPrayerAt).getTime() - Date.now();
+        const nextTime = new Date(nextPrayerAt).getTime();
+        const now = Date.now();
+        const diff = nextTime - now;
+
         if (!Number.isFinite(diff) || diff <= 0) {
-            el.countdown.textContent = "00:00:00";
+            // Prayer time has been reached - schedule a refresh
             scheduleRefresh();
             return;
         }
-
-        el.countdown.textContent = msToCountdown(diff);
     }
 
+    /**
+     * Schedule a refresh of prayer data (debounced)
+     */
     function scheduleRefresh() {
         if (refreshTimer) return;
         refreshTimer = window.setTimeout(() => {
             refreshTimer = null;
             refreshPrayerData();
-        }, 1500);
+        }, 1500);  // Wait 1.5s to ensure prayer time has definitely passed
+    }
+
+    /**
+     * Schedule periodic auto-refresh (every 30 minutes or when day changes)
+     */
+    function scheduleAutoRefresh() {
+        if (autoRefreshTimer) return;
+        
+        autoRefreshTimer = window.setInterval(() => {
+            const today = new Date().toDateString();
+            // Refresh if date has changed or periodically every 30 minutes
+            if (!lastRefreshDate || lastRefreshDate !== today) {
+                lastRefreshDate = today;
+                refreshPrayerData();  // Day changed - refresh everything including ayat
+            }
+        }, AUTO_REFRESH_INTERVAL_MS);
     }
 
     async function fetchSnapshot(coords) {
@@ -240,7 +331,9 @@
             throw new Error("Prayer snapshot unavailable");
         }
         const payload = await response.json();
-        cacheSnapshot(payload);
+        if (payload && payload.daily_ayat) {
+            cacheSnapshot(payload);
+        }
         return payload;
     }
 
@@ -261,33 +354,77 @@
         });
     }
 
+    /**
+     * Refresh prayer data with location awareness and fallbacks
+     */
     async function refreshPrayerData() {
-        const fallbackPromise = fetchSnapshot(null).catch(() => null);
-
-        const coords = await resolveCoords();
-        if (!coords) {
-            const fallbackSnapshot = await fallbackPromise;
-            if (fallbackSnapshot) applySnapshot(fallbackSnapshot);
-            return;
-        }
-
         try {
-            const locationAware = await fetchSnapshot(coords);
-            applySnapshot(locationAware);
-        } catch (_) {
-            const fallbackSnapshot = await fallbackPromise;
+            // Try to get location-aware data first
+            const coords = await resolveCoords();
+            if (coords) {
+                try {
+                    const locationAware = await fetchSnapshot(coords);
+                    applySnapshot(locationAware);
+                    return;
+                } catch (_) {
+                    // Location-aware request failed, try fallback
+                }
+            }
+
+            // Try default location snapshot
+            const fallbackSnapshot = await fetchSnapshot(null);
             if (fallbackSnapshot) {
                 applySnapshot(fallbackSnapshot);
                 return;
             }
-            const cachedSnapshot = getCachedSnapshot();
-            if (cachedSnapshot) applySnapshot(cachedSnapshot);
+
+            // Use cached snapshot as last resort
+            const cached = getCachedSnapshot();
+            if (cached) {
+                applySnapshot(cached);
+            }
+        } catch (_) {
+            // Network completely unavailable - use cache if available
+            const cached = getCachedSnapshot() || cachedSnapshot;
+            if (cached) {
+                applySnapshot(cached);
+            }
         }
     }
 
-    const cachedSnapshot = getCachedSnapshot();
-    if (cachedSnapshot) {
-        applySnapshot(cachedSnapshot);
+    /**
+     * Initialize the Islamic utility strip
+     */
+    function initialize() {
+        // Load cached snapshot if available
+        const cached = getCachedSnapshot();
+        if (cached) {
+            applySnapshot(cached);
+        }
+
+        // Fetch fresh data immediately
+        refreshPrayerData();
+
+        // Set up countdown ticker
+        countdownTimer = window.setInterval(tickCountdown, COUNTDOWN_TICK_MS);
+
+        // Set up periodic auto-refresh (every 30 minutes)
+        scheduleAutoRefresh();
+
+        // Handle day rollover by checking at midnight
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 1, 0);
+        const msUntilMidnight = tomorrow.getTime() - now.getTime();
+        
+        window.setTimeout(() => {
+            refreshPrayerData();  // Refresh at midnight for new ayat
+            scheduleAutoRefresh();  // Reschedule auto-refresh
+            initialize();  // Re-initialize for next day
+        }, msUntilMidnight);
     }
-    refreshPrayerData();
+
+    // Start the system
+    initialize();
 })();

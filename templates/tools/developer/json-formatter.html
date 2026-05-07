@@ -162,34 +162,101 @@ function sortKeys(obj) {
         return Object.keys(obj).sort().reduce((a, k) => { a[k] = sortKeys(obj[k]); return a; }, {});
     return obj;
 }
-function formatJSON() {
+async function formatJSON() {
     const raw = document.getElementById('jsonIn').value.trim();
     if (!raw) { showErr('st','No input provided'); return; }
     hideStatus('st');
+    
+    // Show loading state
+    const btn = document.querySelector('.btn-go');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
+    btn.disabled = true;
+    
     try {
-        const parsed = JSON.parse(raw);
-        let obj = parsed;
-        let indent = currentMode === 'sorted' ? 2 : currentMode;
-        if (currentMode === 'sorted') obj = sortKeys(parsed);
-        const out = currentMode === 0 ? JSON.stringify(obj) : JSON.stringify(obj, null, indent);
-        document.getElementById('jsonOut').value = out;
-        const keys = countKeys(parsed), depth = getDepth(parsed);
-        const bytes = new TextEncoder().encode(out).length;
-        document.getElementById('stats').innerHTML =
-            `<span class="meta-item"><i class="bi bi-key"></i>${keys} keys</span>
-             <span class="meta-item"><i class="bi bi-layers"></i>Depth: ${depth}</span>
-             <span class="meta-item"><i class="bi bi-file-earmark"></i>${bytes} bytes</span>
-             <span class="meta-item"><i class="bi bi-list-ol"></i>${out.split('\n').length} lines</span>`;
-        showOk('st','Valid JSON');
-    } catch(e) {
-        document.getElementById('jsonOut').value = '';
-        document.getElementById('stats').innerHTML = '';
-        showErr('st', e.message.replace(/</g,'&lt;'));
+        // Try backend API first
+        const response = await fetch('/tools/api/minimal/json-test/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                data: raw
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('jsonOut').value = result.result;
+            const stats = result.stats;
+            
+            // Parse the formatted JSON to get stats
+            let keys = 0, depth = 0, lines = 0;
+            try {
+                const parsed = JSON.parse(result.result);
+                keys = countKeys(parsed);
+                depth = getDepth(parsed);
+                lines = result.result.split('\n').length;
+            } catch(e) {}
+            
+            document.getElementById('stats').innerHTML =
+                `<span class="meta-item"><i class="bi bi-key"></i>${keys} keys</span>
+                 <span class="meta-item"><i class="bi bi-layers"></i>Depth: ${depth}</span>
+                 <span class="meta-item"><i class="bi bi-file-earmark"></i>${stats.output_size} bytes</span>
+                 <span class="meta-item"><i class="bi bi-list-ol"></i>${lines} lines</span>
+                 <span class="meta-item"><i class="bi bi-server"></i>Backend</span>`;
+            showOk('st','Valid JSON');
+        } else {
+            throw new Error(result.error || 'Unknown error');
+        }
+    } catch (error) {
+        // Fallback to client-side processing
+        console.log('Backend unavailable, using client-side processing');
+        try {
+            const parsed = JSON.parse(raw);
+            let obj = parsed;
+            let indent = currentMode === 'sorted' ? 2 : currentMode;
+            if (currentMode === 'sorted') obj = sortKeys(parsed);
+            const out = currentMode === 0 ? JSON.stringify(obj) : JSON.stringify(obj, null, indent);
+            document.getElementById('jsonOut').value = out;
+            const keys = countKeys(parsed), depth = getDepth(parsed);
+            const bytes = new TextEncoder().encode(out).length;
+            document.getElementById('stats').innerHTML =
+                `<span class="meta-item"><i class="bi bi-key"></i>${keys} keys</span>
+                 <span class="meta-item"><i class="bi bi-layers"></i>Depth: ${depth}</span>
+                 <span class="meta-item"><i class="bi bi-file-earmark"></i>${bytes} bytes</span>
+                 <span class="meta-item"><i class="bi bi-list-ol"></i>${out.split('\n').length} lines</span>
+                 <span class="meta-item"><i class="bi bi-exclamation-triangle"></i>Client-side</span>`;
+            showOk('st','Valid JSON (Client-side)');
+        } catch(e) {
+            document.getElementById('jsonOut').value = '';
+            document.getElementById('stats').innerHTML = '';
+            showErr('st', e.message.replace(/</g,'&lt;'));
+        }
+    } finally {
+        // Restore button state
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
 }
 function copyOut() { const v = document.getElementById('jsonOut').value; if (!v) return; copyText(v, document.getElementById('btnCopy')); }
 function downloadOut() { const v = document.getElementById('jsonOut').value; if (!v) return; downloadText(v,'formatted.json','application/json'); }
 function clearAll() { document.getElementById('jsonIn').value=''; document.getElementById('jsonOut').value=''; document.getElementById('stats').innerHTML=''; hideStatus('st'); }
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 function copyText(text, btn) {
     navigator.clipboard.writeText(text).then(() => {
         const orig = btn.innerHTML; btn.innerHTML='<i class="bi bi-check2"></i> Copied!'; btn.style.color='var(--lg-cyan)';

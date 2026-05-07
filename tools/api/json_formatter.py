@@ -22,6 +22,10 @@ class JSONFormatterAPI(BaseToolAPI):
         super().__init__("json-formatter")
         self.max_input_size = 50 * 1024 * 1024  # 50MB for JSON files
     
+    def __call__(self, request):
+        """Make the API callable as a Django view"""
+        return self.handle_request(request)
+    
     def process_request(self, request, data: Dict[str, Any]) -> Dict[str, Any]:
         """Process JSON formatting request"""
         json_data = data['data']
