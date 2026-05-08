@@ -352,10 +352,11 @@
         }
     </script>
     {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/tool-runtime.js' %}"></script>
+    <script src="{% static 'js/core/gen-engine.js' %}"></script>
     <script src="{% static 'js/core/behavioral.js' %}" defer></script>
     <script src="{% static 'js/core/share-state.js' %}" defer></script>
     <script src="{% static 'js/core/spiritual-banner.js' %}" defer></script>
-    <script src="{% static 'js/core/gen-engine.js' %}"></script>
     {% block tool_js %}{% endblock %}
 
     <!-- ── Command Palette ── -->

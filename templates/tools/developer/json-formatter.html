@@ -132,13 +132,18 @@
 {% block tool_js %}
 <script>
 (() => {
+// Register JSON formatter tool data
+registerToolData('jsonFormatter', {
+    examples: {
+        simple: '{"name":"Alice","age":30,"email":"alice@example.com","active":true}',
+        nested: '{"user":{"id":1,"name":"Bob","address":{"street":"123 Main St","city":"Springfield","zip":"12345"},"roles":["admin","editor"]},"meta":{"created":"2024-01-15","version":2}}',
+        array: '[{"id":1,"product":"Widget A","price":9.99,"stock":150},{"id":2,"product":"Widget B","price":24.99,"stock":42}]',
+        minified: '{"config":{"debug":false,"maxRetries":3,"timeout":5000,"endpoints":{"api":"https://api.example.com","cdn":"https://cdn.example.com"},"features":{"darkMode":true,"analytics":false}}}'
+    }
+});
+
 let currentMode = 2;
-const EXAMPLES = {
-    simple: '{"name":"Alice","age":30,"email":"alice@example.com","active":true}',
-    nested: '{"user":{"id":1,"name":"Bob","address":{"street":"123 Main St","city":"Springfield","zip":"12345"},"roles":["admin","editor"]},"meta":{"created":"2024-01-15","version":2}}',
-    array: '[{"id":1,"product":"Widget A","price":9.99,"stock":150},{"id":2,"product":"Widget B","price":24.99,"stock":42}]',
-    minified: '{"config":{"debug":false,"maxRetries":3,"timeout":5000,"endpoints":{"api":"https://api.example.com","cdn":"https://cdn.example.com"},"features":{"darkMode":true,"analytics":false}}}'
-};
+const EXAMPLES = window.LamGenTools.jsonFormatter.examples;
 function loadEx(key) { document.getElementById('jsonIn').value = EXAMPLES[key]; formatJSON(); }
 function setMode(btn, mode) {
     currentMode = mode;

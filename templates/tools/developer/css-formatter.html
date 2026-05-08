@@ -65,12 +65,16 @@
 
 {% block tool_js %}
 <script>
-(() => {
-const EXAMPLES = {
-  simple: `.container{display:flex;flex-direction:column;gap:1rem;background:#fff;padding:20px;border-radius:8px}.btn{display:inline-flex;align-items:center;padding:10px 20px;background:#6C63FF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px}.btn:hover{background:#5a52e0;transform:translateY(-1px)}`,
-  media: `body{margin:0;font-family:sans-serif;background:#f5f5f5}.container{max-width:1200px;margin:0 auto;padding:0 20px}@media(max-width:768px){.container{padding:0 10px}.nav{display:none}.mobile-nav{display:block}}@media(max-width:480px){body{font-size:14px}}`,
-  vars: `:root{--primary:#6C63FF;--accent:#00F5D4;--bg:#0a0a0f;--text:#ffffff;--muted:rgba(255,255,255,0.5);--border:rgba(255,255,255,0.1)}.card{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1.5rem;border-radius:12px}.card-title{color:var(--primary);font-size:1.2rem}`
-};
+// Register CSS formatter tool data
+registerToolData('cssFormatter', {
+  examples: {
+    simple: `.container{display:flex;flex-direction:column;gap:1rem;background:#fff;padding:20px;border-radius:8px}.btn{display:inline-flex;align-items:center;padding:10px 20px;background:#6C63FF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px}.btn:hover{background:#5a52e0;transform:translateY(-1px)}`,
+    media: `body{margin:0;font-family:sans-serif;background:#f5f5f5}.container{max-width:1200px;margin:0 auto;padding:0 20px}@media(max-width:768px){.container{padding:0 10px}.nav{display:none}.mobile-nav{display:block}}@media(max-width:480px){body{font-size:14px}}`,
+    vars: `:root{--primary:#6C63FF;--accent:#00F5D4;--bg:#0a0a0f;--text:#ffffff;--muted:rgba(255,255,255,0.5);--border:rgba(255,255,255,0.1)}.card{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1.5rem;border-radius:12px}.card-title{color:var(--primary);font-size:1.2rem}`
+  }
+});
+
+const EXAMPLES = window.LamGenTools.cssFormatter.examples;
 
 function loadEx(key) {
   document.getElementById('cssIn').value = EXAMPLES[key];

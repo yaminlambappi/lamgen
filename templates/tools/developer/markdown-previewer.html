@@ -89,8 +89,10 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
 (() => {
-const EXAMPLES = {
-  readme: `# My Awesome Project
+// Register Markdown previewer tool data
+registerToolData('markdownPreviewer', {
+  examples: {
+    readme: `# My Awesome Project
 
 > A brief description of what this project does.
 
@@ -130,7 +132,7 @@ Pull requests are welcome. For major changes, please open an issue first.
 
 **License**: MIT`,
 
-  blog: `# The Future of Web Development
+    blog: `# The Future of Web Development
 
 *Published on January 15, 2024 by Alice Johnson*
 
@@ -160,7 +162,7 @@ As developers, we need to adapt our mental models. The traditional client-server
 
 The future is distributed, fast, and developer-friendly. Embrace the change!`,
 
-  table: `# Data Structures Cheat Sheet
+    table: `# Data Structures Cheat Sheet
 
 ## Arrays vs Linked Lists
 
@@ -205,7 +207,10 @@ function quickSort(arr) {
 ---
 
 *Last updated: 2024*`
-};
+  }
+});
+
+const EXAMPLES = window.LamGenTools.markdownPreviewer.examples;
 
 function loadEx(k) {
   document.getElementById('mdInput').value = EXAMPLES[k];

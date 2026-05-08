@@ -72,15 +72,18 @@
 
 {% block tool_js %}
 <script>
-(() => {
-let indentSize = 2;
+// Register XML formatter tool data
+registerToolData('xmlFormatter', {
+  examples: {
+    simple: '<root><person><name>Alice</name><age>30</age><email>alice@example.com</email></person><person><name>Bob</name><age>25</age><email>bob@example.com</email></person></root>',
+    attrs: '<catalog><book id="1" lang="en"><title>Clean Code</title><author>Robert Martin</author><price currency="USD">39.99</price></book><book id="2" lang="en"><title>The Pragmatic Programmer</title><author>David Thomas</author><price currency="USD">49.99</price></book></catalog>',
+    rss: '<rss version="2.0"><channel><title>Tech News</title><link>https://example.com</link><description>Latest tech news</description><item><title>New Framework Released</title><pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate><description>A new JavaScript framework has been released.</description></item></channel></rss>',
+    minified: '<?xml version="1.0" encoding="UTF-8"?><config><database><host>localhost</host><port>5432</port><name>mydb</name></database><cache><ttl>3600</ttl><maxSize>1000</maxSize></cache></config>'
+  }
+});
 
-const EXAMPLES = {
-  simple: '<root><person><name>Alice</name><age>30</age><email>alice@example.com</email></person><person><name>Bob</name><age>25</age><email>bob@example.com</email></person></root>',
-  attrs: '<catalog><book id="1" lang="en"><title>Clean Code</title><author>Robert Martin</author><price currency="USD">39.99</price></book><book id="2" lang="en"><title>The Pragmatic Programmer</title><author>David Thomas</author><price currency="USD">49.99</price></book></catalog>',
-  rss: '<rss version="2.0"><channel><title>Tech News</title><link>https://example.com</link><description>Latest tech news</description><item><title>New Framework Released</title><pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate><description>A new JavaScript framework has been released.</description></item></channel></rss>',
-  minified: '<?xml version="1.0" encoding="UTF-8"?><config><database><host>localhost</host><port>5432</port><name>mydb</name></database><cache><ttl>3600</ttl><maxSize>1000</maxSize></cache></config>'
-};
+let indentSize = 2;
+const EXAMPLES = window.LamGenTools.xmlFormatter.examples;
 
 function loadEx(key) {
   document.getElementById('xmlIn').value = EXAMPLES[key];
@@ -260,6 +263,5 @@ function hideStatus(id) { document.getElementById(id).className = 'status'; }
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); formatXML(); }
 });
-})();
 </script>
 {% endblock %}

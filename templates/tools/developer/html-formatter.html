@@ -69,16 +69,20 @@
 
 {% block tool_js %}
 <script>
-(() => {
+// Register HTML formatter tool data
+registerToolData('htmlFormatter', {
+  examples: {
+    simple: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Page</title><link rel="stylesheet" href="styles.css"></head><body><header><nav><ul><li><a href="/">Home</a></li><li><a href="/about">About</a></li></ul></nav></header><main><h1>Welcome</h1><p>This is a paragraph with <strong>bold</strong> and <em>italic</em> text.</p></main><footer><p>&copy; 2024</p></footer></body></html>`,
+    form: `<form action="/submit" method="POST"><div class="form-group"><label for="name">Name</label><input type="text" id="name" name="name" required placeholder="Enter your name"></div><div class="form-group"><label for="email">Email</label><input type="email" id="email" name="email" required></div><div class="form-group"><label for="message">Message</label><textarea id="message" name="message" rows="4"></textarea></div><button type="submit">Send</button></form>`,
+    table: `<table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody><tr><td>1</td><td>Alice</td><td>alice@example.com</td><td><span class="badge active">Active</span></td></tr><tr><td>2</td><td>Bob</td><td>bob@example.com</td><td><span class="badge inactive">Inactive</span></td></tr></tbody></table>`
+  }
+});
+
 const VOID_ELEMENTS = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
 const INLINE_ELEMENTS = new Set(['a','abbr','acronym','b','bdo','big','br','button','cite','code','dfn','em','i','img','input','kbd','label','map','object','output','q','samp','select','small','span','strong','sub','sup','textarea','time','tt','var']);
 const PRE_ELEMENTS = new Set(['pre','script','style','textarea']);
 
-const EXAMPLES = {
-  simple: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Page</title><link rel="stylesheet" href="styles.css"></head><body><header><nav><ul><li><a href="/">Home</a></li><li><a href="/about">About</a></li></ul></nav></header><main><h1>Welcome</h1><p>This is a paragraph with <strong>bold</strong> and <em>italic</em> text.</p></main><footer><p>&copy; 2024</p></footer></body></html>`,
-  form: `<form action="/submit" method="POST"><div class="form-group"><label for="name">Name</label><input type="text" id="name" name="name" required placeholder="Enter your name"></div><div class="form-group"><label for="email">Email</label><input type="email" id="email" name="email" required></div><div class="form-group"><label for="message">Message</label><textarea id="message" name="message" rows="4"></textarea></div><button type="submit">Send</button></form>`,
-  table: `<table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody><tr><td>1</td><td>Alice</td><td>alice@example.com</td><td><span class="badge active">Active</span></td></tr><tr><td>2</td><td>Bob</td><td>bob@example.com</td><td><span class="badge inactive">Inactive</span></td></tr></tbody></table>`
-};
+const EXAMPLES = window.LamGenTools.htmlFormatter.examples;
 
 function loadEx(key) {
   document.getElementById('htmlIn').value = EXAMPLES[key];
@@ -213,6 +217,5 @@ function hideStatus(id){document.getElementById(id).className='status';}
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatHTML(); }
 });
-})();
 </script>
 {% endblock %}

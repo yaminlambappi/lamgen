@@ -87,13 +87,17 @@
 <script src="https://unpkg.com/prettier@3.3.3/plugins/estree.js"></script>
 <script>
 (() => {
-let prettierReady = false;
+// Register JS formatter tool data
+registerToolData('jsFormatter', {
+  examples: {
+    func: `function calculateTotal(items,taxRate){let subtotal=0;for(const item of items){subtotal+=item.price*item.qty;}const tax=subtotal*taxRate/100;return{subtotal,tax,total:subtotal+tax};}function formatCurrency(amount,currency='USD'){return new Intl.NumberFormat('en-US',{style:'currency',currency}).format(amount);}`,
+    class: `class EventEmitter{constructor(){this.events={};}on(event,listener){if(!this.events[event]){this.events[event]=[];}this.events[event].push(listener);return this;}emit(event,...args){if(this.events[event]){this.events[event].forEach(listener=>listener(...args));}return this;}off(event,listener){if(this.events[event]){this.events[event]=this.events[event].filter(l=>l!==listener);}return this;}}`,
+    async: `async function fetchUserData(userId){try{const response=await fetch(\`https://api.example.com/users/\${userId}\`);if(!response.ok){throw new Error(\`HTTP error! status: \${response.status}\`);}const data=await response.json();return{success:true,data};}catch(error){console.error('Failed to fetch user:',error);return{success:false,error:error.message};}}`
+  }
+});
 
-const EXAMPLES = {
-  func: `function calculateTotal(items,taxRate){let subtotal=0;for(const item of items){subtotal+=item.price*item.qty;}const tax=subtotal*taxRate/100;return{subtotal,tax,total:subtotal+tax};}function formatCurrency(amount,currency='USD'){return new Intl.NumberFormat('en-US',{style:'currency',currency}).format(amount);}`,
-  class: `class EventEmitter{constructor(){this.events={};}on(event,listener){if(!this.events[event]){this.events[event]=[];}this.events[event].push(listener);return this;}emit(event,...args){if(this.events[event]){this.events[event].forEach(listener=>listener(...args));}return this;}off(event,listener){if(this.events[event]){this.events[event]=this.events[event].filter(l=>l!==listener);}return this;}}`,
-  async: `async function fetchUserData(userId){try{const response=await fetch(\`https://api.example.com/users/\${userId}\`);if(!response.ok){throw new Error(\`HTTP error! status: \${response.status}\`);}const data=await response.json();return{success:true,data};}catch(error){console.error('Failed to fetch user:',error);return{success:false,error:error.message};}}`
-};
+let prettierReady = false;
+const EXAMPLES = window.LamGenTools.jsFormatter.examples;
 
 function loadEx(key) {
   document.getElementById('jsIn').value = EXAMPLES[key];

@@ -60,13 +60,17 @@
 
 {% block tool_js %}
 <script>
-(() => {
-const EXAMPLES = {
-  simple: `name: John Doe\nage: 30\nemail: john@example.com\nactive: true\nscore: 9.5\nnotes: null`,
-  nested: `server:\n  host: localhost\n  port: 8080\n  debug: false\ndatabase:\n  host: db.example.com\n  port: 5432\n  name: myapp\n  credentials:\n    user: admin\n    password: secret\nfeatures:\n  darkMode: true\n  analytics: false`,
-  array: `users:\n  - id: 1\n    name: Alice\n    role: admin\n    active: true\n  - id: 2\n    name: Bob\n    role: editor\n    active: false\n  - id: 3\n    name: Charlie\n    role: viewer\n    active: true`,
-  docker: `version: '3.8'\nservices:\n  web:\n    image: nginx:latest\n    ports:\n      - '80:80'\n    volumes:\n      - ./html:/usr/share/nginx/html\n    depends_on:\n      - api\n  api:\n    build: ./api\n    environment:\n      - NODE_ENV=production\n      - PORT=3000\n    ports:\n      - '3000:3000'`
-};
+// Register YAML formatter tool data
+registerToolData('yamlFormatter', {
+  examples: {
+    simple: `name: John Doe\nage: 30\nemail: john@example.com\nactive: true\nscore: 9.5\nnotes: null`,
+    nested: `server:\n  host: localhost\n  port: 8080\n  debug: false\ndatabase:\n  host: db.example.com\n  port: 5432\n  name: myapp\n  credentials:\n    user: admin\n    password: secret\nfeatures:\n  darkMode: true\n  analytics: false`,
+    array: `users:\n  - id: 1\n    name: Alice\n    role: admin\n    active: true\n  - id: 2\n    name: Bob\n    role: editor\n    active: false\n  - id: 3\n    name: Charlie\n    role: viewer\n    active: true`,
+    docker: `version: '3.8'\nservices:\n  web:\n    image: nginx:latest\n    ports:\n      - '80:80'\n    volumes:\n      - ./html:/usr/share/nginx/html\n    depends_on:\n      - api\n  api:\n    build: ./api\n    environment:\n      - NODE_ENV=production\n      - PORT=3000\n    ports:\n      - '3000:3000'`
+  }
+});
+
+const EXAMPLES = window.LamGenTools.yamlFormatter.examples;
 
 function loadEx(key) {
   document.getElementById('yamlIn').value = EXAMPLES[key];
@@ -264,6 +268,5 @@ function hideStatus(id){document.getElementById(id).className='status';}
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatYAML(); }
 });
-})();
 </script>
 {% endblock %}
