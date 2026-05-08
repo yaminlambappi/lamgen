@@ -136,7 +136,9 @@ MEDIA_ROOT = env.str('MEDIA_ROOT', default=str(BASE_DIR / 'media'))
 
 # Edge Caching & Whitenoise Optimization (Immutable static files)
 WHITENOISE_MAX_AGE = 31536000
-WHITENOISE_KEEP_ONLY_HASHED_FILES = True
+# Keep unhashed copies alongside hashed assets so stable /static/... URLs
+# continue to work behind Nginx and during cache transitions.
+WHITENOISE_KEEP_ONLY_HASHED_FILES = False
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Default primary key field type

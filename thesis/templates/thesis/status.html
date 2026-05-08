@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Generating: {{ thesis.title }} — LamGen{% endblock %}
 
@@ -228,7 +229,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/status_poll.js"></script>
+<script src="{% static 'js/status_poll.js' %}"></script>
 <script>
     // Override updateUI to use new progress bar element
     const _origUpdateUI = updateUI;
