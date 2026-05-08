@@ -72,6 +72,7 @@
 
 {% block tool_js %}
 <script>
+(() => {
 let indentSize = 2;
 
 const EXAMPLES = {
@@ -259,5 +260,6 @@ function hideStatus(id) { document.getElementById(id).className = 'status'; }
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); formatXML(); }
 });
+})();
 </script>
 {% endblock %}

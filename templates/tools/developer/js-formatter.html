@@ -86,6 +86,7 @@
 <script src="https://unpkg.com/prettier@3.3.3/plugins/babel.js"></script>
 <script src="https://unpkg.com/prettier@3.3.3/plugins/estree.js"></script>
 <script>
+(() => {
 let prettierReady = false;
 
 const EXAMPLES = {
@@ -227,5 +228,6 @@ function hideStatus(id){document.getElementById(id).className='status';}
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatJS(); }
 });
+})();
 </script>
 {% endblock %}

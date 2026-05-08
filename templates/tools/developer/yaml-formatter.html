@@ -60,6 +60,7 @@
 
 {% block tool_js %}
 <script>
+(() => {
 const EXAMPLES = {
   simple: `name: John Doe\nage: 30\nemail: john@example.com\nactive: true\nscore: 9.5\nnotes: null`,
   nested: `server:\n  host: localhost\n  port: 8080\n  debug: false\ndatabase:\n  host: db.example.com\n  port: 5432\n  name: myapp\n  credentials:\n    user: admin\n    password: secret\nfeatures:\n  darkMode: true\n  analytics: false`,
@@ -263,5 +264,6 @@ function hideStatus(id){document.getElementById(id).className='status';}
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatYAML(); }
 });
+})();
 </script>
 {% endblock %}

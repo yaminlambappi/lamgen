@@ -131,6 +131,7 @@
 
 {% block tool_js %}
 <script>
+(() => {
 let currentMode = 2;
 const EXAMPLES = {
     simple: '{"name":"Alice","age":30,"email":"alice@example.com","active":true}',
@@ -271,5 +272,6 @@ function showErr(id, msg) { const el=document.getElementById(id); el.className='
 function showOk(id, msg)  { const el=document.getElementById(id); el.className='status ok';  el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg; }
 function hideStatus(id)   { document.getElementById(id).className='status'; }
 document.addEventListener('keydown', e => { if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatJSON(); } });
+})();
 </script>
 {% endblock %}

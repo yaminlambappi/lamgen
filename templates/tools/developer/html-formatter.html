@@ -69,6 +69,7 @@
 
 {% block tool_js %}
 <script>
+(() => {
 const VOID_ELEMENTS = new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
 const INLINE_ELEMENTS = new Set(['a','abbr','acronym','b','bdo','big','br','button','cite','code','dfn','em','i','img','input','kbd','label','map','object','output','q','samp','select','small','span','strong','sub','sup','textarea','time','tt','var']);
 const PRE_ELEMENTS = new Set(['pre','script','style','textarea']);
@@ -212,5 +213,6 @@ function hideStatus(id){document.getElementById(id).className='status';}
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatHTML(); }
 });
+})();
 </script>
 {% endblock %}

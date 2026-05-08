@@ -88,6 +88,7 @@
 {% block tool_js %}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
+(() => {
 const EXAMPLES = {
   readme: `# My Awesome Project
 
@@ -315,5 +316,6 @@ document.addEventListener('keydown', e => {
 
 // Load default example
 loadEx('readme');
+})();
 </script>
 {% endblock %}
