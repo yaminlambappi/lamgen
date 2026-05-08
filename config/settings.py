@@ -19,17 +19,22 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-change-me-in-production'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = [
-    "lamgen.lamlab.me",
-    "www.lamgen.lamlab.me",
-    "127.0.0.1",
-    "localhost",
-]
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=[
+        "lamgen.lamlab.me",
+        "www.lamgen.lamlab.me",
+        "127.0.0.1",
+        "localhost",
+        "194.233.67.21",
+    ]
+)
 
 CSRF_TRUSTED_ORIGINS = [
     "https://lamgen.lamlab.me",
     "https://www.lamgen.lamlab.me",
 ]
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
