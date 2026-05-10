@@ -209,6 +209,9 @@
 
     // ── Mobile menu ──
     function toggleMobileMenu() {
+        // Prevent mobile menu from opening on desktop screens
+        if (window.innerWidth > 820) return;
+        
         var menu = document.getElementById('mobileMenu');
         var btn  = document.getElementById('mobileMenuBtn');
         if (!menu || !btn) return;
