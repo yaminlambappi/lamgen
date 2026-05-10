@@ -1510,7 +1510,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
     border-bottom: 1px solid rgba(139,127,255,0.10);
-    display: flex;
+    display: none;
     flex-direction: column;
     overflow: hidden;
     max-height: 0;
@@ -1522,6 +1522,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
         visibility 0.25s ease;
 }
 .nav-mobile-menu.open {
+    display: flex;
     max-height: 420px;
     opacity: 1;
     visibility: visible;
@@ -1594,6 +1595,19 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     .header-inner { height: 56px; }
     .nav-brand-name { font-size: 0.98rem; }
     .nav-actions { gap: 6px; }
+}
+
+/* Desktop: Show desktop nav, hide mobile menu */
+@media (min-width: 769px) {
+    .nav-menu {
+        display: flex !important;
+    }
+    .nav-mobile-menu {
+        display: none !important;
+    }
+    .nav-mobile-toggle {
+        display: none !important;
+    }
 }
 
 /* ── Auth button ── */
