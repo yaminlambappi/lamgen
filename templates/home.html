@@ -1,196 +1,132 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block title %}LamGen — 265+ Free Online Tools for Developers, Students & Writers{% endblock %}
+
+{% block extra_css %}
 <style>
-.hero-section {
-    padding: 7rem 1.5rem 5rem;
-    text-align: center;
-    max-width: 960px;
-    margin: 0 auto;
-}
-.hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 14px;
-    background: rgba(139,127,255,0.12);
-    border: 1px solid rgba(139,127,255,0.28);
-    border-radius: 50px;
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-bold);
-    color: var(--lg-violet-bright);
-    margin-bottom: 1.5rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-.hero-title {
-    font-family: var(--font-display);
-    font-size: var(--fs-xxl);
-    font-weight: var(--fw-bold);
-    letter-spacing: -2px;
-    line-height: 0.95;
-    margin-bottom: 2rem;
-    color: var(--lg-text);
-}
-.hero-title .gradient-word {
-    background: linear-gradient(135deg, var(--lg-violet-bright) 0%, var(--lg-cyan) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-@media (max-width: 480px) {
-    .hero-title { letter-spacing: -1.5px; }
-    .hero-section { padding-top: 5rem; }
-}
-.hero-subtitle {
-    font-size: var(--fs-md);
-    color: var(--lg-text-muted);
-    margin-bottom: 3.5rem;
-    max-width: 680px;
-    margin-inline: auto;
-    line-height: var(--lh-base);
-    font-weight: var(--fw-regular);
-}
-.hero-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-/* Feature cards */
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-    gap: 1.25rem;
-    max-width: 1100px;
-    width: 100%;
-    margin: 0 auto 6rem;
-    padding: 0 1.5rem;
-    box-sizing: border-box;
-}
-@media (max-width: 480px) {
-    .features-grid { padding: 0 1rem; }
-    .feature-card { padding: 1.5rem; }
-}
-.feature-card {
-    background: var(--lg-card-bg);
-    border: 1px solid var(--lg-card-border);
-    border-radius: 22px;
-    padding: 2rem 1.75rem;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), border-color 0.28s, box-shadow 0.28s;
-    box-shadow: var(--lg-card-shadow);
-}
-.feature-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(circle at 50% 0%, var(--card-glow), transparent 65%);
-    opacity: 0;
-    transition: opacity 0.35s;
-}
-.feature-card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 1.75rem; right: 1.75rem;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--card-glow), transparent);
-    opacity: 0.5;
-}
-.feature-card:hover {
-    transform: translateY(-6px);
-    border-color: var(--lg-card-hover-border);
-    box-shadow: var(--lg-card-hover-shadow);
-}
-.feature-card:hover::before { opacity: 0.12; }
-
-.feature-icon {
-    width: 60px; height: 60px;
-    border-radius: 18px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.8rem;
-    margin-bottom: 1.75rem;
-    background: var(--card-glow)18;
-    border: 1px solid var(--card-glow)33;
-    color: var(--card-icon);
-}
-.feature-card h3 {
-    font-family: var(--font-display);
-    font-size: var(--fs-lg);
-    font-weight: var(--fw-bold);
-    margin-bottom: 0.85rem;
-    color: var(--lg-text);
-}
-.feature-card p {
-    color: var(--lg-text-muted);
-    font-size: var(--fs-base);
-    line-height: var(--lh-base);
-    margin-bottom: 2rem;
-    font-weight: var(--fw-medium);
-}
-.feature-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--lg-text);
-    text-decoration: none;
-    font-weight: var(--fw-bold);
-    font-size: var(--fs-xs);
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    border-bottom: 1px solid rgba(140,130,255,0.26);
-    padding-bottom: 3px;
-    transition: border-color 0.2s, color 0.2s;
-}
-.feature-link:hover {
-    color: var(--card-icon);
-    border-color: var(--card-glow);
-}
+    .home-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+        gap: var(--lg-sp-4, 1rem);
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+    .feature-card {
+        background: var(--lg-card-bg);
+        border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+        border-radius: var(--lg-r-xl, 20px);
+        padding: 2rem 1.75rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.22s cubic-bezier(0.22,1,0.36,1),
+                    border-color 0.22s ease,
+                    box-shadow 0.22s ease;
+        box-shadow: var(--lg-card-sh, 0 4px 20px rgba(0,0,12,0.32));
+    }
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 1.75rem; right: 1.75rem;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--card-glow, rgba(139,127,255,0.3)), transparent);
+        opacity: 0.4;
+    }
+    .feature-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--lg-b-hover-color, rgba(140,130,255,0.26));
+        box-shadow: var(--lg-card-sh-hover, 0 12px 36px rgba(0,0,12,0.42));
+    }
+    .feature-icon {
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        background: var(--card-glow, rgba(139,127,255,0.12));
+        border: 1px solid color-mix(in srgb, var(--card-glow, #8B7FFF) 25%, transparent);
+        color: var(--card-icon, var(--lg-violet-bright));
+    }
+    .feature-card h3 {
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-md, 1.15rem);
+        font-weight: 700;
+        margin: 0 0 0.75rem;
+        color: var(--lg-text);
+    }
+    .feature-card p {
+        color: var(--lg-text-muted);
+        font-size: var(--lg-fs-sm, 0.88rem);
+        line-height: 1.65;
+        margin: 0 0 1.5rem;
+    }
+    .feature-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--lg-text);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: var(--lg-fs-xs, 0.75rem);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: 1px solid rgba(140,130,255,0.22);
+        padding-bottom: 2px;
+        transition: border-color 0.18s ease, color 0.18s ease;
+    }
+    .feature-link:hover {
+        color: var(--card-icon, var(--lg-violet-bright));
+        border-color: var(--card-glow, var(--lg-violet));
+    }
+    @media (max-width: 640px) {
+        .feature-card { padding: 1.5rem 1.25rem; }
+    }
 </style>
+{% endblock %}
 
-<div class="hero-section">
-    <div class="hero-badge fade-up">
+{% block content %}
+<div class="lg-hero lg-fade-in">
+    <div class="lg-hero-badge">
         <i class="bi bi-cpu"></i> LamGen v2.0 Is Live
     </div>
 
-    <h1 class="hero-title fade-up stagger-1">
+    <h1 class="lg-hero-title lg-fade-in lg-stagger-1">
         The Future of<br>
-        <span class="gradient-word">Workflows.</span>
+        <span class="lg-gradient-text">Workflows.</span>
     </h1>
 
-    <p class="hero-subtitle fade-up stagger-2">
+    <p class="lg-hero-sub lg-fade-in lg-stagger-2">
         A unified productivity system with specialized tools for developers, writers, and students. Zero API costs. Zero latency. 100% Privacy.
     </p>
 
-    <div class="hero-actions fade-up stagger-3">
-        <a href="{% url 'tools:index' %}" class="btn-primary-nexus" style="font-size:var(--fs-base); padding:14px 40px;">
-            Enter Orbit <span style="opacity:0.55; margin-left:8px; font-size:0.85em;">⌘K</span>
+    <div class="lg-hero-actions lg-fade-in lg-stagger-3">
+        <a href="{% url 'tools:index' %}" class="lg-btn">
+            Explore All Tools <span style="opacity:0.5; margin-left:6px; font-size:0.85em;">⌘K</span>
         </a>
-        <a href="{% url 'home' %}" class="btn-ghost-nexus" style="font-size:var(--fs-base); padding:14px 32px;">
-            <i class="bi bi-speedometer2"></i> Dashboard
+        <a href="{% url 'seo:index' %}" class="lg-btn-ghost">
+            <i class="bi bi-journal-text"></i> Content Hub
         </a>
     </div>
 </div>
 
-<div class="features-grid fade-up stagger-4">
-    <div class="feature-card" style="--card-glow:#8B7FFF; --card-icon:#A89BFF;">
+<div class="home-features lg-fade-in lg-stagger-4">
+    <div class="feature-card" style="--card-glow:rgba(139,127,255,0.16); --card-icon:#A89BFF;">
         <div class="feature-icon"><i class="bi bi-code-slash"></i></div>
         <h3>Developer</h3>
         <p>Engineering utilities, formatters, Base64 encoding, and structural validators operating at lightspeed.</p>
         <a href="/tools/developer/" class="feature-link">Initialize <i class="bi bi-arrow-right"></i></a>
     </div>
 
-    <div class="feature-card" style="--card-glow:#FF6B6B; --card-icon:#FF9090;">
+    <div class="feature-card" style="--card-glow:rgba(255,107,107,0.16); --card-icon:#FF9090;">
         <div class="feature-icon"><i class="bi bi-pencil-square"></i></div>
         <h3>Create</h3>
         <p>Advanced structural editing. AI humanizers, rewriting algorithms, and precision word counters.</p>
         <a href="/tools/create/" class="feature-link">Initialize <i class="bi bi-arrow-right"></i></a>
     </div>
 
-    <div class="feature-card" style="--card-glow:#3EECD8; --card-icon:#5FF5E4;">
+    <div class="feature-card" style="--card-glow:rgba(62,236,216,0.16); --card-icon:#5FF5E4;">
         <div class="feature-icon"><i class="bi bi-images"></i></div>
         <h3>Media</h3>
-        <p>Holographic image processing and PDF manipulation matrix. Zero external payload transmission.</p>
+        <p>Holographic image processing and PDF manipulation. Zero external payload transmission.</p>
         <a href="/tools/media/" class="feature-link">Initialize <i class="bi bi-arrow-right"></i></a>
     </div>
 </div>

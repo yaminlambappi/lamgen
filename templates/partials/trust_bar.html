@@ -1,9 +1,31 @@
 {% load i18n %}
-<div class="tool-trust-footer" role="complementary" aria-label="{% trans 'Trust signals' %}">
-    <div class="trust-item"><i class="bi bi-cpu"></i> {% trans "Runs entirely in your browser" %}</div>
-    <div class="trust-item"><i class="bi bi-person-x"></i> {% trans "No signup required" %}</div>
-    <div class="trust-item"><i class="bi bi-shield-lock"></i> {% trans "Privacy-first" %}</div>
-    <div class="trust-item"><i class="bi bi-gift"></i> {% trans "Free forever" %}</div>
-    <div class="trust-item"><i class="bi bi-lightning-charge"></i> {% trans "Instant processing" %}</div>
-    <div class="trust-item"><i class="bi bi-database-x"></i> {% trans "No data stored" %}</div>
+<div class="global-trust-bar" role="complementary" aria-label="{% trans 'Trust signals' %}">
+    <span class="trust-pill"><i class="bi bi-cpu" aria-hidden="true"></i> {% trans "Runs in your browser" %}</span>
+    <span class="trust-pill"><i class="bi bi-person-x" aria-hidden="true"></i> {% trans "No signup" %}</span>
+    <span class="trust-pill"><i class="bi bi-shield-lock" aria-hidden="true"></i> {% trans "Privacy-first" %}</span>
+    <span class="trust-pill"><i class="bi bi-gift" aria-hidden="true"></i> {% trans "Free forever" %}</span>
+    <span class="trust-pill"><i class="bi bi-database-x" aria-hidden="true"></i> {% trans "No data stored" %}</span>
 </div>
+<style>
+.global-trust-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(100,90,255,0.05);
+    border-bottom: 1px solid rgba(130,120,255,0.10);
+    font-size: 0.72rem;
+}
+.global-trust-bar .trust-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--lg-text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.global-trust-bar .trust-pill i { color: var(--lg-cyan); font-size: 0.72rem; }
+@media (max-width: 480px) { .global-trust-bar { display: none; } }
+</style>

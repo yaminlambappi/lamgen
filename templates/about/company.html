@@ -1,0 +1,1015 @@
+{% extends "base.html" %}
+
+{% load static i18n %}
+
+{% block title %}About LamGen | Privacy-First Utility Platform{% endblock %}
+{% block meta_description %}Learn about LamGen's mission to provide privacy-first utility tools. Discover our commitment to client-side processing, data security, and user privacy.{% endblock %}
+
+{% block content %}
+<div class="about-page">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Empowering Privacy Through Innovation</h1>
+            <p class="hero-subtitle">LamGen delivers enterprise-grade utility tools that process entirely in your browser, ensuring your data never leaves your device.</p>
+            <div class="trust-indicators">
+                <div class="trust-item">
+                    <i class="bi bi-browser-chrome"></i>
+                    <span>100% Browser-Side</span>
+                </div>
+                <div class="trust-item">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Privacy-First</span>
+                </div>
+                <div class="trust-item">
+                    <i class="bi bi-lightning-charge"></i>
+                    <span>No Signup Required</span>
+                </div>
+                <div class="trust-item">
+                    <i class="bi bi-tools"></i>
+                    <span>Instant Tools</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="floating-elements">
+                <div class="float-item" style="animation-delay: 0s;"><i class="bi bi-code-slash"></i></div>
+                <div class="float-item" style="animation-delay: 1s;"><i class="bi bi-shield-check"></i></div>
+                <div class="float-item" style="animation-delay: 2s;"><i class="bi bi-gear"></i></div>
+                <div class="float-item" style="animation-delay: 3s;"><i class="bi bi-lightning"></i></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission & Philosophy Section -->
+    <section class="mission-philosophy-section">
+        <div class="section-header">
+            <h2>Our Mission & Philosophy</h2>
+            <p>Building a future where powerful tools and absolute privacy coexist.</p>
+        </div>
+        <div class="mission-grid">
+            <div class="mission-card feature-card">
+                <div class="card-icon">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <h3>Privacy First</h3>
+                <p>Your data stays yours. Always. We process everything client-side, ensuring zero server exposure.</p>
+            </div>
+            <div class="mission-card stat-card">
+                <div class="stat-number">256+</div>
+                <div class="stat-label">Free Tools</div>
+                <p>Enterprise-grade functionality without compromise.</p>
+            </div>
+            <div class="mission-card feature-card">
+                <div class="card-icon">
+                    <i class="bi bi-lightning"></i>
+                </div>
+                <h3>Instant Access</h3>
+                <p>No downloads, no registration, no friction. Just powerful tools at your fingertips.</p>
+            </div>
+            <div class="mission-card compact-card">
+                <h4>Client-Side Processing</h4>
+                <p>Every tool runs in your browser. No uploads, no delays, no privacy risks.</p>
+            </div>
+            <div class="mission-card compact-card">
+                <h4>Radical Transparency</h4>
+                <p>Open source code, no hidden tracking, no complex policies that obscure the truth.</p>
+            </div>
+            <div class="mission-card feature-card">
+                <div class="card-icon">
+                    <i class="bi bi-code"></i>
+                </div>
+                <h3>Developer First</h3>
+                <p>Built by developers, for developers. Clean APIs, comprehensive docs, real workflow integration.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="architecture-section">
+        <div class="section-header">
+            <h2>Technology Architecture</h2>
+            <p>Modern stack designed for privacy, performance, and reliability.</p>
+        </div>
+        <div class="arch-grid">
+            <div class="arch-card">
+                <h3>Frontend</h3>
+                <div class="tech-list">
+                    <span>Modern JavaScript (ES6+)</span>
+                    <span>WebAssembly</span>
+                    <span>Progressive Web Apps</span>
+                    <span>Service Workers</span>
+                </div>
+            </div>
+            <div class="arch-card">
+                <h3>Backend</h3>
+                <div class="tech-list">
+                    <span>Django 4.2+ (Python)</span>
+                    <span>PostgreSQL</span>
+                    <span>Redis</span>
+                    <span>Celery</span>
+                </div>
+            </div>
+            <div class="arch-card">
+                <h3>Infrastructure</h3>
+                <div class="tech-list">
+                    <span>Docker</span>
+                    <span>Nginx</span>
+                    <span>CloudFlare CDN</span>
+                    <span>Automated SSL/TLS</span>
+                </div>
+            </div>
+            <div class="arch-card privacy-card">
+                <h3>Privacy</h3>
+                <div class="tech-list">
+                    <span>Zero Data Collection</span>
+                    <span>No Cookies/Tracking</span>
+                    <span>HTTPS Everywhere</span>
+                    <span>Open Source</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-number" data-target="256">+</div>
+                <div class="stat-label">Free Tools</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="14"></div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="1285">+</div>
+                <div class="stat-label">Long-tail Pages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="100">%</div>
+                <div class="stat-label">Client-Side</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="0"></div>
+                <div class="stat-label">Data Collection</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap Timeline -->
+    <section class="roadmap-section">
+        <div class="section-header">
+            <h2>Development Roadmap</h2>
+            <p>Our vision for the future of privacy-first utilities.</p>
+        </div>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-marker">
+                    <span class="phase-label">Q3 2025</span>
+                </div>
+                <div class="timeline-content">
+                    <h3>Browser Extension</h3>
+                    <p>Right-click tools and context menu integration for seamless workflow automation.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker">
+                    <span class="phase-label">Q4 2025</span>
+                </div>
+                <div class="timeline-content">
+                    <h3>Developer Ecosystem</h3>
+                    <p>Comprehensive APIs, SDKs, and developer tools for platform integration.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker">
+                    <span class="phase-label">Q1 2026</span>
+                </div>
+                <div class="timeline-content">
+                    <h3>Workflow Automation</h3>
+                    <p>Cross-tool chaining and automated processing pipelines.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker">
+                    <span class="phase-label">Q2 2026</span>
+                </div>
+                <div class="timeline-content">
+                    <h3>AI Integration</h3>
+                    <p>Privacy-first AI features that enhance utility without compromising data.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section">
+        <div class="section-header">
+            <h2>Get in Touch</h2>
+            <p>Join our community and help shape the future of privacy-first tools.</p>
+        </div>
+        <div class="contact-grid">
+            <a href="{% url 'contact' %}" class="contact-card">
+                <div class="contact-icon">
+                    <i class="bi bi-envelope"></i>
+                </div>
+                <h3>Support</h3>
+                <p>Need help or have questions?</p>
+                <span class="contact-cta">Contact Support</span>
+            </a>
+            <a href="mailto:business@lamgen.lamlab.me" class="contact-card">
+                <div class="contact-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <h3>Business</h3>
+                <p>Partnerships or enterprise solutions</p>
+                <span class="contact-cta">business@lamgen.lamlab.me</span>
+            </a>
+            <a href="https://github.com/lamgen" target="_blank" class="contact-card">
+                <div class="contact-icon">
+                    <i class="bi bi-github"></i>
+                </div>
+                <h3>GitHub</h3>
+                <p>Report issues or contribute</p>
+                <span class="contact-cta">github.com/lamgen</span>
+            </a>
+            <a href="https://twitter.com/lamgen" target="_blank" class="contact-card">
+                <div class="contact-icon">
+                    <i class="bi bi-twitter"></i>
+                </div>
+                <h3>Twitter</h3>
+                <p>Follow for updates</p>
+                <span class="contact-cta">@lamgen</span>
+            </a>
+        </div>
+    </section>
+</div>
+
+<script>
+// Animated counters for stats
+function animateCounters() {
+    const counters = document.querySelectorAll('.stat-number[data-target]');
+    
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-target'));
+        const duration = 2000; // 2 seconds
+        const step = target / (duration / 16); // 60fps
+        let current = 0;
+        
+        const timer = setInterval(() => {
+            current += step;
+            if (current >= target) {
+                counter.textContent = target + (counter.textContent.includes('+') ? '+' : counter.textContent.includes('%') ? '%' : '');
+                clearInterval(timer);
+            } else {
+                counter.textContent = Math.floor(current) + (counter.textContent.includes('+') ? '+' : counter.textContent.includes('%') ? '%' : '');
+            }
+        }, 16);
+    });
+}
+
+// Intersection Observer for animations
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+            
+            // Animate counters when stats section comes into view
+            if (entry.target.classList.contains('stats-container')) {
+                animateCounters();
+            }
+        }
+    });
+}, observerOptions);
+
+// Observe elements for scroll animations
+document.addEventListener('DOMContentLoaded', () => {
+    // Initially hide elements for animation
+    const animateElements = document.querySelectorAll('.mission-card, .arch-card, .contact-card, .timeline-item');
+    animateElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        observer.observe(el);
+    });
+    
+    // Observe stats container
+    const statsContainer = document.querySelector('.stats-container');
+    if (statsContainer) {
+        observer.observe(statsContainer);
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.about-page {
+    min-height: 100vh;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(139, 127, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(168, 139, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(100, 90, 255, 0.02) 0%, transparent 50%),
+        var(--lg-bg);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.about-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(139, 127, 255, 0.01) 1px, transparent 1px),
+        radial-gradient(circle at 75% 75%, rgba(168, 139, 255, 0.01) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Hero Section */
+.hero-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    padding: 6rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(139, 127, 255, 0.05) 0%, 
+        rgba(168, 139, 255, 0.03) 50%, 
+        rgba(100, 90, 255, 0.05) 100%);
+    border-radius: 0 0 50% 50% / 0 0 100px 100px;
+    animation: gradientShift 8s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.hero-content {
+    animation: fadeInUp 1s ease-out;
+}
+
+.hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    margin: 0 0 1.5rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet), var(--lg-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+}
+
+.hero-subtitle {
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    color: var(--lg-text-muted);
+    margin: 0 0 2rem;
+    line-height: 1.6;
+}
+
+.trust-indicators {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(139, 127, 255, 0.2);
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--lg-text);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.trust-item:hover {
+    background: rgba(139, 127, 255, 0.1);
+    border-color: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.trust-item i {
+    color: var(--lg-violet);
+    font-size: 1rem;
+}
+
+.hero-visual {
+    position: relative;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.floating-elements {
+    position: relative;
+    width: 300px;
+    height: 300px;
+}
+
+.float-item {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 50%;
+    color: white;
+    font-size: 1.5rem;
+    animation: float 6s ease-in-out infinite;
+    box-shadow: 0 10px 30px rgba(139, 127, 255, 0.3);
+}
+
+.float-item:nth-child(1) { top: 0; left: 0; }
+.float-item:nth-child(2) { top: 0; right: 0; }
+.float-item:nth-child(3) { bottom: 0; left: 0; }
+.float-item:nth-child(4) { bottom: 0; right: 0; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-20px) rotate(90deg); }
+    50% { transform: translateY(0px) rotate(180deg); }
+    75% { transform: translateY(-10px) rotate(270deg); }
+}
+
+/* Section Headers */
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.section-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 700;
+    margin: 0 0 1rem;
+    color: var(--lg-text);
+    position: relative;
+}
+
+.section-header h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 2px;
+}
+
+.section-header p {
+    font-size: 1.1rem;
+    color: var(--lg-text-muted);
+    margin: 0;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Mission & Philosophy Section */
+.mission-philosophy-section {
+    padding: 6rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.mission-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.mission-card {
+    padding: 2rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.8s ease-out;
+    animation-fill-mode: both;
+}
+
+.mission-card:nth-child(odd) {
+    animation-delay: 0.1s;
+}
+
+.mission-card:nth-child(even) {
+    animation-delay: 0.2s;
+}
+
+.mission-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(139, 127, 255, 0.1);
+    border-color: rgba(139, 127, 255, 0.3);
+}
+
+.feature-card .card-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.mission-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+    color: var(--lg-text);
+}
+
+.mission-card h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--lg-primary);
+}
+
+.mission-card p {
+    color: var(--lg-text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.stat-card {
+    text-align: center;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    color: white;
+}
+
+.stat-card .stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.stat-card .stat-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.stat-card p {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.compact-card {
+    padding: 1.5rem;
+}
+
+.compact-card h4 {
+    margin-bottom: 0.75rem;
+}
+
+/* Architecture Section */
+.architecture-section {
+    padding: 6rem 2rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-top: 1px solid rgba(139, 127, 255, 0.1);
+    border-bottom: 1px solid rgba(139, 127, 255, 0.1);
+}
+
+.arch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.arch-card {
+    padding: 2rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.8s ease-out;
+    animation-fill-mode: both;
+}
+
+.arch-card:nth-child(1) { animation-delay: 0.1s; }
+.arch-card:nth-child(2) { animation-delay: 0.2s; }
+.arch-card:nth-child(3) { animation-delay: 0.3s; }
+.arch-card:nth-child(4) { animation-delay: 0.4s; }
+
+.arch-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(139, 127, 255, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.arch-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.arch-card h3::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 2px;
+}
+
+.privacy-card h3::before {
+    background: linear-gradient(135deg, var(--lg-success), var(--lg-primary));
+}
+
+.tech-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.tech-list span {
+    padding: 0.5rem 1rem;
+    background: rgba(139, 127, 255, 0.1);
+    border: 1px solid rgba(139, 127, 255, 0.2);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--lg-text);
+    transition: all 0.3s ease;
+}
+
+.tech-list span:hover {
+    background: rgba(139, 127, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Stats Section */
+.stats-section {
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    color: white;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+    min-width: 120px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: white;
+    font-family: 'Syne', sans-serif;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Roadmap Timeline */
+.roadmap-section {
+    padding: 6rem 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--lg-primary), var(--lg-violet));
+    border-radius: 1px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 3rem;
+    animation: fadeInLeft 0.8s ease-out;
+    animation-fill-mode: both;
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.timeline-item:nth-child(3) { animation-delay: 0.3s; }
+.timeline-item:nth-child(4) { animation-delay: 0.4s; }
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 1;
+}
+
+.phase-label {
+    font-size: 0.7rem;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 6px;
+    border-radius: 10px;
+    color: white;
+}
+
+.timeline-content {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-left: 1rem;
+    transition: all 0.3s ease;
+}
+
+.timeline-content:hover {
+    transform: translateX(5px);
+    border-color: rgba(139, 127, 255, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-content h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.timeline-content p {
+    color: var(--lg-text-muted);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Contact Section */
+.contact-section {
+    padding: 6rem 2rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-top: 1px solid rgba(139, 127, 255, 0.1);
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.contact-card {
+    display: block;
+    padding: 2rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    text-align: center;
+    animation: fadeInUp 0.8s ease-out;
+    animation-fill-mode: both;
+}
+
+.contact-card:nth-child(1) { animation-delay: 0.1s; }
+.contact-card:nth-child(2) { animation-delay: 0.2s; }
+.contact-card:nth-child(3) { animation-delay: 0.3s; }
+.contact-card:nth-child(4) { animation-delay: 0.4s; }
+
+.contact-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(139, 127, 255, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(139, 127, 255, 0.1);
+}
+
+.contact-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.contact-card:hover .contact-icon {
+    transform: scale(1.1);
+}
+
+.contact-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.contact-card p {
+    color: var(--lg-text-muted);
+    margin: 0 0 1rem;
+    line-height: 1.5;
+}
+
+.contact-cta {
+    color: var(--lg-primary);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        padding: 4rem 1rem;
+        text-align: center;
+    }
+    
+    .hero-visual {
+        height: 250px;
+    }
+    
+    .floating-elements {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .float-item {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .trust-indicators {
+        justify-content: center;
+    }
+    
+    .mission-grid,
+    .arch-grid,
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-container {
+        gap: 2rem;
+    }
+    
+    .timeline {
+        padding-left: 1rem;
+    }
+    
+    .timeline-marker {
+        left: -18px;
+        width: 24px;
+        height: 24px;
+    }
+    
+    .timeline-content {
+        margin-left: 0.5rem;
+    }
+    
+    .section-header {
+        margin-bottom: 3rem;
+    }
+    
+    .section-header h2 {
+        font-size: 2rem;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .mission-philosophy-section,
+    .architecture-section,
+    .roadmap-section,
+    .contact-section {
+        padding: 4rem 1rem;
+    }
+    
+    .stats-section {
+        padding: 3rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-page {
+        padding: 0;
+    }
+    
+    .hero-section {
+        padding: 3rem 1rem;
+    }
+    
+    .trust-indicators {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stats-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .timeline-item {
+        margin-bottom: 2rem;
+    }
+}
+</style>
+{% endblock %}

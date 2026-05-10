@@ -1,5 +1,161 @@
 <style>
-    .app-shell { min-height: 60vh; }
-    .tool-page { max-width: 860px; margin: 0 auto; }
-    .tool-canvas { border-radius: 20px; }
+/* ═══════════════════════════════════════════════════════════════════
+   CRITICAL CSS — Above-the-Fold Styles for FOUC Prevention
+   Inlined in <head> to prevent flash of unstyled content
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Immediate Dark Theme Background ── */
+html, body {
+    background: #07091A !important; /* Deep space indigo */
+    color: #F5E9B8 !important; /* Warm luminous yellow */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* ── Prevent Layout Shifts ── */
+* {
+    box-sizing: border-box !important;
+}
+
+/* ── Critical Navbar Styles ── */
+.app-header {
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 200 !important;
+    background: rgba(7,9,26,0.88) !important;
+    border-bottom: 1px solid rgba(130,120,255,0.12) !important;
+    backdrop-filter: blur(20px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+    height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.header-inner {
+    max-width: 1440px !important;
+    margin: 0 auto !important;
+    padding: 0 1.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 100% !important;
+}
+
+/* ── Navigation Links ── */
+.nav-menu {
+    display: flex !important;
+    gap: 2rem !important;
+    align-items: center !important;
+}
+
+.nav-link {
+    color: rgba(245,233,184,0.8) !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    transition: color 0.2s ease !important;
+    padding: 0.5rem 0 !important;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #3EECD8 !important; /* Cyan accent */
+}
+
+/* ── Brand ── */
+.nav-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    color: #F5E9B8 !important;
+    text-decoration: none !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+}
+
+.brand-icon {
+    width: 28px !important;
+    height: 28px !important;
+}
+
+/* ── Space Background (prevent flash) ── */
+.space-bg {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: #07091A !important;
+    z-index: -2 !important;
+    pointer-events: none !important;
+}
+
+/* ── Font Loading Optimization ── */
+/* Fonts loaded via Google Fonts CSS with font-display: swap */
+
+/* ── Hide content until fonts load (optional) ── */
+.font-loading body {
+    opacity: 0 !important;
+    transition: opacity 0.1s ease !important;
+}
+
+.font-loaded body {
+    opacity: 1 !important;
+}
+
+/* ── Navigation Actions ── */
+.nav-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+}
+
+.nav-search-btn, .nav-mobile-toggle {
+    background: none !important;
+    border: none !important;
+    color: rgba(245,233,184,0.8) !important;
+    cursor: pointer !important;
+    padding: 0.5rem !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+.nav-search-btn:hover, .nav-mobile-toggle:hover {
+    background: rgba(62,236,216,0.1) !important;
+    color: #3EECD8 !important;
+}
+
+/* ── Prevent FOUC on refresh ── */
+.no-fouc {
+    opacity: 0 !important;
+    transition: opacity 0.15s ease !important;
+}
+
+.fouc-loaded {
+    opacity: 1 !important;
+}
+
+/* ── Mobile Menu (hidden by default) ── */
+.nav-mobile-menu {
+    display: none !important;
+}
+
+/* ── Mobile Responsive (basic) ── */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none !important;
+    }
+    .nav-mobile-toggle {
+        display: flex !important;
+    }
+    .header-inner {
+        padding: 0 1rem !important;
+    }
+}
 </style>

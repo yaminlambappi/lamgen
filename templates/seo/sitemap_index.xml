@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="{{ xmlns }}">
+{% for sitemap in sitemaps %}
+  <sitemap>
+    <loc>{{ sitemap.loc }}</loc>
+    {% if sitemap.lastmod %}<lastmod>{{ sitemap.lastmod|date:"Y-m-d" }}</lastmod>{% endif %}
+  </sitemap>
+{% endfor %}
+</sitemapindex>

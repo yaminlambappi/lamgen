@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+
+{% load static i18n %}
+
+{% block title %}Privacy Policy | LamGen{% endblock %}
+{% block meta_description %}LamGen's comprehensive privacy policy. Learn how we protect your privacy with client-side processing, no data collection, and zero tracking.{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="legal-page">
+        <div class="legal-header">
+            <h1 class="legal-title">Privacy Policy</h1>
+            <p class="legal-subtitle">Last updated: {{ "now"|date:"F j, Y" }}</p>
+        </div>
+
+        <div class="legal-content">
+            <section class="legal-section">
+                <h2>Our Privacy Commitment</h2>
+                <p>At LamGen, we believe privacy is a fundamental right. Our tools are designed with privacy as the core principle, not an afterthought.</p>
+                <div class="privacy-badge">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Your files never leave your browser</span>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <h2>How We Protect Your Privacy</h2>
+                
+                <div class="privacy-features">
+                    <div class="privacy-feature">
+                        <div class="feature-icon">
+                            <i class="bi bi-laptop"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>Client-Side Processing</h3>
+                            <p>All our tools run entirely in your browser. Your files, data, and activities never touch our servers.</p>
+                        </div>
+                    </div>
+
+                    <div class="privacy-feature">
+                        <div class="feature-icon">
+                            <i class="bi bi-lock"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>No Data Collection</h3>
+                            <p>We don't collect, store, or process any personal information. No accounts, no tracking, no profiling.</p>
+                        </div>
+                    </div>
+
+                    <div class="privacy-feature">
+                        <div class="feature-icon">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>No Persistent Storage</h3>
+                            <p>We don't use cookies or local storage for tracking. Any temporary data is only for functionality.</p>
+                        </div>
+                    </div>
+
+                    <div class="privacy-feature">
+                        <div class="feature-icon">
+                            <i class="bi bi-eye-slash"></i>
+                        </div>
+                        <div class="feature-content">
+                            <h3>No Analytics or Tracking</h3>
+                            <p>We don't use Google Analytics, tracking pixels, or any third-party surveillance.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <h2>What We Don't Do</h2>
+                <div class="dont-list">
+                    <div class="dont-item">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Collect personal information</span>
+                    </div>
+                    <div class="dont-item">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Sell or share your data</span>
+                    </div>
+                    <div class="dont-item">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Use tracking cookies</span>
+                    </div>
+                    <div class="dont-item">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Profile user behavior</span>
+                    </div>
+                    <div class="dont-item">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Share data with third parties</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <h2>Technical Implementation</h2>
+                <p>Our privacy commitment is built into our technical architecture:</p>
+                
+                <div class="technical-details">
+                    <div class="tech-item">
+                        <h4>Browser-Based Processing</h4>
+                        <p>JavaScript-based tools that process everything client-side using modern Web APIs.</p>
+                    </div>
+                    
+                    <div class="tech-item">
+                        <h4>No Server Uploads</h4>
+                        <p>File processing happens in your browser. No uploads to our servers required.</p>
+                    </div>
+                    
+                    <div class="tech-item">
+                        <h4>Open Source Transparency</h4>
+                        <p>Our code is open source and auditable for privacy compliance.</p>
+                    </div>
+                    
+                    <div class="tech-item">
+                        <h4>HTTPS Encryption</h4>
+                        <p>All connections use HTTPS with modern encryption protocols.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <h2>Temporary Data</h2>
+                <p>Some tools may temporarily store data in your browser for functionality:</p>
+                
+                <ul class="temporary-data-list">
+                    <li><strong>Session Storage:</strong> For current tool session only</li>
+                    <li><strong>Local Storage:</strong> For user preferences and settings</li>
+                    <li><strong>Memory Cache:</strong> For temporary processing data</li>
+                </ul>
+                
+                <p class="note">All temporary data is stored locally in your browser and can be cleared at any time.</p>
+            </section>
+
+            <section class="legal-section">
+                <h2>Third-Party Services</h2>
+                <p>We may use minimal third-party services for essential functionality:</p>
+                
+                <div class="third-party-list">
+                    <div class="service-item">
+                        <h4>CDN Services</h4>
+                        <p>For fast delivery of static assets (no user data involved)</p>
+                    </div>
+                    
+                    <div class="service-item">
+                        <h4>Font Services</h4>
+                        <p>For delivering fonts (no tracking capabilities)</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <h2>Your Rights</h2>
+                <div class="rights-list">
+                    <div class="right-item">
+                        <h4><i class="bi bi-info-circle"></i> Transparency</h4>
+                        <p>Full visibility into how our tools work and process data</p>
+                    </div>
+                    
+                    <div class="right-item">
+                        <h4><i class="bi bi-info-circle"></i> Control</h4>
+                        <p>Complete control over your data and how it's processed</p>
+                    </div>
+                    
+                    <div class="right-item">
+                        <h4><i class="bi bi-info-circle"></i> Access</h4>
+                        <p>Free access to all tools without registration or tracking</p>
+                    </div>
+                    
+                    <div class="right-item">
+                        <h4><i class="bi bi-info-circle"></i> Portability</h4>
+                        <p>Take your data and workflows with you when you leave</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="legal-section">
+                <h2>Children's Privacy</h2>
+                <p>Our service is not directed to children under 13. We do not knowingly collect personal information from children under 13.</p>
+            </section>
+
+            <section class="legal-section">
+                <h2>International Users</h2>
+                <p>LamGen is accessible globally. We comply with applicable privacy laws including GDPR for European users.</p>
+                <p>Since we don't collect personal data, most privacy regulations don't apply to our service.</p>
+            </section>
+
+            <section class="legal-section">
+                <h2>Changes to This Policy</h2>
+                <p>We may update this privacy policy to reflect changes in our practices. We will:</p>
+                <ul>
+                    <li>Post the updated policy on this page</li>
+                    <li>Update the "Last updated" date</li>
+                    <li>Maintain our privacy-first commitment</li>
+                </ul>
+            </section>
+
+            <section class="legal-section">
+                <h2>Contact Us</h2>
+                <p>If you have questions about this privacy policy or our privacy practices:</p>
+                <div class="contact-info">
+                    <p><strong>Email:</strong> privacy@lamgen.lamlab.me</p>
+                    <p><strong>GitHub:</strong> <a href="https://github.com/lamgen/issues" target="_blank">Create an issue</a></p>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.legal-page {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--lg-card-bg);
+    border-radius: 16px;
+    box-shadow: var(--lg-shadow-sm);
+}
+
+.legal-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.legal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.legal-subtitle {
+    color: var(--lg-text-muted);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.legal-content {
+    line-height: 1.8;
+}
+
+.legal-section {
+    margin-bottom: 3rem;
+}
+
+.legal-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+}
+
+.legal-section h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.legal-section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+    color: var(--lg-primary);
+}
+
+.privacy-badge {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(100, 90, 255, 0.1);
+    border: 1px solid rgba(100, 90, 255, 0.2);
+    border-radius: 12px;
+    margin: 2rem 0;
+}
+
+.privacy-badge i {
+    font-size: 1.5rem;
+    color: var(--lg-primary);
+}
+
+.privacy-badge span {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--lg-text);
+}
+
+.privacy-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.privacy-feature {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(62, 236, 216, 0.05);
+    border: 1px solid rgba(62, 236, 216, 0.1);
+    border-radius: 12px;
+}
+
+.feature-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(62, 236, 216, 0.1);
+    border: 1px solid rgba(62, 236, 216, 0.2);
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.feature-icon i {
+    font-size: 1.5rem;
+    color: var(--lg-cyan);
+}
+
+.feature-content h3 {
+    margin: 0 0 0.5rem;
+}
+
+.dont-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.dont-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 99, 71, 0.05);
+    border: 1px solid rgba(255, 99, 71, 0.1);
+    border-radius: 8px;
+}
+
+.dont-item i {
+    color: var(--lg-violet);
+    font-size: 1.2rem;
+}
+
+.technical-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.tech-item {
+    padding: 1.5rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+}
+
+.tech-item h4 {
+    margin: 0 0 0.5rem;
+    color: var(--lg-primary);
+}
+
+.temporary-data-list {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.temporary-data-list li {
+    margin-bottom: 0.5rem;
+}
+
+.note {
+    background: rgba(100, 90, 255, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--lg-primary);
+    margin: 1rem 0;
+}
+
+.third-party-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.service-item {
+    padding: 1.5rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+}
+
+.rights-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.right-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 8px;
+}
+
+.right-item h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+    color: var(--lg-primary);
+}
+
+.right-item h4 i {
+    font-size: 1.1rem;
+}
+
+.contact-info {
+    background: rgba(100, 90, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.contact-info p {
+    margin-bottom: 0.5rem;
+}
+
+.contact-info a {
+    color: var(--lg-primary);
+    text-decoration: none;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .legal-page {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .legal-title {
+        font-size: 2rem;
+    }
+    
+    .privacy-features,
+    .dont-list,
+    .technical-details,
+    .third-party-list,
+    .rights-list {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

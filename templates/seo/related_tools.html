@@ -1,0 +1,326 @@
+{% load static %}
+<!-- Related Tools Component -->
+<div class="related-tools-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class="bi bi-diagram-3"></i>
+            <span>Related Tools</span>
+        </h2>
+        <p class="section-description">Tools you might also find useful</p>
+    </div>
+
+    <div class="related-tools-grid" id="related-tools-container">
+        <!-- Tools will be dynamically loaded here -->
+        <div class="loading-spinner">
+            <i class="bi bi-arrow-repeat"></i>
+            <span>Loading related tools...</span>
+        </div>
+    </div>
+
+    <div class="related-tools-actions">
+        <button class="btn-secondary" onclick="loadMoreRelatedTools()">
+            <i class="bi bi-plus-circle"></i>
+            Load More Tools
+        </button>
+    </div>
+</div>
+
+<style>
+.related-tools-section {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--lg-text);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 0.5rem;
+}
+
+.section-title i {
+    color: var(--lg-violet);
+    font-size: 1.5rem;
+}
+
+.section-description {
+    color: var(--lg-text-muted);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.related-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    min-height: 200px;
+}
+
+.related-tool-card {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: var(--lg-text);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.related-tool-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: var(--lg-primary);
+}
+
+.related-tool-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.related-tool-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.related-tool-icon i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.related-tool-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.related-tool-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--lg-text);
+    line-height: 1.4;
+}
+
+.related-tool-description {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+    margin: 0 0 0.5rem;
+    line-height: 1.5;
+}
+
+.related-tool-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: auto;
+}
+
+.related-tool-category {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(100, 90, 255, 0.1);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--lg-primary);
+}
+
+.related-tool-category i {
+    font-size: 0.9rem;
+}
+
+.related-tool-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--lg-text-muted);
+}
+
+.related-tool-usage {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.related-tool-usage i {
+    color: var(--lg-cyan);
+    font-size: 0.9rem;
+}
+
+.related-tools-actions {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--lg-primary);
+    border: 2px solid var(--lg-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+    background: var(--lg-primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 3rem;
+    color: var(--lg-text-muted);
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .related-tools-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .related-tool-card {
+        padding: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+}
+</style>
+
+<script>
+// Related Tools Component
+let relatedToolsOffset = 0;
+let isLoadingRelatedTools = false;
+
+async function loadRelatedTools(toolId, limit = 8) {
+    if (isLoadingRelatedTools) return;
+    
+    const container = document.getElementById('related-tools-container');
+    if (!container) return;
+    
+    isLoadingRelatedTools = true;
+    container.innerHTML = '<div class="loading-spinner"><i class="bi bi-arrow-repeat"></i><span>Loading related tools...</span></div>';
+    
+    try {
+        const response = await fetch(`/tools/api/related-tools/${toolId}/?limit=${limit}&offset=${relatedToolsOffset}`);
+        const data = await response.json();
+        
+        if (data.tools && data.tools.length > 0) {
+            renderRelatedTools(data.tools, data.hasMore);
+            relatedToolsOffset += data.tools.length;
+        } else {
+            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--lg-text-muted);">No related tools found.</div>';
+        }
+    } catch (error) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--lg-danger);">Error loading related tools.</div>';
+    } finally {
+        isLoadingRelatedTools = false;
+    }
+}
+
+function renderRelatedTools(tools, hasMore = false) {
+    const container = document.getElementById('related-tools-container');
+    if (!container) return;
+    
+    const toolsHtml = tools.map(tool => `
+        <a href="/tools/${tool.category_slug}/${tool.slug}/" class="related-tool-card">
+            <div class="related-tool-header">
+                <div class="related-tool-icon">
+                    <i class="${tool.icon}"></i>
+                </div>
+                <div class="related-tool-content">
+                    <div class="related-tool-title">${tool.name}</div>
+                    <div class="related-tool-description">${tool.short_desc}</div>
+                    <div class="related-tool-meta">
+                        <div class="related-tool-category">
+                            <i class="bi bi-folder"></i>
+                            ${tool.category_name}
+                        </div>
+                        <div class="related-tool-stats">
+                            <div class="related-tool-usage">
+                                <i class="bi bi-eye"></i>
+                                ${tool.usage_count || 0}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    `).join('');
+    
+    container.innerHTML = toolsHtml;
+    
+    // Update load more button
+    const loadMoreBtn = container.parentElement.querySelector('.btn-secondary');
+    if (loadMoreBtn) {
+        if (hasMore) {
+            loadMoreBtn.style.display = 'inline-flex';
+        } else {
+            loadMoreBtn.style.display = 'none';
+        }
+    }
+}
+
+function loadMoreRelatedTools() {
+    // This will be called when user clicks "Load More Tools"
+    // The actual tool ID should be passed from the parent component
+    console.log('Load more related tools clicked');
+}
+
+// Initialize related tools when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-load related tools for the current tool if tool ID is available
+    const currentToolElement = document.querySelector('[data-tool-id]');
+    if (currentToolElement) {
+        const toolId = currentToolElement.getAttribute('data-tool-id');
+        setTimeout(() => loadRelatedTools(toolId), 1000); // Delay for better UX
+    }
+});
+</script>

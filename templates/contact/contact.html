@@ -1,0 +1,542 @@
+{% extends "base.html" %}
+
+{% load static i18n %}
+
+{% block title %}Contact Us | LamGen{% endblock %}
+{% block meta_description %}Contact LamGen team. Get help with our privacy-first utility tools, report issues, or provide feedback.{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="contact-page">
+        <div class="contact-header">
+            <h1 class="contact-title">Contact Us</h1>
+            <p class="contact-subtitle">We're here to help with our privacy-first utility tools</p>
+        </div>
+
+        <div class="contact-content">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <div class="info-section">
+                        <h2><i class="bi bi-envelope"></i> Email Support</h2>
+                        <div class="info-item">
+                            <h3>General Inquiries</h3>
+                            <p>For general questions, feedback, or support:</p>
+                            <a href="mailto:support@lamgen.lamlab.me" class="contact-link">support@lamgen.lamlab.me</a>
+                        </div>
+                        <div class="info-item">
+                            <h3>Privacy & Security</h3>
+                            <p>For privacy concerns or security issues:</p>
+                            <a href="mailto:privacy@lamgen.lamlab.me" class="contact-link">privacy@lamgen.lamlab.me</a>
+                        </div>
+                        <div class="info-item">
+                            <h3>Business Inquiries</h3>
+                            <p>For partnerships, enterprise, or business opportunities:</p>
+                            <a href="mailto:business@lamgen.lamlab.me" class="contact-link">business@lamgen.lamlab.me</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-form">
+                    <h2><i class="bi bi-chat-dots"></i> Send us a Message</h2>
+                    <form method="post" action="mailto:support@lamgen.lamlab.me" class="contact-form-element" onsubmit="return handleContactSubmit(event)">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="name" class="form-label">Name *</label>
+                            <input type="text" id="name" name="name" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" id="email" name="email" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject" class="form-label">Subject *</label>
+                            <select id="subject" name="subject" class="form-select" required>
+                                <option value="">Select a topic</option>
+                                <option value="general">General Question</option>
+                                <option value="bug">Bug Report</option>
+                                <option value="feature">Feature Request</option>
+                                <option value="privacy">Privacy Concern</option>
+                                <option value="business">Business Inquiry</option>
+                                <option value="developer">Developer Question</option>
+                                <option value="feedback">Feedback</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tool" class="form-label">Related Tool (Optional)</label>
+                            <select id="tool" name="tool" class="form-select">
+                                <option value="">No specific tool</option>
+                                <option value="pdf-merge">PDF Merge</option>
+                                <option value="json-formatter">JSON Formatter</option>
+                                <option value="base64-encoder">Base64 Encoder</option>
+                                <option value="regex-tester">Regex Tester</option>
+                                <option value="image-compressor">Image Compressor</option>
+                                <option value="meta-title-generator">Meta Title Generator</option>
+                                <option value="resume-builder">Resume Builder</option>
+                                <option value="ats-checker">ATS Checker</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message" class="form-label">Message *</label>
+                            <textarea id="message" name="message" class="form-textarea" rows="6" required placeholder="Describe your question, issue, or feedback in detail..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="privacy-aware" name="privacy-aware" class="form-checkbox">
+                                <label for="privacy-aware" class="checkbox-label">
+                                    <i class="bi bi-shield-check"></i>
+                                    I understand that LamGen processes everything in my browser and doesn't collect my data
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn">
+                            <i class="bi bi-send"></i>
+                            Send Message
+                        </button>
+                    </form>
+                    <script>
+                    function handleContactSubmit(e) {
+                        e.preventDefault();
+                        const name = document.getElementById('name').value;
+                        const email = document.getElementById('email').value;
+                        const subject = document.getElementById('subject').value;
+                        const message = document.getElementById('message').value;
+                        const mailto = `mailto:support@lamgen.lamlab.me?subject=${encodeURIComponent('[LamGen] ' + subject)}&body=${encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + message)}`;
+                        window.location.href = mailto;
+                    }
+                    </script>
+                </div>
+            </div>
+
+            <div class="contact-alternatives">
+                <h2><i class="bi bi-diagram-3"></i> Other Ways to Reach Us</h2>
+                
+                <div class="alternative-methods">
+                    <div class="method-item">
+                        <div class="method-icon">
+                            <i class="bi bi-github"></i>
+                        </div>
+                        <div class="method-content">
+                            <h3>GitHub</h3>
+                            <p>Report bugs, request features, or contribute to our open-source tools:</p>
+                            <a href="https://github.com/lamgen/issues" target="_blank" class="method-link">github.com/lamgen</a>
+                        </div>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-icon">
+                            <i class="bi bi-twitter"></i>
+                        </div>
+                        <div class="method-content">
+                            <h3>Twitter</h3>
+                            <p>Follow for updates, tips, and announcements:</p>
+                            <a href="https://twitter.com/lamgen" target="_blank" class="method-link">@lamgen</a>
+                        </div>
+                    </div>
+
+                    <div class="method-item">
+                        <div class="method-icon">
+                            <i class="bi bi-book"></i>
+                        </div>
+                        <div class="method-content">
+                            <h3>Documentation</h3>
+                            <p>Find answers and detailed guides in our documentation:</p>
+                            <a href="https://docs.lamgen.lamlab.me" target="_blank" class="method-link">docs.lamgen.lamlab.me</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-faq">
+                <h2><i class="bi bi-question-circle"></i> Frequently Asked Questions</h2>
+                
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>How do you protect my privacy?</h4>
+                        </div>
+                        <div class="faq-answer">
+                            <p>All our tools run entirely in your browser. We don't collect, store, or process any personal information. Your files never leave your device.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>Are your tools really free?</h4>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! All our tools are completely free with no hidden costs, no registration required, and no usage limits.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>How can I request a new tool?</h4>
+                        </div>
+                        <div class="faq-answer">
+                            <p>We welcome tool suggestions! Use our contact form or create an issue on GitHub with detailed requirements.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>Do you offer enterprise solutions?</h4>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! We offer white-label solutions, API access, and enterprise features. Contact our business team for more information.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.contact-page {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--lg-card-bg);
+    border-radius: 16px;
+    box-shadow: var(--lg-shadow-sm);
+}
+
+.contact-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.contact-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.contact-subtitle {
+    color: var(--lg-text-muted);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.contact-info {
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.info-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-section h2 i {
+    color: var(--lg-primary);
+    font-size: 1.2rem;
+}
+
+.info-item {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--lg-card-bg);
+    border-radius: 8px;
+}
+
+.info-item h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.info-item p {
+    color: var(--lg-text-muted);
+    margin: 0 0 0.5rem;
+}
+
+.contact-link {
+    color: var(--lg-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.contact-link:hover {
+    text-decoration: underline;
+}
+
+.contact-form {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.contact-form h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.contact-form h2 i {
+    color: var(--lg-violet);
+    font-size: 1.2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--lg-text);
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--lg-card-bg);
+    color: var(--lg-text);
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--lg-primary);
+    box-shadow: 0 0 0 3px rgba(100, 90, 255, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.form-checkbox {
+    margin-top: 0.25rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--lg-text);
+    cursor: pointer;
+}
+
+.checkbox-label i {
+    color: var(--lg-cyan);
+    flex-shrink: 0;
+}
+
+.submit-btn {
+    background: var(--lg-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.submit-btn:hover {
+    background: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.contact-alternatives {
+    margin-bottom: 3rem;
+}
+
+.contact-alternatives h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.contact-alternatives h2 i {
+    color: var(--lg-violet);
+    font-size: 1.2rem;
+}
+
+.alternative-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.method-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 8px;
+}
+
+.method-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lg-primary);
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.method-icon i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.method-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.method-content p {
+    color: var(--lg-text-muted);
+    margin: 0 0 0.5rem;
+}
+
+.method-link {
+    color: var(--lg-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.method-link:hover {
+    text-decoration: underline;
+}
+
+.contact-faq h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.contact-faq h2 i {
+    color: var(--lg-cyan);
+    font-size: 1.2rem;
+}
+
+.faq-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.faq-item {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.faq-question {
+    background: rgba(100, 90, 255, 0.05);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.faq-question h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--lg-text);
+}
+
+.faq-answer {
+    padding: 1.5rem;
+}
+
+.faq-answer p {
+    color: var(--lg-text-muted);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .contact-page {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .contact-title {
+        font-size: 2rem;
+    }
+    
+    .alternative-methods {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

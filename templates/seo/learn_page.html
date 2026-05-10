@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}{{ learn.title }} | LamGen{% endblock %}
+{% block meta_description %}{{ learn.meta_description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="authority-page">
+        <div class="page-header">
+            <div class="page-breadcrumb">
+                {% include "seo/breadcrumbs.html" %}
+            </div>
+            <h1 class="page-title">{{ learn.title }}</h1>
+            <p class="page-subtitle">{{ learn.introduction }}</p>
+        </div>
+
+        <div class="learning-content">
+            <div class="course-overview">
+                <div class="course-meta">
+                    <div class="course-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">{{ learn.lessons|length }}</span>
+                            <span class="stat-label">Lessons</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ learn.estimated_hours }}</span>
+                            <span class="stat-label">Hours</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ learn.difficulty }}</span>
+                            <span class="stat-label">Difficulty</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lessons-container">
+                {% for lesson in learn.lessons %}
+                <div class="lesson-card">
+                    <div class="lesson-header">
+                        <div class="lesson-number">{{ forloop.counter }}</div>
+                        <div class="lesson-meta">
+                            <h3 class="lesson-title">{{ lesson.title }}</h3>
+                            <div class="lesson-info">
+                                <span class="lesson-duration">{{ lesson.duration }}</span>
+                                <span class="lesson-difficulty">{{ lesson.difficulty }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lesson-content">
+                        <div class="lesson-description">{{ lesson.description }}</div>
+                        
+                        {% if lesson.code_example %}
+                        <div class="code-example">
+                            <h4>Code Example</h4>
+                            <div class="code-block">
+                                <pre><code>{{ lesson.code_example }}</code></pre>
+                                <button class="copy-btn" onclick="copyCode(this)">
+                                    <i class="bi bi-clipboard"></i>
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if lesson.practical_example %}
+                        <div class="practical-example">
+                            <h4>Practical Example</h4>
+                            <div class="example-content">{{ lesson.practical_example|safe }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if lesson.exercise %}
+                        <div class="exercise">
+                            <h4>Exercise</h4>
+                            <div class="exercise-content">{{ lesson.exercise }}</div>
+                            <div class="exercise-hint">
+                                <button class="hint-btn" onclick="toggleHint({{ forloop.counter0 }})">
+                                    <i class="bi bi-lightbulb"></i>
+                                    Show Hint
+                                </button>
+                                <div class="hint-content" id="hint-{{ forloop.counter0 }}">
+                                    <strong>Hint:</strong> {{ lesson.hint }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="learning-resources">
+            <div class="resources-section">
+                <h2 class="section-title">Learning Resources</h2>
+                <div class="resources-grid">
+                    {% for resource in learn.resources %}
+                        <div class="resource-card">
+                            <div class="resource-icon">
+                                <i class="{{ resource.icon }}"></i>
+                            </div>
+                            <div class="resource-content">
+                                <h3 class="resource-title">{{ resource.title }}</h3>
+                                <p class="resource-description">{{ resource.description }}</p>
+                                <a href="{{ resource.url }}" class="resource-link" target="_blank">
+                                    {{ resource.link_text }}
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="next-steps">
+                <h2 class="section-title">Next Steps</h2>
+                <div class="steps-list">
+                    {% for step in learn.next_steps %}
+                        <div class="step-item">
+                            <div class="step-number">{{ forloop.counter }}</div>
+                            <div class="step-content">
+                                <h3 class="step-title">{{ step.title }}</h3>
+                                <p class="step-description">{{ step.description }}</p>
+                                <div class="step-tools">
+                                    {% for tool in step.recommended_tools %}
+                                        <a href="/tools/{{ tool.category_slug }}/{{ tool.slug }}/" class="step-tool">
+                                            <i class="{{ tool.icon }}"></i>
+                                            {{ tool.name }}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="related-tools-section">
+            {% include "seo/related_tools.html" %}
+        </div>
+
+        <div class="people-also-use-section">
+            {% include "seo/people_also_use.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.authority-page {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.page-breadcrumb {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: var(--lg-text);
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    color: var(--lg-text-muted);
+    margin: 0;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.learning-content {
+    margin-bottom: 3rem;
+}
+
+.course-overview {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    box-shadow: var(--lg-shadow-sm);
+}
+
+.course-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.course-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 12px;
+    min-width: 120px;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--lg-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+
+.lessons-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.lesson-card {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--lg-shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.lesson-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.lesson-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.lesson-number {
+    width: 40px;
+    height: 40px;
+    background: var(--lg-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.lesson-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.lesson-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--lg-text);
+    margin: 0 0 0.5rem;
+}
+
+.lesson-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.lesson-duration,
+.lesson-difficulty {
+    padding: 0.5rem 1rem;
+    background: rgba(100, 90, 255, 0.1);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.lesson-duration {
+    color: var(--lg-cyan);
+}
+
+.lesson-difficulty {
+    color: var(--lg-violet);
+}
+
+.lesson-content {
+    color: var(--lg-text);
+    line-height: 1.8;
+}
+
+.lesson-description {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.code-example,
+.practical-example,
+.exercise {
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.code-example h4,
+.practical-example h4,
+.exercise h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--lg-primary);
+    margin: 0 0 1rem;
+}
+
+.code-block {
+    background: var(--lg-code-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+    padding: 1rem;
+    position: relative;
+}
+
+.code-block pre {
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--lg-text);
+}
+
+.copy-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--lg-primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.practical-example {
+    line-height: 1.6;
+}
+
+.exercise {
+    position: relative;
+}
+
+.hint-btn {
+    background: var(--lg-violet);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 1rem;
+}
+
+.hint-btn:hover {
+    background: var(--lg-primary);
+}
+
+.hint-content {
+    display: none;
+    background: rgba(100, 90, 255, 0.1);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--lg-text);
+}
+
+.hint-content strong {
+    color: var(--lg-violet);
+}
+
+.learning-resources,
+.next-steps {
+    margin-bottom: 3rem;
+}
+
+.resources-section,
+.steps-section {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--lg-shadow-sm);
+}
+
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+}
+
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.resource-card {
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.resource-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.resource-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lg-primary);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.resource-icon i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.resource-content {
+    color: var(--lg-text);
+}
+
+.resource-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.resource-description {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+    margin: 0 0 1rem;
+    line-height: 1.5;
+}
+
+.resource-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--lg-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.resource-link:hover {
+    color: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.steps-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.step-item {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: all 0.2s ease;
+}
+
+.step-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    background: var(--lg-violet);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.step-content {
+    color: var(--lg-text);
+}
+
+.step-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.step-description {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+    margin: 0 0 1rem;
+    line-height: 1.5;
+}
+
+.step-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.step-tool {
+    background: var(--lg-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.step-tool:hover {
+    background: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.step-tool i {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .authority-page {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .lessons-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .course-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        min-width: 100px;
+        padding: 1rem;
+    }
+    
+    .resources-grid,
+    .steps-list {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+</style>
+
+<script>
+function copyCode(button) {
+    const codeBlock = button.parentElement.querySelector('code');
+    if (codeBlock) {
+        navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            button.style.background = 'var(--lg-cyan)';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = 'var(--lg-primary)';
+            }, 2000);
+        });
+    }
+}
+
+function toggleHint(index) {
+    const hintContent = document.getElementById(`hint-${index}`);
+    if (hintContent) {
+        const isVisible = hintContent.style.display !== 'none';
+        hintContent.style.display = isVisible ? 'none' : 'block';
+        
+        const button = event.target;
+        if (button) {
+            button.innerHTML = isVisible ? 'Show Hint' : 'Hide Hint';
+        }
+    }
+}
+</script>
+{% endblock %}

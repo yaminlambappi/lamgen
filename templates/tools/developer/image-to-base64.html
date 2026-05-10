@@ -1,0 +1,42 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <label class="tool-label">Upload Image</label>
+  <input id="fileIn" type="file" accept="image/*" onchange="handleFile(event)">
+  <div id="previewWrap" style="display:none">
+    <img id="imgPreview" alt="Preview" style="max-width:100%;max-height:220px;border-radius:12px;border:1px solid rgba(255,255,255,.1)">
+  </div>
+  <span class="status" id="st"></span>
+  <label class="tool-label">Base64 Output</label>
+  <textarea id="out" class="tool-code out" readonly placeholder="Base64 data URL appears here"></textarea>
+  <div class="act-row">
+    <button class="btn-sm" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+    <button class="btn-sm" onclick="downloadTxt()"><i class="bi bi-download"></i> Download .txt</button>
+    <button class="btn-sm" onclick="resetTool()"><i class="bi bi-x-circle"></i> Reset</button>
+  </div>
+</div>
+{% endblock %}
+{% block tool_js %}
+<script>
+function status(type,msg){const e=document.getElementById("st");e.className="status "+type;e.innerHTML=(type==="err"?'<i class="bi bi-exclamation-triangle-fill"></i> ':'<i class="bi bi-check-circle-fill"></i> ')+msg;}
+function handleFile(ev){
+  const file=ev.target.files?.[0];
+  if(!file){return;}
+  if(!file.type.startsWith("image/")){status("err","Please choose a valid image file");return;}
+  if(file.size>10*1024*1024){status("err","Image too large (max 10MB)");return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const data=String(reader.result||"");
+    document.getElementById("out").value=data;
+    document.getElementById("imgPreview").src=data;
+    document.getElementById("previewWrap").style.display="";
+    status("ok","Converted: "+file.name+" ("+Math.round(file.size/1024)+" KB)");
+  };
+  reader.onerror=()=>status("err","Failed to read file");
+  reader.readAsDataURL(file);
+}
+function copyOut(){const v=document.getElementById("out").value;if(v)navigator.clipboard.writeText(v);}
+function downloadTxt(){const v=document.getElementById("out").value;if(!v)return;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([v],{type:"text/plain"}));a.download="image-base64.txt";a.click();}
+function resetTool(){document.getElementById("fileIn").value="";document.getElementById("out").value="";document.getElementById("previewWrap").style.display="none";document.getElementById("st").className="status";}
+</script>
+{% endblock %}

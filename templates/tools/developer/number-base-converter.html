@@ -11,14 +11,14 @@
 .base-card.active{border-color:var(--primary);background:rgba(108,99,255,.05)}
 .base-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center}
 .base-value{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:600;word-break:break-all;min-height:1.5em}
-.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
 .btn-sm:hover{background:rgba(255,255,255,.1)}
 .status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
 .status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
 .status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 @media(max-width:640px){.grid-2{grid-template-columns:1fr}}
-.select-input{padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;cursor:pointer}
+.select-input{padding:8px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;cursor:pointer}
 .select-input:focus{border-color:var(--primary)}
 .opt-label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);cursor:pointer}
 .opt-label input{accent-color:var(--primary)}
@@ -51,6 +51,7 @@
       </select>
     </div>
     <label class="opt-label"><input type="checkbox" id="showTwos" onchange="convert()"> Two's complement</label>
+    <button class="btn-sm" onclick="resetTool()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
   </div>
 
   <div>
@@ -184,6 +185,16 @@ function copyBase(base) {
   const text = document.getElementById('val-'+base).textContent;
   if (text === '—') return;
   navigator.clipboard.writeText(text.replace(/\s/g,''));
+}
+
+function resetTool() {
+  document.getElementById('inputBase').value = '10';
+  document.getElementById('bitLength').value = '32';
+  document.getElementById('showTwos').checked = false;
+  document.getElementById('numInput').value = '';
+  ['dec','bin','oct','hex'].forEach(b => document.getElementById('val-'+b).textContent = '—');
+  document.getElementById('bitViz').style.display = 'none';
+  hideStatus('st');
 }
 
 function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}

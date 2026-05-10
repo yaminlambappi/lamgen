@@ -1,0 +1,111 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <label class="tool-label" for="tomlIn">TOML Input</label>
+  <textarea id="tomlIn" class="tool-code" placeholder='title = "LamGen"
+[database]
+host = "localhost"
+port = 5432
+enabled = true'></textarea>
+  <div class="act-row">
+    <button class="btn-go" id="btnConvert" onclick="convertToml()"><i class="bi bi-arrow-left-right"></i> Convert</button>
+    <button class="btn-sm" onclick="clearToml()"><i class="bi bi-x-circle"></i> Reset</button>
+    <span class="status" id="st"></span>
+  </div>
+  <label class="tool-label" for="jsonOut">JSON Output</label>
+  <textarea id="jsonOut" class="tool-code out" readonly placeholder="JSON output appears here"></textarea>
+  <div class="act-row">
+    <button class="btn-sm" id="copyBtn" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+    <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download .json</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+function setStatus(type, msg) {
+  const el = document.getElementById("st");
+  el.className = "status " + type;
+  el.innerHTML = (type === "err" ? '<i class="bi bi-exclamation-triangle-fill"></i> ' : '<i class="bi bi-check-circle-fill"></i> ') + msg;
+}
+
+function parseValue(v) {
+  const t = v.trim();
+  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) return t.slice(1, -1);
+  if (t === "true") return true;
+  if (t === "false") return false;
+  if (t === "null") return null;
+  if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
+  if (t.startsWith("[") && t.endsWith("]")) {
+    const body = t.slice(1, -1).trim();
+    if (!body) return [];
+    return body.split(",").map(x => parseValue(x));
+  }
+  return t;
+}
+
+function convertToml() {
+  const btn = document.getElementById("btnConvert");
+  const input = document.getElementById("tomlIn").value;
+  if (!input.trim()) { setStatus("err", "Please provide TOML input"); return; }
+  btn.disabled = true;
+  try {
+    const obj = {};
+    let path = [];
+    const lines = input.split(/\r?\n/);
+    lines.forEach((line, idx) => {
+      const raw = line.trim();
+      if (!raw || raw.startsWith("#")) return;
+      if (raw.startsWith("[") && raw.endsWith("]")) {
+        path = raw.slice(1, -1).trim().split(".").filter(Boolean);
+        let ref = obj;
+        path.forEach(seg => {
+          if (typeof ref[seg] !== "object" || ref[seg] === null || Array.isArray(ref[seg])) ref[seg] = {};
+          ref = ref[seg];
+        });
+        return;
+      }
+      const eq = raw.indexOf("=");
+      if (eq < 1) throw new Error("Invalid key/value at line " + (idx + 1));
+      const key = raw.slice(0, eq).trim();
+      const value = parseValue(raw.slice(eq + 1));
+      let ref = obj;
+      path.forEach(seg => ref = ref[seg]);
+      ref[key] = value;
+    });
+    document.getElementById("jsonOut").value = JSON.stringify(obj, null, 2);
+    setStatus("ok", "Converted successfully");
+  } catch (e) {
+    setStatus("err", e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function copyOut() {
+  const v = document.getElementById("jsonOut").value;
+  if (!v) return;
+  navigator.clipboard.writeText(v);
+  const b = document.getElementById("copyBtn");
+  const old = b.innerHTML;
+  b.innerHTML = '<i class="bi bi-check2"></i> Copied';
+  setTimeout(() => b.innerHTML = old, 1200);
+}
+
+function downloadOut() {
+  const v = document.getElementById("jsonOut").value;
+  if (!v) return;
+  const blob = new Blob([v], {type: "application/json;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "converted.json";
+  a.click();
+}
+
+function clearToml() {
+  document.getElementById("tomlIn").value = "";
+  document.getElementById("jsonOut").value = "";
+  document.getElementById("st").className = "status";
+}
+</script>
+{% endblock %}

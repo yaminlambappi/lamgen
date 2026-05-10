@@ -140,8 +140,12 @@ class CategorySitemap(SmartPriorityMixin, Sitemap):
     def lastmod(self, obj):
         # Use latest tool update in category
         from tools.models import Tool
+        import datetime
         latest = Tool.objects.filter(category=obj, is_active=True).order_by('-updated_at').first()
-        return latest.updated_at if latest else obj.pk  # fallback
+        if latest:
+            return latest.updated_at
+        # Fallback to a fixed date rather than obj.pk (which is an int, not a date)
+        return datetime.datetime(2024, 1, 1, tzinfo=datetime.timezone.utc)
     
     def location(self, obj):
         return obj.get_absolute_url()
@@ -154,7 +158,7 @@ class ToolLongTailSitemap(SmartPriorityMixin, Sitemap):
     protocol = 'https'
     
     def items(self):
-        from tools.models import LongTailVariant
+        from seo.models import LongTailVariant
         return list(
             LongTailVariant.objects.filter(is_active=True)
             .select_related('tool__category')

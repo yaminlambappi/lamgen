@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}{{ guide.title }} | LamGen{% endblock %}
+{% block meta_description %}{{ guide.meta_description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="authority-page">
+        <div class="page-header">
+            <div class="page-breadcrumb">
+                {% include "seo/breadcrumbs.html" %}
+            </div>
+            <h1 class="page-title">{{ guide.title }}</h1>
+            <p class="page-subtitle">{{ guide.introduction }}</p>
+        </div>
+
+        <div class="page-content">
+            <div class="content-sections">
+                {% for section in guide.sections %}
+                <section class="content-section">
+                    <h2 class="section-title">
+                        <span class="section-number">{{ forloop.counter }}</span>
+                        {{ section.title }}
+                    </h2>
+                    <div class="section-content">
+                        {{ section.content|safe }}
+                    </div>
+                    {% if section.code_example %}
+                    <div class="code-example">
+                        <h4>Code Example</h4>
+                        <div class="code-block">
+                            <pre><code>{{ section.code_example }}</code></pre>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <i class="bi bi-clipboard"></i>
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </section>
+                {% endfor %}
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h3>Tools Mentioned</h3>
+                    <div class="tools-list">
+                        {% for tool in guide.tools_mentioned %}
+                        <div class="sidebar-tool">
+                            <a href="/tools/{{ tool.category_slug }}/{{ tool.slug }}/" class="tool-link">
+                                <div class="tool-icon">
+                                    <i class="{{ tool.icon }}"></i>
+                                </div>
+                                <div class="tool-info">
+                                    <div class="tool-name">{{ tool.name }}</div>
+                                    <div class="tool-category">{{ tool.category }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Related Guides</h3>
+                    <div class="guides-list">
+                        {% for related_guide in guide.related_guides %}
+                        <div class="related-guide">
+                            <a href="/guides/{{ related_guide.slug }}/" class="guide-link">
+                                <div class="guide-title">{{ related_guide.title }}</div>
+                                <div class="guide-description">{{ related_guide.description }}</div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Quick Links</h3>
+                    <div class="quick-links">
+                        {% for link in guide.quick_links %}
+                        <div class="quick-link">
+                            <a href="{{ link.url }}" class="link-item">
+                                <i class="{{ link.icon }}"></i>
+                                {{ link.text }}
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-list">
+                {% for faq in guide.faq %}
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq({{ forloop.counter0 }})">
+                        <div class="faq-question-text">
+                            {{ faq.question }}
+                        </div>
+                        <div class="faq-toggle">
+                            <i class="bi bi-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="faq-answer" id="faq-answer-{{ forloop.counter0 }}">
+                        {{ faq.answer|safe }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="related-tools-section">
+            {% include "seo/related_tools.html" %}
+        </div>
+
+        <div class="people-also-use-section">
+            {% include "seo/people_also_use.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.authority-page {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.page-breadcrumb {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: var(--lg-text);
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    color: var(--lg-text-muted);
+    margin: 0;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.content-sections {
+    background: var(--lg-card-bg);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--lg-shadow-sm);
+}
+
+.content-section {
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.section-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--lg-primary);
+    color: white;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.section-content {
+    color: var(--lg-text);
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.section-content h3 {
+    font-size: 1.4rem;
+    margin: 1.5rem 0 1rem;
+    color: var(--lg-primary);
+}
+
+.section-content h4 {
+    font-size: 1.2rem;
+    margin: 1rem 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.section-content p {
+    margin-bottom: 1rem;
+}
+
+.section-content ul {
+    margin: 1rem 0;
+    padding-left: 2rem;
+}
+
+.section-content li {
+    margin-bottom: 0.5rem;
+}
+
+.code-example {
+    background: rgba(100, 90, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.code-example h4 {
+    font-size: 1.1rem;
+    margin: 0 0 1rem;
+    color: var(--lg-primary);
+}
+
+.code-block {
+    background: var(--lg-code-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+    padding: 1rem;
+    position: relative;
+}
+
+.code-block pre {
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+}
+
+.code-block code {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--lg-text);
+}
+
+.copy-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--lg-primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+    background: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.sidebar-section {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.sidebar-section h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--lg-text);
+}
+
+.tools-list,
+.guides-list,
+.quick-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sidebar-tool {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-tool:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.tool-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: var(--lg-text);
+}
+
+.tool-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lg-primary);
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.tool-icon i {
+    color: white;
+    font-size: 1rem;
+}
+
+.tool-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tool-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--lg-text);
+}
+
+.tool-category {
+    font-size: 0.8rem;
+    color: var(--lg-text-muted);
+}
+
+.related-guide,
+.quick-link {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.related-guide:hover,
+.quick-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.guide-link {
+    text-decoration: none;
+    color: var(--lg-text);
+}
+
+.guide-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--lg-text);
+}
+
+.guide-description {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+}
+
+.link-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.link-item i {
+    color: var(--lg-violet);
+    font-size: 1rem;
+}
+
+.faq-section {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.faq-item {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.faq-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.faq-question:hover {
+    background: rgba(100, 90, 255, 0.05);
+}
+
+.faq-question-text {
+    font-weight: 600;
+    color: var(--lg-text);
+    flex: 1;
+}
+
+.faq-toggle {
+    color: var(--lg-violet);
+    transition: transform 0.2s ease;
+}
+
+.faq-item.active .faq-toggle {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    padding: 0 1.5rem;
+    border-top: 1px solid var(--lg-card-border);
+    background: var(--lg-card-bg);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.faq-item.active .faq-answer {
+    max-height: 500px;
+    padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .authority-page {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .page-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .sidebar {
+        gap: 1rem;
+    }
+}
+</style>
+
+<script>
+function copyCode(button) {
+    const codeBlock = button.parentElement.querySelector('code');
+    if (codeBlock) {
+        navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check"></i> Copied!';
+            button.style.background = 'var(--lg-cyan)';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = 'var(--lg-primary)';
+            }, 2000);
+        });
+    }
+}
+
+function toggleFaq(index) {
+    const faqItems = document.querySelectorAll('.faq-item');
+    const targetItem = faqItems[index];
+    
+    faqItems.forEach((item, i) => {
+        if (i === index) {
+            item.classList.toggle('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+</script>
+{% endblock %}

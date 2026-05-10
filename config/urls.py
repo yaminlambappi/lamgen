@@ -4,8 +4,10 @@ from django.conf.urls.i18n import i18n_patterns
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.contrib.sitemaps.views import sitemap, index as sitemap_index
 from django.views.decorators.cache import cache_page
+from django.views.generic.base import RedirectView
 from tools.views import og_image_view
 from generation.views import serve_protected_media
 
@@ -52,14 +54,22 @@ if settings.DEBUG:
 
 urlpatterns = _urlpatterns_prefix + [
     path('admin/', admin.site.urls),
+    path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'img/favicon.svg', permanent=False)),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('og-image/<slug:category_slug>/<slug:tool_slug>.png', og_image_view, name='og_image'),
     # Authenticated media serving — replaces direct Nginx /media/ serving (Req 5.1, 5.2, 5.3)
     # In DEBUG mode the static() patterns above take precedence (matched first).
     path('media/<path:path>', serve_protected_media, name='serve_protected_media'),
     # Sitemaps with Edge Caching (Paginated for scale)
-    path('sitemap.xml', cache_page(86400)(sitemap_index), {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.index'),
+    path('sitemap.xml', cache_page(86400)(sitemap_index), {'sitemaps': sitemaps, 'template_name': 'seo/sitemap.xml'}, name='django.contrib.sitemaps.views.index'),
     path('sitemap-<section>.xml', cache_page(86400)(sitemap), {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    # Legal and contact pages
+    path('privacy/', lambda request: render(request, 'legal/privacy.html'), name='privacy'),
+    path('terms/', lambda request: render(request, 'legal/terms.html'), name='terms'),
+    path('about/', lambda request: render(request, 'about/company.html'), name='about'),
+    path('contact/', lambda request: render(request, 'contact/contact.html'), name='contact'),
+    # Static files
+    path('ads.txt', lambda request: HttpResponse(open('/home/yamin/Documents/my-project/lamgen/public/ads.txt').read(), content_type='text/plain'), name='ads.txt'),
     # Non-localized includes
     path('accounts/', include('accounts.urls')),
     path('thesis/', include('thesis.urls')),

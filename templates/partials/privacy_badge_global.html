@@ -1,0 +1,217 @@
+<!-- Privacy Badge Global Component -->
+<div class="privacy-badge-global">
+    <div class="privacy-badge-content">
+        <div class="privacy-icon">
+            <i class="bi bi-shield-check"></i>
+        </div>
+        <div class="privacy-text">
+            <span class="privacy-main-text">Your files never leave your browser</span>
+            <span class="privacy-sub-text"></span>
+        </div>
+        <div class="privacy-indicator">
+            <div class="privacy-dot"></div>
+            <span class="privacy-status">Secure</span>
+        </div>
+    </div>
+</div>
+
+<style>
+.privacy-badge-global {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 12px;
+    padding: 1rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(100, 90, 255, 0.3);
+    animation: slideIn 0.5s ease-out;
+    max-width: 300px;
+}
+
+.privacy-badge-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+}
+
+.privacy-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(100, 90, 255, 0.2);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.privacy-icon i {
+    font-size: 1.5rem;
+    color: var(--lg-primary);
+}
+
+.privacy-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.privacy-main-text {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    color: var(--lg-text);
+}
+
+.privacy-sub-text {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--lg-text-muted);
+}
+
+.privacy-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.privacy-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.privacy-status {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #10b981;
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .privacy-badge-global {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .privacy-badge-content {
+        gap: 0.75rem;
+    }
+    
+    .privacy-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .privacy-icon i {
+        font-size: 1.2rem;
+    }
+    
+    .privacy-main-text {
+        font-size: 0.8rem;
+    }
+    
+    .privacy-sub-text {
+        font-size: 0.7rem;
+    }
+}
+
+/* Hide on scroll */
+@media (min-width: 769px) {
+    .privacy-badge-global.hidden {
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+}
+</style>
+
+<script>
+// Privacy Badge Global Component
+let privacyBadgeVisible = true;
+let lastScrollTop = 0;
+
+function togglePrivacyBadge() {
+    const badge = document.querySelector('.privacy-badge-global');
+    if (!badge) return;
+    
+    privacyBadgeVisible = !privacyBadgeVisible;
+    
+    if (privacyBadgeVisible) {
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+}
+
+function handlePrivacyBadgeScroll() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const badge = document.querySelector('.privacy-badge-global');
+    
+    if (!badge) return;
+    
+    // Hide on scroll down, show on scroll up
+    if (scrollTop > lastScrollTop) {
+        badge.classList.add('hidden');
+    } else {
+        badge.classList.remove('hidden');
+    }
+    
+    lastScrollTop = scrollTop;
+}
+
+// Initialize privacy badge
+document.addEventListener('DOMContentLoaded', function() {
+    // Add scroll listener
+    window.addEventListener('scroll', handlePrivacyBadgeScroll);
+    
+    // Add close button
+    const badge = document.querySelector('.privacy-badge-global');
+    if (badge) {
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'privacy-badge-close';
+        closeBtn.innerHTML = '<i class="bi bi-x"></i>';
+        closeBtn.onclick = togglePrivacyBadge;
+        badge.appendChild(closeBtn);
+    }
+});
+
+// Auto-hide after 10 seconds
+setTimeout(() => {
+    const badge = document.querySelector('.privacy-badge-global');
+    if (badge) {
+        badge.classList.add('hidden');
+    }
+}, 10000);
+</script>

@@ -17,6 +17,8 @@ migrate:
 make-migration:
 	python3 manage.py makemigrations
 
+collect:
+	python3 manage.py collectstatic --no-input
 require:
 	pip install -r requirements.txt
 

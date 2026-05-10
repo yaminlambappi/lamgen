@@ -1,0 +1,150 @@
+{% comment %}
+SEO Content Block Component
+Renders dynamic content blocks with proper SEO structure
+{% endcomment %}
+
+<div class="seo-content-block" itemscope itemtype="https://schema.org/WebPageElement">
+    {% if block.title %}
+    <h2 class="seo-block-title" itemprop="name">{{ block.title }}</h2>
+    {% endif %}
+    
+    {% if block.subtitle %}
+    <p class="seo-block-subtitle" itemprop="description">{{ block.subtitle }}</p>
+    {% endif %}
+    
+    <div class="seo-block-content" itemprop="text">
+        {% if block.type == "text" %}
+            {{ block.content|safe }}
+        {% elif block.type == "list" %}
+            <ul class="seo-list">
+                {% for item in block.items %}
+                <li itemprop="itemListElement">{{ item }}</li>
+                {% endfor %}
+            </ul>
+        {% elif block.type == "steps" %}
+            <ol class="seo-steps">
+                {% for step in block.steps %}
+                <li itemprop="itemListElement">
+                    {% if step.title %}<strong>{{ step.title }}:</strong> {% endif %}{{ step.content }}
+                </li>
+                {% endfor %}
+            </ol>
+        {% elif block.type == "code" %}
+            <pre class="seo-code-block"><code>{{ block.code }}</code></pre>
+        {% elif block.type == "table" %}
+            <table class="seo-table">
+                <thead>
+                    <tr>
+                        {% for header in block.headers %}
+                        <th>{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in block.rows %}
+                    <tr>
+                        {% for cell in row %}
+                        <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+    
+    {% if block.cta %}
+    <div class="seo-block-cta">
+        <a href="{{ block.cta.url }}" class="seo-cta-button"{% if block.cta.external %} target="_blank" rel="noopener"{% endif %}>
+            {{ block.cta.text }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.seo-content-block {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.seo-block-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--lg-text);
+}
+
+.seo-block-subtitle {
+    font-size: 1.1rem;
+    color: var(--lg-text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.seo-block-content {
+    color: var(--lg-text);
+    line-height: 1.7;
+}
+
+.seo-list, .seo-steps {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.seo-list li, .seo-steps li {
+    margin: 0.5rem 0;
+    color: var(--lg-text);
+}
+
+.seo-code-block {
+    background: var(--lg-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.seo-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.seo-table th,
+.seo-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.seo-table th {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+}
+
+.seo-block-cta {
+    margin-top: 1.5rem;
+}
+
+.seo-cta-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-secondary));
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.seo-cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108, 99, 255, 0.3);
+}
+</style>

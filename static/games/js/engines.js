@@ -207,8 +207,8 @@ GameEngines['typing-duel'] = class {
         
         // Pinned input for mobile keyboards
         this.action.innerHTML = `
-            <input type="text" id="td-input" placeholder="Type here..." autofocus 
-                style="width:100%; padding:14px 20px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:16px; outline:none; box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);" 
+            <input type="text" id="td-input" placeholder="Type here..."
+                style="width:100%; padding:14px 20px; border-radius:12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:16px; outline:none; box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);"
                 autocomplete="off" autocorrect="off" autocapitalize="none">
         `;
 
@@ -217,6 +217,10 @@ GameEngines['typing-duel'] = class {
         this.scoreEl = document.getElementById('td-score');
         this.multiEl = document.getElementById('td-multi');
         this.livesEl = document.getElementById('td-lives');
+
+        if (document.activeElement === document.body || document.activeElement === document.documentElement) {
+            this.input.focus({ preventScroll: true });
+        }
         
         this.input.oninput = () => this.handleInput();
 
@@ -874,7 +878,7 @@ GameEngines['roast-battle'] = class {
         const choices = this.generateChoices();
         
         this.stage.innerHTML = `
-            <div style="position:absolute; top:15px; right:15px; font-weight:bold; font-size:clamp(1rem, 3vw, 1.2rem); color:var(--lg-violet-bright);">Rep: ${this.score}</div>
+            <div class="roast-rep-display" style="position:absolute; top:15px; right:15px; font-weight:bold; font-size:clamp(1rem, 3vw, 1.2rem); color:var(--lg-violet-bright);">Rep: ${this.score}</div>
             
             <div style="width:100%; max-width:400px; padding:clamp(1.5rem, 5vw, 2.5rem) 1.5rem; background:rgba(255,92,122,0.05); border:1px solid rgba(255,92,122,0.3); border-radius:20px; text-align:center; box-shadow:0 10px 40px rgba(255,92,122,0.1); position:relative;">
                 <div style="position:absolute; top:-15px; left:50%; transform:translateX(-50%); background:#FF5C7A; color:#000; padding:4px 12px; border-radius:50px; font-size:0.75rem; font-weight:800; text-transform:uppercase;">Incoming Attack</div>
@@ -929,7 +933,8 @@ GameEngines['roast-battle'] = class {
         }
         
         this.api.saveScore(this.score);
-        document.querySelector('.lg-violet-bright').innerText = `Rep: ${this.score}`;
+        const repLabel = this.stage.querySelector('.roast-rep-display');
+        if (repLabel) repLabel.innerText = `Rep: ${this.score}`;
         
         setTimeout(() => this.nextRound(), 2000);
     }

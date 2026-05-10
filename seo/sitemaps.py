@@ -135,7 +135,7 @@ class ToolLongTailSitemap(Sitemap):
     protocol = 'https'
 
     def items(self):
-        from tools.models import LongTailVariant
+        from seo.models import LongTailVariant
         return LongTailVariant.objects.filter(is_active=True).select_related('tool__category')
 
     def lastmod(self, obj):

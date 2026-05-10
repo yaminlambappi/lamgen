@@ -1,0 +1,178 @@
+{% load static %}
+<footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+        <div class="footer-grid">
+
+            <!-- Brand column -->
+            <div class="footer-col footer-col-brand">
+                <a href="{% url 'home' %}" class="footer-brand" aria-label="LamGen Home">
+                    <img src="{% static 'img/favicon.svg' %}" alt="" width="28" height="28" aria-hidden="true">
+                    <span>LamGen</span>
+                </a>
+                <p class="footer-tagline">265+ free online tools for developers, students, writers and professionals. No signup. 100% private.</p>
+                <div class="footer-trust">
+                    <i class="bi bi-shield-check" aria-hidden="true"></i>
+                    <span>Your data never leaves your browser</span>
+                </div>
+            </div>
+
+            <!-- Tools column -->
+            <div class="footer-col">
+                <h3 class="footer-heading">Tools</h3>
+                <ul class="footer-links">
+                    <li><a href="{% url 'tools:index' %}">All Tools</a></li>
+                    {% for cat in nav_categories|slice:":5" %}
+                    <li><a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Resources column -->
+            <div class="footer-col">
+                <h3 class="footer-heading">Resources</h3>
+                <ul class="footer-links">
+                    <li><a href="{% url 'blog:index' %}">Blog & Guides</a></li>
+                    <li><a href="{% url 'seo:index' %}">Content Hub</a></li>
+                    <li><a href="{% url 'games:index' %}">Mini Games</a></li>
+                    <li><a href="{% url 'tools:trending' %}">Trending Tools</a></li>
+                </ul>
+            </div>
+
+            <!-- Company column -->
+            <div class="footer-col">
+                <h3 class="footer-heading">Company</h3>
+                <ul class="footer-links">
+                    <li><a href="{% url 'about' %}">About Us</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    <li><a href="{% url 'privacy' %}">Privacy Policy</a></li>
+                    <li><a href="{% url 'terms' %}">Terms of Service</a></li>
+                    <li><a href="https://github.com/lamgen" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; {% now "Y" %} LamGen. All rights reserved.</p>
+            <div class="footer-bottom-links">
+                <a href="{% url 'privacy' %}">Privacy</a>
+                <span aria-hidden="true">·</span>
+                <a href="{% url 'terms' %}">Terms</a>
+                <span aria-hidden="true">·</span>
+                <a href="{% url 'contact' %}">Contact</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<style>
+.site-footer {
+    background: var(--lg-card-bg);
+    border-top: 1px solid var(--lg-card-border);
+    margin-top: 4rem;
+}
+.footer-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 1.5rem;
+}
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--lg-text);
+    font-family: 'Syne', 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+}
+.footer-brand img { border-radius: 6px; }
+.footer-tagline {
+    font-size: 0.82rem;
+    color: var(--lg-text-muted);
+    line-height: 1.6;
+    margin: 0 0 0.75rem;
+    max-width: 280px;
+}
+.footer-trust {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(100,90,255,0.08);
+    border: 1px solid rgba(130,120,255,0.16);
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--lg-text-muted);
+}
+.footer-trust i { color: var(--lg-cyan); font-size: 0.8rem; }
+.footer-heading {
+    font-family: 'Syne', 'Inter', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--lg-text-muted);
+    margin: 0 0 0.85rem;
+}
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+.footer-links a {
+    color: var(--lg-text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.15s;
+}
+.footer-links a:hover { color: var(--lg-text); }
+.footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(130,120,255,0.10);
+}
+.footer-bottom p {
+    font-size: 0.80rem;
+    color: var(--lg-text-muted);
+    margin: 0;
+}
+.footer-bottom-links {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.80rem;
+    color: var(--lg-text-muted);
+}
+.footer-bottom-links a {
+    color: var(--lg-text-muted);
+    text-decoration: none;
+    transition: color 0.15s;
+}
+.footer-bottom-links a:hover { color: var(--lg-text); }
+@media (max-width: 900px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .footer-col-brand { grid-column: 1 / -1; }
+    .footer-tagline { max-width: 100%; }
+}
+@media (max-width: 540px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .footer-inner { padding: 1.5rem 1rem 1rem; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+</style>

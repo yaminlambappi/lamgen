@@ -1,0 +1,280 @@
+{% comment %}
+Related Tools Grid Component
+Displays related tools with smart internal linking
+{% endcomment %}
+
+{% if related_tools %}
+<section class="related-tools-section">
+    <div class="related-tools-container">
+        <h2 class="related-tools-title">{{ title|default:"Related Tools" }}</h2>
+        
+        {% if subtitle %}
+        <p class="related-tools-subtitle">{{ subtitle }}</p>
+        {% endif %}
+        
+        <div class="tools-grid" itemscope itemtype="https://schema.org/ItemList">
+            {% for tool in related_tools %}
+            <div class="tool-card" itemprop="itemListElement" itemscope itemtype="https://schema.org/SoftwareApplication">
+                <a href="{{ tool.get_absolute_url }}" class="tool-link" itemprop="url">
+                    <div class="tool-icon" style="background: {{ tool.category.color_from }}18; border-color: {{ tool.category.color_from }}38;">
+                        <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }};" itemprop="applicationCategory"></i>
+                    </div>
+                    
+                    <div class="tool-content">
+                        <h3 class="tool-name" itemprop="name">{{ tool.name }}</h3>
+                        <p class="tool-description" itemprop="description">{{ tool.short_desc }}</p>
+                        
+                        <div class="tool-meta">
+                            <span class="tool-category" style="color: {{ tool.category.color_from }};">
+                                {{ tool.category.name }}
+                            </span>
+                            {% if tool.view_count > 0 %}
+                            <span class="tool-views">{{ tool.view_count|default:0 }} uses</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if tool.is_featured or tool.is_new %}
+                        <div class="tool-badges">
+                            {% if tool.is_featured %}
+                            <span class="badge featured">Featured</span>
+                            {% endif %}
+                            {% if tool.is_new %}
+                            <span class="badge new">New</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if show_view_all %}
+        <div class="view-all-container">
+            <a href="{{ view_all_url }}" class="view-all-btn">
+                View All Tools
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.related-tools-section {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.related-tools-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.related-tools-title {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--lg-text);
+}
+
+.related-tools-subtitle {
+    text-align: center;
+    color: var(--lg-text-muted);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.tool-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.tool-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.tool-link {
+    display: block;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.tool-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    border: 1px solid;
+    transition: all 0.3s ease;
+}
+
+.tool-card:hover .tool-icon {
+    transform: scale(1.1);
+}
+
+.tool-content {
+    flex: 1;
+}
+
+.tool-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--lg-text);
+    line-height: 1.3;
+}
+
+.tool-description {
+    color: var(--lg-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tool-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--lg-text-muted);
+}
+
+.tool-category {
+    font-weight: 600;
+}
+
+.tool-views {
+    opacity: 0.7;
+}
+
+.tool-badges {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge.featured {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+}
+
+.badge.new {
+    background: linear-gradient(135deg, #00F5D4, #00C9A7);
+    color: #000;
+}
+
+.view-all-container {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.view-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-secondary));
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108, 99, 255, 0.3);
+}
+
+.view-all-btn i {
+    transition: transform 0.3s ease;
+}
+
+.view-all-btn:hover i {
+    transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+    .related-tools-section {
+        margin: 2rem 0;
+        padding: 1rem;
+    }
+    
+    .tools-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .tool-link {
+        padding: 1rem;
+    }
+    
+    .tool-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.4rem;
+    }
+    
+    .tool-name {
+        font-size: 1.1rem;
+    }
+    
+    .tool-description {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tool-badges {
+        position: static;
+        margin-bottom: 0.5rem;
+    }
+    
+    .tool-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}
+</style>
+{% endif %}

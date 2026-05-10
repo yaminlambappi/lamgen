@@ -26,15 +26,25 @@ const GamesHub = (() => {
         achievements: []
     }));
 
-    const init = () => {
+    const cacheDom = () => {
         modal = document.getElementById('gameModal');
         stage = document.getElementById('gameStage');
         helperEl = document.getElementById('gameHelperText');
         actionEl = document.getElementById('gameActionArea');
+        return Boolean(modal && stage && helperEl && actionEl);
+    };
+
+    const init = () => {
+        cacheDom();
         
+        if (!modal || !stage || !helperEl || !actionEl) {
+            console.warn('GamesHub init aborted: missing game modal markup. Make sure games/modal.html is included in the page.');
+            return;
+        }
+
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.style.display === 'flex') {
-                closeGame();
+            if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+                close();
             }
         });
         checkStreak();
@@ -99,6 +109,9 @@ const GamesHub = (() => {
     };
 
     const showCinematic = (msg, color) => {
+        const modalContent = document.querySelector('.game-modal-content');
+        if (!modalContent) return;
+
         const overlay = document.createElement('div');
         overlay.style.cssText = `
             position: absolute; inset: 0; z-index: 999999;
@@ -107,7 +120,7 @@ const GamesHub = (() => {
             opacity: 0; transition: opacity 0.3s; pointer-events: none;
         `;
         overlay.innerHTML = `<h1 style="font-family:'Syne',sans-serif; font-size:clamp(2rem, 8vw, 4rem); color:#fff; text-shadow:0 0 40px ${color}, 0 0 80px ${color}; transform:scale(0.5); transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1); text-align:center; padding:20px;">${msg}</h1>`;
-        document.querySelector('.game-modal-content').appendChild(overlay);
+        modalContent.appendChild(overlay);
         
         requestAnimationFrame(() => {
             overlay.style.opacity = '1';
@@ -140,9 +153,20 @@ const GamesHub = (() => {
         const game = window.GAMES_DATA.find(g => g.slug === gameSlug);
         if (!game) return;
 
+        if (!cacheDom()) {
+            console.warn('GamesHub launch aborted: game modal is not available.');
+            return;
+        }
+
         currentSlug = gameSlug;
-        document.getElementById('gameTitle').innerText = game.name;
+        const titleEl = document.getElementById('gameTitle');
         const iconEl = document.getElementById('gameIcon');
+        if (!titleEl || !iconEl) {
+            console.warn('GamesHub launch aborted: game header markup is not available.');
+            return;
+        }
+
+        titleEl.innerText = game.name;
         iconEl.innerHTML = `<i class="${game.icon}"></i>`;
         iconEl.style.background = `${game.color}22`;
         iconEl.style.color = game.color;
@@ -155,15 +179,21 @@ const GamesHub = (() => {
     };
 
     const setMode = (mode) => {
+        if (!cacheDom()) return;
+
+        const soloBtn = document.getElementById('btn-mode-solo');
+        const multiBtn = document.getElementById('btn-mode-multi');
+        if (!soloBtn || !multiBtn) return;
+
         playMode = mode;
-        document.getElementById('btn-mode-solo').className = `mode-btn ${mode === 'solo' ? 'active' : ''}`;
-        document.getElementById('btn-mode-multi').className = `mode-btn ${mode === 'multi' ? 'active' : ''}`;
+        soloBtn.className = `mode-btn ${mode === 'solo' ? 'active' : ''}`;
+        multiBtn.className = `mode-btn ${mode === 'multi' ? 'active' : ''}`;
         
-        document.getElementById('btn-mode-solo').style.background = mode === 'solo' ? 'var(--lg-violet)' : 'transparent';
-        document.getElementById('btn-mode-solo').style.color = mode === 'solo' ? '#fff' : 'var(--lg-text-muted)';
+        soloBtn.style.background = mode === 'solo' ? 'var(--lg-violet)' : 'transparent';
+        soloBtn.style.color = mode === 'solo' ? '#fff' : 'var(--lg-text-muted)';
         
-        document.getElementById('btn-mode-multi').style.background = mode === 'multi' ? 'var(--lg-violet)' : 'transparent';
-        document.getElementById('btn-mode-multi').style.color = mode === 'multi' ? '#fff' : 'var(--lg-text-muted)';
+        multiBtn.style.background = mode === 'multi' ? 'var(--lg-violet)' : 'transparent';
+        multiBtn.style.color = mode === 'multi' ? '#fff' : 'var(--lg-text-muted)';
 
         if (currentGame && currentGame.destroy) currentGame.destroy();
         cleanupMultiplayer();
@@ -257,6 +287,8 @@ const GamesHub = (() => {
     };
 
     const loadGame = (slug, isMulti) => {
+        if (!cacheDom()) return;
+
         if (currentGame && currentGame.destroy) currentGame.destroy();
         stage.innerHTML = '';
         helperEl.innerText = '';
@@ -294,7 +326,7 @@ const GamesHub = (() => {
     const close = () => {
         if (currentGame && currentGame.destroy) currentGame.destroy();
         cleanupMultiplayer();
-        modal.style.display = 'none';
+        if (modal) modal.style.display = 'none';
         document.body.style.overflow = '';
         currentGame = null;
     };
@@ -328,4 +360,3 @@ window.closeGame = GamesHub.close;
 window.restartGame = GamesHub.restart;
 
 document.addEventListener('DOMContentLoaded', GamesHub.init);
-

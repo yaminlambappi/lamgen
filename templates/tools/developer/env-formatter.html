@@ -1,0 +1,47 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <label class="tool-label">.env Input</label>
+  <textarea id="envIn" class="tool-code" placeholder="APP_NAME=LamGen
+DEBUG=true
+DATABASE_URL=postgres://user:pass@localhost:5432/lamgen"></textarea>
+  <div class="act-row">
+    <button class="btn-go" onclick="formatEnv()"><i class="bi bi-gear"></i> Format & Validate</button>
+    <button class="btn-sm" onclick="resetTool()"><i class="bi bi-x-circle"></i> Reset</button>
+    <span class="status" id="st"></span>
+  </div>
+  <label class="tool-label">Formatted Output</label>
+  <textarea id="envOut" class="tool-code out" readonly></textarea>
+  <div class="act-row">
+    <button class="btn-sm" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+    <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download .env</button>
+  </div>
+</div>
+{% endblock %}
+{% block tool_js %}
+<script>
+function st(t,m){const e=document.getElementById("st");e.className="status "+t;e.innerHTML=(t==="err"?'<i class="bi bi-exclamation-triangle-fill"></i> ':'<i class="bi bi-check-circle-fill"></i> ')+m;}
+function formatEnv(){
+  const raw=document.getElementById("envIn").value;
+  if(!raw.trim()){st("err","Please provide .env content");return;}
+  const lines=raw.split(/\r?\n/);
+  const entries=[];const errors=[];const keyRx=/^[A-Z_][A-Z0-9_]*$/;
+  lines.forEach((line,idx)=>{
+    const t=line.trim();
+    if(!t||t.startsWith("#")) return;
+    const eq=t.indexOf("=");
+    if(eq<1){errors.push("Line "+(idx+1)+": missing '='");return;}
+    const k=t.slice(0,eq).trim(); let v=t.slice(eq+1).trim();
+    if(!keyRx.test(k)) errors.push("Line "+(idx+1)+": invalid key '"+k+"'");
+    if(v.includes(" ") && !(/^".*"$/.test(v)||/^'.*'$/.test(v))) v='"'+v.replace(/"/g,'\\"')+'"';
+    entries.push([k,v]);
+  });
+  entries.sort((a,b)=>a[0].localeCompare(b[0]));
+  document.getElementById("envOut").value=entries.map(([k,v])=>k+"="+v).join("\n");
+  st(errors.length?"err":"ok",errors.length?("Formatted with warnings: "+errors[0]):"Valid .env formatted");
+}
+function copyOut(){const v=document.getElementById("envOut").value;if(v)navigator.clipboard.writeText(v);}
+function downloadOut(){const v=document.getElementById("envOut").value;if(!v)return;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([v],{type:"text/plain"}));a.download=".env";a.click();}
+function resetTool(){document.getElementById("envIn").value="";document.getElementById("envOut").value="";document.getElementById("st").className="status";}
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <div class="grid-2">
+    <label>Top Left <input id="tl" type="range" min="0" max="200" value="16" oninput="render()"></label>
+    <label>Top Right <input id="tr" type="range" min="0" max="200" value="16" oninput="render()"></label>
+    <label>Bottom Right <input id="br" type="range" min="0" max="200" value="16" oninput="render()"></label>
+    <label>Bottom Left <input id="bl" type="range" min="0" max="200" value="16" oninput="render()"></label>
+  </div>
+  <label><input id="linkAll" type="checkbox" onchange="syncAll(this.checked)"> Link all corners</label>
+  <div style="height:180px;border-radius:16px;background:#fff;display:grid;place-items:center">
+    <div id="box" style="width:140px;height:100px;background:#6c63ff"></div>
+  </div>
+  <textarea id="out" class="tool-code out" readonly></textarea>
+  <div class="act-row">
+    <button class="btn-sm" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy CSS</button>
+    <button class="btn-sm" onclick="resetTool()"><i class="bi bi-x-circle"></i> Reset</button>
+  </div>
+</div>
+{% endblock %}
+{% block tool_js %}
+<script>
+function vals(){return ["tl","tr","br","bl"].map(id=>+document.getElementById(id).value);}
+function render(){
+  const [tl,tr,br,bl]=vals();
+  const css=`${tl}px ${tr}px ${br}px ${bl}px`;
+  document.getElementById("box").style.borderRadius=css;
+  document.getElementById("out").value=`border-radius: ${css};`;
+}
+function syncAll(checked){
+  if(!checked) return;
+  const v=document.getElementById("tl").value;
+  ["tr","br","bl"].forEach(id=>document.getElementById(id).value=v);
+  render();
+}
+["tl","tr","br","bl"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{
+  if(document.getElementById("linkAll").checked){const v=document.getElementById(id).value;["tl","tr","br","bl"].forEach(k=>document.getElementById(k).value=v);}
+  render();
+}));
+function copyOut(){const v=document.getElementById("out").value;if(v)navigator.clipboard.writeText(v);}
+function resetTool(){["tl","tr","br","bl"].forEach(id=>document.getElementById(id).value=16);document.getElementById("linkAll").checked=false;render();}
+render();
+</script>
+{% endblock %}

@@ -99,6 +99,36 @@ class TestAuthViews:
         assert resp.status_code == 302
         assert '/login/' in resp['Location']
 
+    def test_sitemap_xml_renders(self, client, db):
+        from tools.models import ToolCategory, Tool
+        from seo.models import LongTailVariant
+
+        category = ToolCategory.objects.create(name='Test Category', slug='test-category')
+        tool = Tool.objects.create(
+            name='Test Tool',
+            slug='test-tool',
+            category=category,
+            description='Test tool description',
+            short_desc='Short description',
+            template_name='tools/test-tool.html',
+            is_active=True,
+        )
+        LongTailVariant.objects.create(
+            tool=tool,
+            variant_slug='test-variant',
+            keyword_intent='online',
+            unique_intro='Unique intro for test variant.',
+            use_cases=[],
+            faq_items=[],
+            meta_title='Test Variant Title',
+            meta_description='Test variant description.',
+            is_active=True,
+        )
+
+        resp = client.get('/sitemap.xml')
+        assert resp.status_code == 200
+        assert b'<sitemapindex' in resp.content or b'<urlset' in resp.content
+
 
 class TestUploadView:
     """Integration tests for the upload view."""

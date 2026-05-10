@@ -45,7 +45,8 @@
     --lg-violet-soft:   rgba(139,127,255,0.14);
     --lg-violet-glow:   rgba(139,127,255,0.28);
 
-    /* ── Semantic ── */
+    /* ── Primary: Main brand color ── */
+    --lg-primary: #8B7FFF;
     --lg-success: #2EE8B8;
     --lg-warning: #F5A623;
     --lg-danger:  #FF5C7A;
@@ -127,9 +128,9 @@
     --spiritual-banner-height-mobile: auto;
     --layout-top-offset: 0.35rem;
 
-    /* ── Typography System — Inter & Space Grotesk ── */
+    /* ── Typography System — Syne (display) & DM Sans (body) ── */
     --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-display: 'Space Grotesk', sans-serif;
+    --font-display: 'Syne', 'Inter', system-ui, sans-serif;
     
     /* Fluid scale using clamp() — (min, viewport-preferred, max) */
     --fs-xs:   clamp(0.7rem, 1vw, 0.8rem);
@@ -167,7 +168,7 @@ html, body {
     font-weight: var(--fw-medium);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image: radial-gradient(ellipse 100% 50% at 50% 0%, rgba(100,90,255,0.12) 0%, transparent 65%);
+    background-image: radial-gradient(ellipse 100% 50% at 50% 0%, rgba(100,90,255,0.08) 0%, transparent 65%);
     box-sizing: border-box;
 }
 
@@ -176,6 +177,41 @@ html { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding: 0; position: relative; box-sizing: border-box; }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Global font override — catch any hardcoded 'DM Sans' references in legacy templates.
+   Since DM Sans is no longer loaded, the browser would fall back to system fonts
+   without this override. Inter is our unified body font. */
+@font-face {
+    font-family: 'DM Sans';
+    src: local('Inter');
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+/* ── FOUC Prevention ── */
+.font-loading body {
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+
+.font-loaded body {
+    opacity: 1;
+}
+
+.no-fouc {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.fouc-loaded {
+    opacity: 1;
+}
+
+/* Main content area — no top padding needed since header is sticky (not fixed) */
+#main-content {
+    min-height: calc(100vh - 60px);
+    position: relative;
+}
 
 /* ================================================================
    CINEMATIC BACKGROUND ENVIRONMENT
@@ -238,7 +274,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     );
     mask-image: radial-gradient(circle at 50% 0%, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 65%);
     -webkit-mask-image: radial-gradient(circle at 50% 0%, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 65%);
-    animation: beamsDrift 80s linear infinite;
+    animation: beamsDrift 120s linear infinite;
     z-index: 1;
     will-change: transform;
 }
@@ -253,7 +289,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
         radial-gradient(2px 2px at 60vw 10vh, rgba(62,236,216,0.40), transparent),
         radial-gradient(3px 3px at 90vw 90vh, rgba(139,127,255,0.40), transparent);
     background-size: 200vw 200vh;
-    animation: starsDrift 200s linear infinite;
+    animation: starsDrift 300s linear infinite;
     z-index: 2;
     will-change: transform;
 }
@@ -265,8 +301,8 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
         radial-gradient(1px 1px at 15vw 25vh, rgba(255,255,255,0.45), transparent),
         radial-gradient(1.5px 1.5px at 75vw 35vh, rgba(255,255,255,0.30), transparent);
     background-size: 150vw 150vh;
-    animation: starsDrift 300s linear infinite reverse;
-    will-change: transform;
+    animation: starsDrift 400s linear infinite reverse;
+    will-change: auto;
 }
 
 .particles {
@@ -274,9 +310,9 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     inset: -200px;
     background-image: radial-gradient(3px 3px at 0px 0px, rgba(62,236,216,0.30), transparent);
     background-size: 150px 150px;
-    animation: particlesDrift 60s linear infinite;
+    animation: particlesDrift 120s linear infinite;
     z-index: 3;
-    will-change: transform;
+    will-change: auto;
 }
 .particles::after {
     content: '';
@@ -284,8 +320,8 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     inset: -200px;
     background-image: radial-gradient(4px 4px at 0px 0px, rgba(139,127,255,0.30), transparent);
     background-size: 250px 250px;
-    animation: particlesDrift 90s linear infinite reverse;
-    will-change: transform;
+    animation: particlesDrift 150s linear infinite reverse;
+    will-change: auto;
 }
 
 .rune-particles {
@@ -295,9 +331,9 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
         radial-gradient(1px 10px at 50px 50px, rgba(0,245,212,0.22), transparent),
         radial-gradient(10px 1px at 150px 150px, rgba(108,99,255,0.22), transparent);
     background-size: 400px 400px;
-    animation: runeFloat 30s ease-in-out infinite;
+    animation: runeFloat 60s ease-in-out infinite;
     z-index: 3;
-    will-change: transform;
+    will-change: auto;
 }
 
 .nebula { position: absolute; border-radius: 50%; z-index: 1; will-change: transform; }
@@ -324,10 +360,10 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     position: absolute;
     width: 100vw; height: 50vh;
     top: 0; left: 0;
-    background: linear-gradient(180deg, rgba(62,236,216,0.06) 0%, rgba(100,90,255,0.025) 50%, transparent 100%);
-    animation: pulseOpacity 15s ease-in-out infinite alternate;
+    background: linear-gradient(180deg, rgba(62,236,216,0.04) 0%, rgba(100,90,255,0.02) 50%, transparent 100%);
+    animation: pulseOpacity 25s ease-in-out infinite alternate;
     z-index: 1;
-    will-change: opacity;
+    will-change: auto;
 }
 
 @keyframes starsDrift { from { transform: translate3d(0,0,0); } to { transform: translate3d(-20vw,-30vh,0); } }
@@ -335,7 +371,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 @keyframes fogSway { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(6vw,4vh,0) scale(1.08); } }
 @keyframes fogSway2 { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(-6vw,-4vh,0) scale(1.05); } }
 @keyframes runeFloat { 0% { transform: translate3d(0,0,0); } 50% { transform: translate3d(20px,-30px,0); } 100% { transform: translate3d(0,0,0); } }
-@keyframes pulseOpacity { 0% { opacity: 0.4; } 100% { opacity: 0.85; } }
+@keyframes pulseOpacity { 0% { opacity: 0.3; } 100% { opacity: 0.6; } }
 @keyframes beamsDrift { from { transform: translate3d(-5vw,0,0); } to { transform: translate3d(5vw,0,0); } }
 
 /* Spatial panels — real depth, real contrast */
@@ -417,18 +453,19 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 }
 
 /* ================================================================
-   TOP NAVIGATION
+   TOP NAVIGATION — Sticky, not fixed (avoids content overlap)
    ================================================================ */
 .app-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: var(--nav-height);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    background: linear-gradient(180deg, rgba(8,10,20,0.85) 0%, transparent 100%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: rgba(7,9,26,0.88);
+    border-bottom: 1px solid rgba(130,120,255,0.12);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 /* ================================================================
@@ -1418,370 +1455,25 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 }
 
 /* ================================================================
-   LAYOUT ENGINE
+   LAYOUT ENGINE — legacy classes kept for compatibility
    ================================================================ */
 .app-shell {
-    display: flex;
-    flex-direction: row; /* Main content first, Sidebar on the right */
     width: 100%;
     max-width: var(--bp-xxl);
     margin: 0 auto;
-    padding: calc(var(--nav-height) + var(--layout-top-offset)) var(--shell-padding) 4rem;
-    gap: var(--shell-gap);
+    padding: 0 var(--shell-padding) 4rem;
     min-height: 100vh;
 }
 
-.app-main {
-    flex: 1;
-    min-width: 0; /* Critical for flex items to not overflow */
-}
+.app-main { flex: 1; min-width: 0; }
+.content-container { width: 100%; max-width: 1000px; margin: 0 auto; }
 
-.content-container {
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-}
+/* app-sidebar — hidden in new layout, kept for any legacy pages */
+.app-sidebar { display: none; }
 
-.app-sidebar {
-    width: var(--sidebar-width);
-    flex-shrink: 0;
-    position: sticky;
-    top: calc(var(--nav-height) + 1.5rem);
-    height: auto;
-    min-height: 100%;
-    max-height: calc(100vh - var(--nav-height) - 3rem);
-    display: flex;
-    flex-direction: column;
-    overflow: visible;
-    isolation: isolate;
-    border-radius: 38px;
-}
-.app-sidebar::-webkit-scrollbar { display: none; }
-
-/* Subtle premium golden energy border */
-.app-sidebar::before,
-.app-sidebar::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-}
-
-.app-sidebar::before {
-    border: 1px solid rgba(255, 204, 112, 0.20);
-    box-shadow:
-        0 0 0 1px rgba(255, 184, 84, 0.08),
-        0 0 14px rgba(255, 184, 84, 0.08);
-    opacity: 0.95;
-}
-
-.app-sidebar::after {
-    width: 42px;
-    height: 2px;
-    border-radius: 999px;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 214, 138, 0.00) 0%,
-        rgba(255, 214, 138, 0.55) 35%,
-        rgba(255, 186, 82, 0.95) 55%,
-        rgba(255, 223, 150, 0.65) 75%,
-        rgba(255, 214, 138, 0.00) 100%
-    );
-    box-shadow:
-        0 0 10px rgba(255, 189, 86, 0.35),
-        0 0 20px rgba(255, 189, 86, 0.14);
-    /* Rounded rectangular orbit path constrained to sidebar perimeter */
-    offset-path: inset(1px round 22px);
-    offset-distance: 0%;
-    offset-rotate: auto;
-    will-change: offset-distance;
-    animation: sidebar-border-orbit 7.8s linear infinite;
-}
-
-.app-sidebar > * {
-    position: relative;
-    z-index: 1;
-}
-
-@keyframes sidebar-border-orbit {
-    to { offset-distance: 100%; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .app-sidebar::after {
-        animation: none;
-    }
-}
-
-/* Responsive Transitions */
-@media (max-width: 1280px) {
-    /* Banner width handled by flow */
-    .app-sidebar { 
-        width: 80px; 
-        padding: 1.5rem 0.75rem;
-    }
-    .app-sidebar .label,
-    .app-sidebar .badge,
-    .app-sidebar .group-label,
-    .app-sidebar .sidebar-divider {
-        display: none;
-    }
-    .sidebar-v2-link {
-        justify-content: center;
-        padding: 12px;
-    }
-    .sidebar-v2-link .icon-box {
-        width: 40px;
-        height: 40px;
-        font-size: 1.1rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .app-shell { 
-        flex-direction: column;
-        padding-top: calc(var(--nav-height-mobile) + 0.45rem);
-        padding-bottom: 100px; /* Space for dock */
-    }
-    .app-sidebar { display: none; } /* Hidden on mobile, use dock */
-    .app-main { order: 1; }
-    .content-container { max-width: 100%; }
-}
-
-/* ================================================================
-   SIDEBAR V2 STYLES
-   ================================================================ */
-.sidebar-nav-v2 {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 1.25rem 1rem;
-    overflow-y: auto;
-    flex: 1;
-    scrollbar-width: none;
-}
-.sidebar-nav-v2::-webkit-scrollbar { display: none; }
-
-.sidebar-v2-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    border-radius: 14px;
-    text-decoration: none;
-    color: var(--lg-text-muted);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid transparent;
-}
-
-.sidebar-v2-link .icon-box {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(120, 110, 255, 0.08);
-    border: 1px solid rgba(120, 110, 255, 0.12);
-    color: var(--lg-violet);
-    transition: all 0.2s;
-}
-
-.sidebar-v2-link .label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    flex: 1;
-}
-
-.sidebar-v2-link .badge {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--lg-text-helper);
-    opacity: 0.6;
-}
-
-/* Link States */
-.sidebar-v2-link:hover {
-    background: rgba(120, 110, 255, 0.06);
-    color: var(--lg-text);
-    transform: translateX(4px);
-}
-
-.sidebar-v2-link.active {
-    background: rgba(120, 110, 255, 0.12);
-    border-color: rgba(120, 110, 255, 0.25);
-    color: var(--lg-text);
-    box-shadow: inset 0 0 0 1px rgba(120, 110, 255, 0.15);
-}
-.sidebar-v2-link.active .icon-box {
-    background: var(--lg-violet);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(139, 127, 255, 0.3);
-}
-
-/* Category Specific Styles */
-.sidebar-v2-link[style*="--accent-color"] .icon-box {
-    background: color-mix(in srgb, var(--accent-color), transparent 88%);
-    border-color: color-mix(in srgb, var(--accent-color), transparent 75%);
-    color: var(--accent-color);
-}
-.sidebar-v2-link[style*="--accent-color"].active .icon-box {
-    background: var(--accent-color);
-    color: #fff;
-}
-
-.sidebar-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--lg-border), transparent);
-    margin: 8px 0;
-}
-
-.sidebar-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.group-label {
-    font-size: 0.65rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--lg-text-helper);
-    padding: 8px 14px;
-}
-
-/* ================================================================
-   OS DOCK (MOBILE NAV)
-   ================================================================ */
-.os-dock {
-    display: none;
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: rgba(10, 10, 28, 0.85);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid var(--lg-border);
-    border-radius: 24px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    isolation: isolate;
-}
-
-@media (max-width: 768px) {
-    .os-dock { display: flex; }
-}
-
-/* Dock Energy Border — Match Sidebar */
-.os-dock::before {
-    content: '';
-    position: absolute;
-    inset: -1.2px;
-    padding: 1.2px;
-    background: conic-gradient(
-        from var(--border-angle, 0deg),
-        transparent 280deg,
-        rgba(255, 184, 0, 0.4) 320deg,
-        rgba(255, 215, 0, 1) 360deg
-    );
-    border-radius: inherit;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    -webkit-mask-composite: destination-out;
-    animation: borderRotate 4s linear infinite;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.os-dock::after {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    background: conic-gradient(
-        from var(--border-angle, 0deg),
-        transparent 300deg,
-        rgba(255, 184, 0, 0.15) 340deg,
-        transparent 360deg
-    );
-    border-radius: inherit;
-    filter: blur(8px);
-    animation: borderRotate 4s linear infinite;
-    pointer-events: none;
-    z-index: -1;
-    opacity: 0.5;
-}
-
-
-/* Dock items */
-.dock-item {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 46px; height: 46px;
-    border-radius: 13px;
-    color: var(--lg-text-muted);
-    text-decoration: none;
-    font-size: var(--fs-lg);
-    transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
-    background: rgba(100,90,255,0.08);
-    border: 1px solid rgba(130,120,255,0.14);
-}
-.dock-item:hover {
-    transform: translateY(-8px) scale(1.14);
-    background: rgba(100,90,255,0.18);
-    border-color: rgba(140,130,255,0.32);
-    color: var(--lg-text);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.40);
-    z-index: 10;
-}
-.dock-item.active {
-    background: linear-gradient(135deg, rgba(120,110,255,0.28), rgba(62,236,216,0.16));
-    border-color: rgba(140,130,255,0.50);
-    color: var(--lg-text);
-    box-shadow: 0 0 24px rgba(120,110,255,0.30), inset 0 1px 0 rgba(200,190,255,0.15);
-}
-.dock-item::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: -38px;
-    background: rgba(12,10,30,0.94);
-    backdrop-filter: blur(16px);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: var(--fs-xs);
-    font-family: var(--font-primary);
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s, transform 0.2s;
-    transform: translateY(8px);
-    border: 1px solid rgba(130,120,255,0.22);
-    color: var(--lg-text);
-}
-.dock-item:hover::after { opacity: 1; transform: translateY(0); }
-.dock-divider {
-    width: 1px; height: 28px;
-    background: rgba(120,110,255,0.20);
-    margin: 0 2px;
-}
-
-@media (max-width: 768px) {
-    .os-dock { display: flex; padding: 8px 14px; bottom: 16px; gap: 8px; width: auto; min-width: 220px; }
-    .dock-item { width: 42px; height: 42px; font-size: 1.2rem; }
-    .tools-actions { display: none !important; }
-    .cat-dock-link { display: none !important; }
-    .dock-divider { display: none !important; }
-}
 @media (max-width: 640px) { .hide-on-mobile { display: none !important; } }
 
 main { padding-top: 0; padding-bottom: 0; min-height: 100vh; position: relative; z-index: 1; }
-
 /* ================================================================
    TOAST
    ================================================================ */
@@ -2207,7 +1899,6 @@ textarea.form-control { resize: vertical; }
     font-size: var(--fs-xl);
     letter-spacing: -1px;
     line-height: var(--lh-tight);
-}
     color: var(--lg-text);
 }
 .invalid-msg { color: var(--lg-danger); font-size: 0.8rem; margin-top: 4px; }

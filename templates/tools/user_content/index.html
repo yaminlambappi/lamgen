@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/tools/user-content.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="user-content-hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <i class="bi bi-collection"></i>
+                User-Generated Content
+            </h1>
+            <p class="hero-subtitle">
+                Explore thousands of examples, templates, and guides created with our tools
+            </p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number">{{ content_stats.keys|length }}</span>
+                    <span class="stat-label">Content Types</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ content_stats_processed.tool_count_total }}</span>
+                    <span class="stat-label">Tools</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ content_stats_processed.total_examples_total }}</span>
+                    <span class="stat-label">Examples</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <section class="content-types-section">
+        <h2 class="section-title">Content Categories</h2>
+        <div class="content-types-grid">
+            {% for content_type, stats in content_stats.items %}
+            <div class="content-type-card">
+                <div class="card-header">
+                    <div class="content-icon">
+                        {% if content_type == 'resume' %}
+                            <i class="bi bi-file-person"></i>
+                        {% elif content_type == 'bio' %}
+                            <i class="bi bi-person-badge"></i>
+                        {% elif content_type == 'prompt' %}
+                            <i class="bi bi-chat-text"></i>
+                        {% elif content_type == 'template' %}
+                            <i class="bi bi-file-earmark"></i>
+                        {% elif content_type == 'example' %}
+                            <i class="bi bi-lightbulb"></i>
+                        {% else %}
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        {% endif %}
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">{{ stats.display_name }}</h3>
+                        <div class="card-stats">
+                            <span class="tool-count">{{ stats.tool_count }} tools</span>
+                            <span class="example-count">{{ stats.total_examples }} examples</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <p class="card-description">
+                        Professional {{ stats.display_name.lower }} created with our free tools. 
+                        Browse examples, templates, and guides to enhance your productivity.
+                    </p>
+                    {% if stats.featured_tools %}
+                    <div class="featured-tools">
+                        <h4>Featured Tools</h4>
+                        <div class="tools-list">
+                            {% for tool in stats.featured_tools %}
+                            <a href="{{ tool.get_absolute_url }}" class="featured-tool-link">
+                                <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }}"></i>
+                                {{ tool.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'content_type_view' content_type %}" class="explore-btn">
+                        <span>Explore {{ stats.display_name }}</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="recent-content-section">
+        <h2 class="section-title">Recent User Content</h2>
+        <div class="recent-content-grid">
+            {% for content in recent_content %}
+            <div class="recent-item">
+                <div class="item-header">
+                    <div class="content-type-badge">{{ content.content_type.title }}</div>
+                    <div class="quality-score">
+                        <i class="bi bi-star-fill"></i>
+                        {{ content.quality_score|floatformat:1 }}
+                    </div>
+                </div>
+                <div class="item-content">
+                    <h4 class="item-title">{{ content.title }}</h4>
+                    <p class="item-description">{{ content.description }}</p>
+                    <div class="item-meta">
+                        <a href="{{ content.tool.get_absolute_url }}" class="tool-link">
+                            <i class="{{ content.tool.icon }}"></i>
+                            {{ content.tool.name }}
+                        </a>
+                        <span class="created-date">{{ content.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

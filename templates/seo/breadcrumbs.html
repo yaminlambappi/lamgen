@@ -1,0 +1,83 @@
+{% comment %}
+Breadcrumbs Component
+SEO-optimized breadcrumb navigation with JSON-LD schema
+{% endcomment %}
+
+{% if breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb navigation">
+    <ol class="breadcrumb-list" itemscope itemtype="https://schema.org/BreadcrumbList">
+        {% for crumb in breadcrumbs %}
+        <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            {% if not crumb.is_current %}
+            <a href="{{ crumb.url }}" itemprop="item">
+                <span itemprop="name">{{ crumb.title }}</span>
+            </a>
+            {% else %}
+            <span itemprop="name">{{ crumb.title }}</span>
+            {% endif %}
+            <meta itemprop="position" content="{{ forloop.counter }}">
+        </li>
+        {% endfor %}
+    </ol>
+</nav>
+
+<style>
+.breadcrumbs {
+    margin: 1rem 0 2rem 0;
+    padding: 0;
+}
+
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+}
+
+.breadcrumb-item:not(:last-child)::after {
+    content: "›";
+    margin-left: 0.75rem;
+    color: var(--lg-text-muted);
+    opacity: 0.5;
+}
+
+.breadcrumb-item a {
+    color: var(--lg-text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--lg-primary);
+}
+
+.breadcrumb-item:last-child {
+    color: var(--lg-text);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .breadcrumbs {
+        margin: 0.5rem 0 1rem 0;
+    }
+    
+    .breadcrumb-list {
+        font-size: 0.85rem;
+    }
+    
+    .breadcrumb-item:not(:last-child)::after {
+        margin-left: 0.5rem;
+    }
+}
+</style>
+{% endif %}

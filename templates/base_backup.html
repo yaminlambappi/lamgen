@@ -1,0 +1,536 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}" {% if LANGUAGE_CODE == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}{{ page_title|default:"LamGen — 265+ Free Online Tools" }}{% endblock %}</title>
+
+    <!-- ── Core SEO ── -->
+    {% if meta_description %}<meta name="description" content="{{ meta_description }}">{% endif %}
+    {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% else %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endif %}
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="author" content="LamGen">
+    <meta name="generator" content="LamGen Tools Platform">
+
+    <!-- ── OpenGraph ── -->
+    <meta property="og:title" content="{{ page_title|default:'LamGen — 265+ Free Online Tools' }}">
+    {% if meta_description %}<meta property="og:description" content="{{ meta_description }}">{% endif %}
+    <meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}">
+    <meta property="og:type" content="{{ og_type|default:'website' }}">
+    <meta property="og:site_name" content="LamGen">
+    <meta property="og:locale" content="{{ LANGUAGE_CODE|default:'en' }}_{{ LANGUAGE_CODE|default:'en'|upper }}">
+    <meta property="og:image" content="{% block og_image %}{% static 'img/og-default.png' %}{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{ page_title|default:'LamGen — Free Online Tools' }}">
+    <link rel="alternate" hreflang="x-default" href="{{ request.build_absolute_uri }}">
+    {% include "partials/perf_head.html" %}
+    {% include "partials/critical_css.html" %}
+
+    <!-- ── Twitter Card ── -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@lamgen">
+    <meta name="twitter:title" content="{{ page_title|default:'LamGen — 265+ Free Online Tools' }}">
+    {% if meta_description %}<meta name="twitter:description" content="{{ meta_description }}">{% endif %}
+    <meta name="twitter:image" content="{% block twitter_image %}{% static 'img/og-default.png' %}{% endblock %}">
+
+    <!-- ── JSON-LD Schemas ── -->
+    {% if schema_json %}<script type="application/ld+json">{{ schema_json|safe }}</script>{% endif %}
+    {% if breadcrumb_schema %}<script type="application/ld+json">{{ breadcrumb_schema|safe }}</script>{% endif %}
+    {% if org_schema %}<script type="application/ld+json">{{ org_schema|safe }}</script>{% endif %}
+    {% block extra_schema %}{% endblock %}
+
+    <!-- ── Favicons ── -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+    <link rel="shortcut icon" href="{% static 'img/favicon.svg' %}">
+    <meta name="msapplication-TileColor" content="#07091A">
+
+    <!-- ── Performance: Edge Cache & PWA ── -->
+    <meta http-equiv="Cache-Control" content="public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400">
+    <meta name="theme-color" content="#07091A">
+    <meta name="color-scheme" content="dark">
+
+    <!-- ── Preconnect for critical resources ── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+    <!-- ── Fonts: non-blocking ── -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet"></noscript>
+
+    <!-- ── Icons: non-blocking ── -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"></noscript>
+
+    <!-- ── Design System ── -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_css %}{% endblock %}
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JBW2R1QCC8"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-JBW2R1QCC8');
+    </script>
+    <script>
+      window.__lamgenAdsBlocked = false;
+      window.__lamgenHandleAdsScriptError = function () {
+        window.__lamgenAdsBlocked = true;
+        window.adsbygoogle = window.adsbygoogle || [];
+      };
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5788167863707885"
+     crossorigin="anonymous" onerror="window.__lamgenHandleAdsScriptError()"></script>
+</head>
+    <!-- Cinematic Alien-World Environment -->
+    <div class="space-bg">
+        <div class="alien-grid"></div>
+        <div class="ambient-pulse"></div>
+        <div class="light-beams"></div>
+        <div class="galaxy-cluster"></div>
+        <div class="planet"></div>
+        <div class="stars"></div>
+        <div class="nebula fog-1"></div>
+        <div class="nebula fog-2"></div>
+        <div class="nebula fog-3"></div>
+        <div class="rune-particles"></div>
+        <div class="particles"></div>
+    </div>
+
+    <!-- Global Top Nav -->
+    <header class="app-header">
+      <div class="header-inner">
+
+        <!-- LEFT: Profile -->
+        <div class="nav-left">
+          <div class="nav-dropdown">
+            <button class="profile-btn nav-dropdown-toggle"
+                    onclick="this.closest('.nav-dropdown').classList.toggle('open')"
+                    aria-label="Account menu"
+                    aria-haspopup="true">
+              {% if user.is_authenticated %}
+              <i class="bi bi-person-fill"></i>
+              {% else %}
+              <i class="bi bi-person"></i>
+              {% endif %}
+            </button>
+            <div class="nav-dropdown-menu" role="menu">
+              {% if user.is_authenticated %}
+              <div class="menu-label">{{ user.username }}</div>
+              <div class="divider"></div>
+              <a href="{% url 'home' %}" role="menuitem"><i class="bi bi-person-fill"></i> Account</a>
+              <div class="divider"></div>
+              <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
+                {% csrf_token %}
+                <button type="submit" class="danger-item" role="menuitem">
+                  <i class="bi bi-box-arrow-right"></i> Sign Out
+                </button>
+              </form>
+              {% else %}
+              <a href="{% url 'accounts:login' %}" role="menuitem"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
+              <a href="{% url 'accounts:register' %}" role="menuitem"><i class="bi bi-person-plus"></i> Join LamGen</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER: Search -->
+        <div class="nav-center">
+          {% block nav_search %}
+          <div class="global-search-pill">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" id="inlineSearchInput"
+                   placeholder="Search LamGen…"
+                   autocomplete="off">
+            <div class="search-kbd-hint">
+              <span class="kbd">⌘</span><span class="kbd">K</span>
+            </div>
+            <!-- Inline results -->
+            <div id="inlineSearchResults" class="search-results-popover"></div>
+          </div>
+          {% endblock nav_search %}
+        </div>
+
+        <!-- RIGHT: Brand -->
+        <a href="{% url 'home' %}" class="nav-brand" aria-label="LamGen Home">
+          <span class="nav-brand-name">LamGen</span>
+          <div class="nav-brand-mark"><i class="bi bi-cpu"></i></div>
+        </a>
+
+      </div>
+    </header>
+
+    <!-- App Shell -->
+    <div class="app-shell">
+        <main class="app-main">
+            {% include "partials/spiritual_banner.html" %}
+            <div class="content-container">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <!-- Global Sidebar -->
+        <aside class="app-sidebar spatial-panel">
+            {% block right_sidebar %}
+            <nav class="sidebar-nav-v2">
+                <!-- Home -->
+                <a href="{% url 'home' %}" class="sidebar-v2-link {% if request.path == '/' %}active{% endif %}">
+                    <div class="icon-box"><i class="bi bi-cpu"></i></div>
+                    <span class="label">Home</span>
+                </a>
+
+                <!-- All Tools -->
+                <a href="{% url 'tools:index' %}" class="sidebar-v2-link {% if request.path == '/tools/' %}active{% endif %}">
+                    <div class="icon-box"><i class="bi bi-grid"></i></div>
+                    <span class="label">All Tools</span>
+                </a>
+
+                <div class="sidebar-divider"></div>
+
+                <div class="sidebar-group">
+                    <div class="group-label">Categories</div>
+                    {% for cat in nav_categories %}
+                    <a href="{{ cat.get_absolute_url }}" class="sidebar-v2-link {% if request.path == cat.get_absolute_url %}active{% endif %}" style="--accent-color: {{ cat.color_from }};">
+                        <div class="icon-box cat-icon"><i class="{{ cat.icon }}"></i></div>
+                        <span class="label">{{ cat.name }}</span>
+                        {% if cat.active_tools_count > 0 %}
+                        <span class="badge">{{ cat.active_tools_count }}</span>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </nav>
+            {% endblock %}
+        </aside>
+    </div>
+
+    <!-- Floating OS Dock -->
+    <nav class="os-dock">
+        <a href="{% url 'home' %}" class="dock-item {% if request.path == '/' %}active{% endif %}" data-tooltip="Home">
+            <i class="bi bi-house-door-fill"></i>
+        </a>
+        <a href="{% url 'tools:index' %}" class="dock-item {% if request.path == '/tools/' %}active{% endif %}" data-tooltip="All Tools">
+            <i class="bi bi-grid-fill"></i>
+        </a>
+        <a href="javascript:void(0)" class="dock-item" data-tooltip="Search (⌘K)" onclick="toggleInlineSearch(true)">
+            <i class="bi bi-search"></i>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'home' %}" class="dock-item" data-tooltip="User Account">
+            <i class="bi bi-person-fill"></i>
+        </a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="dock-item" data-tooltip="Login">
+            <i class="bi bi-box-arrow-in-right"></i>
+        </a>
+        {% endif %}
+    </nav>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer">
+        {% for message in messages %}
+        <div class="nexus-toast {% if message.tags == 'error' or message.tags == 'danger' %}danger{% elif message.tags == 'success' %}success{% endif %}" data-autohide="5000">
+            {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill text-accent"></i>
+            {% elif message.tags == 'error' or message.tags == 'danger' %}<i class="bi bi-exclamation-circle-fill" style="color:var(--danger)"></i>
+            {% else %}<i class="bi bi-info-circle-fill" style="color:var(--primary)"></i>{% endif %}
+            {{ message }}
+            <button class="toast-close" onclick="this.closest('.nexus-toast').remove()">✕</button>
+        </div>
+        {% endfor %}
+    </div>
+
+
+
+
+
+    <script>
+        // Service Worker Registration for Edge Caching & Offline support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{% static 'sw.js' %}").catch(err => {
+                    console.log('SW registration failed: ', err);
+                });
+            });
+        }
+        
+
+        // Close dropdown on outside click
+        document.addEventListener('click', (e) => {
+            document.querySelectorAll('.nav-dropdown.open').forEach(d => {
+                if (!d.contains(e.target)) d.classList.remove('open');
+            });
+        });
+        // Auto-dismiss toasts
+        document.querySelectorAll('.nexus-toast[data-autohide]').forEach(t => {
+            setTimeout(() => t.remove(), parseInt(t.dataset.autohide));
+        });
+
+        // Inline Search Logic
+        const inlineInput = document.getElementById('inlineSearchInput');
+        const inlineResults = document.getElementById('inlineSearchResults');
+
+        if (inlineInput && inlineResults) {
+            function toggleInlineSearch(show) {
+                if (show) {
+                    inlineResults.style.display = 'block';
+                    inlineInput.focus();
+                } else {
+                    inlineResults.style.display = 'none';
+                }
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    toggleInlineSearch(true);
+                }
+                if (e.key === 'Escape') {
+                    toggleInlineSearch(false);
+                    inlineInput.blur();
+                }
+            });
+
+            // Hide results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!inlineInput.contains(e.target) && !inlineResults.contains(e.target)) {
+                    toggleInlineSearch(false);
+                }
+            });
+
+            inlineInput.addEventListener('focus', () => {
+                if (inlineInput.value.trim().length > 0) {
+                    toggleInlineSearch(true);
+                }
+            });
+
+            let cmdTimeout;
+            inlineInput.addEventListener('input', () => {
+                clearTimeout(cmdTimeout);
+                const q = inlineInput.value.trim();
+                if (q.length < 2) {
+                    inlineResults.style.display = 'block';
+                    inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Type at least 2 characters to search...</div>';
+                    return;
+                }
+
+                inlineResults.style.display = 'block';
+                inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">Searching...</div>';
+
+                cmdTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`/tools/search/?q=${encodeURIComponent(q)}`);
+                        const data = await res.json();
+                        
+                        if (data.results.length === 0) {
+                            inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--muted); font-size: 0.9rem;">No results found.</div>';
+                            return;
+                        }
+
+                        inlineResults.innerHTML = data.results.map(r => `
+                            <a href="${r.url}" style="display:flex; align-items:center; gap:12px; padding:9px 10px; border-radius:10px; text-decoration:none; color:var(--lg-text); transition:background 0.15s;" onmouseover="this.style.background='rgba(120,110,255,0.12)'" onmouseout="this.style.background='transparent'">
+                                <div style="width:32px; height:32px; background:${r.category_color_from}22; border:1px solid ${r.category_color_from}44; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                    <i class="${r.icon}" style="color:${r.category_color_from}; font-size:0.95rem;"></i>
+                                </div>
+                                <div style="flex:1; overflow:hidden;">
+                                    <div style="font-weight:600; font-size:0.88rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; color:var(--lg-text);">${r.name}</div>
+                                    <div style="font-size:0.74rem; color:var(--lg-text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${r.category} &bull; ${r.short_desc}</div>
+                                </div>
+                            </a>
+                        `).join('');
+                    } catch (e) {
+                        inlineResults.innerHTML = '<div style="padding: 1.5rem; text-align: center; color: var(--danger); font-size: 0.9rem;">Search failed.</div>';
+                    }
+                }, 200);
+            });
+        }
+    </script>
+    <script src="{% static 'js/tool-runtime.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/core/gen-engine.js' %}"></script>
+    <script src="{% static 'js/core/behavioral.js' %}" defer></script>
+    <script src="{% static 'js/core/share-state.js' %}" defer></script>
+    <script src="{% static 'js/core/spiritual-banner.js' %}" defer></script>
+    {% block tool_js %}{% endblock %}
+
+    <!-- ── Command Palette ── -->
+    <div id="cmd-palette-overlay"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Command palette — search tools"
+         style="display:none; position:fixed; inset:0; z-index:9000; background:rgba(4,5,16,0.65); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); align-items:flex-start; justify-content:center; padding-top:14vh;">
+      <div style="width:100%; max-width:580px; margin:0 1rem; background:rgba(10,12,24,0.96); border:1px solid rgba(130,120,255,0.24); border-radius:22px; overflow:hidden; box-shadow:0 48px 96px rgba(0,0,0,0.65), inset 0 1px 0 rgba(120,110,255,0.13);">
+        <!-- Search input -->
+        <div style="display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid rgba(120,110,255,0.14);">
+          <i class="bi bi-search" style="color:var(--lg-text-muted); font-size:1.05rem; flex-shrink:0;"></i>
+          <input id="cmd-input"
+                 type="text"
+                 placeholder="Search tools…"
+                 autocomplete="off"
+                 spellcheck="false"
+                 aria-label="Search tools"
+                 style="flex:1; background:transparent; border:none; outline:none; color:var(--lg-text); font-size:1rem; font-family:'DM Sans',sans-serif; caret-color:var(--lg-cyan);">
+          <kbd style="font-size:0.68rem; color:var(--lg-text-muted); background:rgba(120,110,255,0.13); padding:3px 7px; border-radius:5px; font-family:monospace; flex-shrink:0; border:1px solid rgba(120,110,255,0.14);">Esc</kbd>
+        </div>
+        <!-- Results -->
+        <div id="cmd-results"
+             role="listbox"
+             style="max-height:380px; overflow-y:auto; padding:8px;">
+          <div style="padding:2rem; text-align:center; color:var(--lg-text-muted); font-size:0.88rem;">
+            <i class="bi bi-command" style="font-size:1.5rem; display:block; margin-bottom:8px; opacity:0.35;"></i>
+            Type to search 100+ tools
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="padding:10px 18px; border-top:1px solid rgba(120,110,255,0.12); display:flex; gap:16px; font-size:0.72rem; color:var(--lg-text-helper);">
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">↑↓</kbd> Navigate</span>
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">↵</kbd> Open</span>
+          <span><kbd style="background:rgba(120,110,255,0.13); padding:2px 6px; border-radius:4px; font-family:monospace; border:1px solid rgba(120,110,255,0.14);">Esc</kbd> Close</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      const overlay = document.getElementById('cmd-palette-overlay');
+      const input   = document.getElementById('cmd-input');
+      const results = document.getElementById('cmd-results');
+      if (!overlay || !input || !results) return;
+
+      let debounceTimer, selectedIdx = -1, resultItems = [];
+
+      function openPalette() {
+        overlay.style.display = 'flex';
+        input.value = '';
+        selectedIdx = -1;
+        results.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--muted); font-size:0.9rem;"><i class="bi bi-command" style="font-size:1.5rem; display:block; margin-bottom:8px; opacity:0.4;"></i>Type to search 100+ tools</div>';
+        requestAnimationFrame(() => input.focus());
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closePalette() {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        selectedIdx = -1;
+        resultItems = [];
+      }
+
+      // Keyboard triggers
+      document.addEventListener('keydown', (e) => {
+        const tag = document.activeElement?.tagName;
+        const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable;
+
+        if ((e.key === '/' && !isEditable) || (e.ctrlKey && e.key === 'k')) {
+          e.preventDefault();
+          overlay.style.display === 'flex' ? closePalette() : openPalette();
+          return;
+        }
+        if (overlay.style.display !== 'flex') return;
+
+        if (e.key === 'Escape') { closePalette(); return; }
+        if (e.key === 'ArrowDown') { e.preventDefault(); moveSelection(1); return; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); moveSelection(-1); return; }
+        if (e.key === 'Enter' && selectedIdx >= 0) {
+          e.preventDefault();
+          resultItems[selectedIdx]?.click();
+          return;
+        }
+      });
+
+      // Click outside to close
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closePalette(); });
+
+      // Debounced search
+      input.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const q = input.value.trim();
+        selectedIdx = -1;
+        if (q.length < 2) {
+          results.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--muted); font-size:0.85rem;">Type at least 2 characters…</div>';
+          resultItems = [];
+          return;
+        }
+        results.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--muted); font-size:0.85rem;"><i class="bi bi-hourglass-split" style="margin-right:6px;"></i>Searching…</div>';
+        debounceTimer = setTimeout(() => doSearch(q), 250);
+      });
+
+      async function doSearch(q) {
+        try {
+          const res  = await fetch(`/tools/search/?q=${encodeURIComponent(q)}`);
+          const data = await res.json();
+          renderResults(data.results || []);
+        } catch {
+          results.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--danger); font-size:0.85rem;">Search unavailable.</div>';
+        }
+      }
+
+      function renderResults(items) {
+        if (!items.length) {
+          results.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--muted); font-size:0.85rem;">No tools found.</div>';
+          resultItems = [];
+          return;
+        }
+        results.innerHTML = items.map((r, i) => `
+          <a href="${r.url}"
+             role="option"
+             data-idx="${i}"
+             style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; text-decoration:none; color:var(--text); transition:background 0.15s; outline:none;"
+             onmouseover="this.style.background='rgba(120,110,255,0.11)'"
+             onmouseout="this.style.background=''"
+             onclick="closePaletteGlobal()">
+            <div style="width:34px; height:34px; border-radius:8px; background:${r.category_color_from}22; border:1px solid ${r.category_color_from}44; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+              <i class="${r.icon}" style="color:${r.category_color_from};"></i>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.name}</div>
+              <div style="font-size:0.75rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.category} · ${r.short_desc}</div>
+            </div>
+            <i class="bi bi-arrow-right" style="color:var(--muted); font-size:0.8rem; flex-shrink:0;"></i>
+          </a>
+        `).join('');
+        resultItems = Array.from(results.querySelectorAll('a[data-idx]'));
+      }
+
+      function moveSelection(dir) {
+        if (!resultItems.length) return;
+        if (selectedIdx >= 0) resultItems[selectedIdx].style.background = '';
+        selectedIdx = Math.max(0, Math.min(resultItems.length - 1, selectedIdx + dir));
+        const el = resultItems[selectedIdx];
+        el.style.background = 'rgba(108,99,255,0.15)';
+        el.scrollIntoView({ block: 'nearest' });
+      }
+
+      // Expose close for inline onclick
+      window.closePaletteGlobal = closePalette;
+    })();
+    </script>
+    {% include "partials/auth_prompt.html" %}
+    {% include "games/modal.html" %}
+    {% include "partials/footer.html" %}
+
+    <script>
+        // Inject games config for JS hub
+        window.GAMES_DATA = [
+            {% for game in nav_games %}
+            {
+                slug: "{{ game.slug|escapejs }}",
+                name: "{{ game.name|escapejs }}",
+                short_desc: "{{ game.short_desc|escapejs }}",
+                icon: "{{ game.icon }}",
+                color: "{{ game.color|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+    </script>
+<script src="{% static 'games/js/data.js' %}"></script>
+<script src="{% static 'games/js/rtc.js' %}"></script>
+<script src="{% static 'games/js/hub.js' %}"></script>
+<script src="{% static 'games/js/engines.js' %}"></script>
+</body>
+</html>

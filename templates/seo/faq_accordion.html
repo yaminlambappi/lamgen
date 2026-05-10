@@ -1,0 +1,278 @@
+{% comment %}
+FAQ Accordion Component
+Renders SEO-optimized FAQ section with JSON-LD schema support
+{% endcomment %}
+
+{% if faq_items %}
+<section class="seo-faq-section" itemscope itemtype="https://schema.org/FAQPage">
+    <div class="faq-container">
+        <h2 class="faq-title" itemprop="name">{{ title|default:"Frequently Asked Questions" }}</h2>
+        
+        <div class="faq-list" itemscope itemprop="mainEntity" itemtype="https://schema.org/ItemList">
+            {% for item in faq_items %}
+            <div class="faq-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/Question">
+                <button class="faq-question" itemprop="name" onclick="toggleFAQ(this)">
+                    <span>{{ item.q }}</span>
+                    <i class="bi bi-chevron-down faq-icon"></i>
+                </button>
+                
+                <div class="faq-answer" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                    <div class="faq-answer-content" itemprop="text">
+                        {{ item.a|safe }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if show_expand_all %}
+        <div class="faq-controls">
+            <button class="faq-expand-btn" onclick="toggleAllFAQs()">
+                <span class="expand-text">Expand All</span>
+                <span class="collapse-text" style="display:none">Collapse All</span>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<script>
+function toggleFAQ(button) {
+    const item = button.parentElement;
+    const answer = item.querySelector('.faq-answer');
+    const icon = button.querySelector('.faq-icon');
+    const isExpanded = item.classList.contains('expanded');
+    
+    // Close all other FAQs if single_expand is true
+    {% if single_expand %}
+    document.querySelectorAll('.faq-item.expanded').forEach(otherItem => {
+        if (otherItem !== item) {
+            otherItem.classList.remove('expanded');
+            otherItem.querySelector('.faq-answer').style.maxHeight = null;
+            otherItem.querySelector('.faq-icon').classList.remove('bi-chevron-up');
+            otherItem.querySelector('.faq-icon').classList.add('bi-chevron-down');
+        }
+    });
+    {% endif %}
+    
+    // Toggle current FAQ
+    if (isExpanded) {
+        item.classList.remove('expanded');
+        answer.style.maxHeight = null;
+        icon.classList.remove('bi-chevron-up');
+        icon.classList.add('bi-chevron-down');
+    } else {
+        item.classList.add('expanded');
+        answer.style.maxHeight = answer.scrollHeight + "px";
+        icon.classList.remove('bi-chevron-down');
+        icon.classList.add('bi-chevron-up');
+    }
+    
+    // Update expand/collapse all button text
+    updateExpandAllButton();
+}
+
+function toggleAllFAQs() {
+    const items = document.querySelectorAll('.faq-item');
+    const expandBtn = document.querySelector('.faq-expand-btn');
+    const expandText = expandBtn.querySelector('.expand-text');
+    const collapseText = expandBtn.querySelector('.collapse-text');
+    const allExpanded = Array.from(items).every(item => item.classList.contains('expanded'));
+    
+    items.forEach(item => {
+        const answer = item.querySelector('.faq-answer');
+        const icon = item.querySelector('.faq-icon');
+        
+        if (allExpanded) {
+            item.classList.remove('expanded');
+            answer.style.maxHeight = null;
+            icon.classList.remove('bi-chevron-up');
+            icon.classList.add('bi-chevron-down');
+        } else {
+            item.classList.add('expanded');
+            answer.style.maxHeight = answer.scrollHeight + "px";
+            icon.classList.remove('bi-chevron-down');
+            icon.classList.add('bi-chevron-up');
+        }
+    });
+    
+    if (allExpanded) {
+        expandText.style.display = 'inline';
+        collapseText.style.display = 'none';
+    } else {
+        expandText.style.display = 'none';
+        collapseText.style.display = 'inline';
+    }
+}
+
+function updateExpandAllButton() {
+    const items = document.querySelectorAll('.faq-item');
+    const expandedCount = Array.from(items).filter(item => item.classList.contains('expanded')).length;
+    const expandBtn = document.querySelector('.faq-expand-btn');
+    
+    if (expandBtn) {
+        const expandText = expandBtn.querySelector('.expand-text');
+        const collapseText = expandBtn.querySelector('.collapse-text');
+        
+        if (expandedCount === 0) {
+            expandText.style.display = 'inline';
+            collapseText.style.display = 'none';
+        } else if (expandedCount === items.length) {
+            expandText.style.display = 'none';
+            collapseText.style.display = 'inline';
+        }
+    }
+}
+
+// Initialize first FAQ as open if auto_expand_first is true
+{% if auto_expand_first %}
+document.addEventListener('DOMContentLoaded', function() {
+    const firstItem = document.querySelector('.faq-item');
+    if (firstItem) {
+        const firstButton = firstItem.querySelector('.faq-question');
+        toggleFAQ(firstButton);
+    }
+});
+{% endif %}
+</script>
+
+<style>
+.seo-faq-section {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faq-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-title {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--lg-text);
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.faq-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.faq-item.expanded {
+    background: rgba(108, 99, 255, 0.1);
+    border-color: rgba(108, 99, 255, 0.3);
+}
+
+.faq-question {
+    width: 100%;
+    padding: 1.25rem;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--lg-text);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.faq-question:hover {
+    color: var(--lg-primary);
+}
+
+.faq-icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+    color: var(--lg-primary);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.faq-answer-content {
+    padding: 0 1.25rem 1.25rem;
+    color: var(--lg-text-muted);
+    line-height: 1.7;
+}
+
+.faq-answer-content p {
+    margin: 0.5rem 0;
+}
+
+.faq-answer-content ul,
+.faq-answer-content ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.faq-answer-content li {
+    margin: 0.25rem 0;
+}
+
+.faq-controls {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.faq-expand-btn {
+    padding: 0.75rem 1.5rem;
+    background: rgba(108, 99, 255, 0.1);
+    border: 1px solid rgba(108, 99, 255, 0.3);
+    border-radius: 8px;
+    color: var(--lg-primary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.faq-expand-btn:hover {
+    background: rgba(108, 99, 255, 0.2);
+    border-color: rgba(108, 99, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+    .seo-faq-section {
+        margin: 2rem 0;
+        padding: 1rem;
+    }
+    
+    .faq-title {
+        font-size: 1.5rem;
+    }
+    
+    .faq-question {
+        font-size: 1rem;
+        padding: 1rem;
+    }
+    
+    .faq-answer-content {
+        padding: 0 1rem 1rem;
+    }
+}
+</style>
+{% endif %}

@@ -1,14 +1,237 @@
 {% extends "base.html" %}
+
+{% block title %}Blog — LamGen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blog-shell {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: var(--lg-sp-section, 2.5rem) var(--lg-shell-px, 1.5rem) var(--lg-sp-16, 4rem);
+    }
+
+    /* ── Header ── */
+    .blog-header {
+        margin-bottom: var(--lg-sp-8, 2rem);
+    }
+    .blog-header h1 {
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-xl, clamp(1.6rem, 3.5vw, 2.2rem));
+        font-weight: 800;
+        color: var(--lg-text);
+        margin: 0 0 var(--lg-sp-2, 0.5rem);
+        line-height: var(--lg-lh-tight, 1.2);
+    }
+    .blog-header p {
+        color: var(--lg-text-muted);
+        font-size: var(--lg-fs-base, 0.95rem);
+        margin: 0;
+        line-height: var(--lg-lh-base, 1.6);
+    }
+
+    /* ── Article Card ── */
+    .blog-article {
+        background: var(--lg-card-bg);
+        border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+        border-radius: var(--lg-r-lg, 16px);
+        padding: var(--lg-sp-6, 1.5rem);
+        margin-bottom: var(--lg-sp-4, 1rem);
+        box-shadow: var(--lg-card-sh, 0 4px 20px rgba(0,0,12,0.32));
+        transition: transform 0.22s cubic-bezier(0.22,1,0.36,1),
+                    border-color 0.22s ease,
+                    box-shadow 0.22s ease;
+    }
+    .blog-article:hover {
+        transform: translateY(-2px);
+        border-color: var(--lg-b-hover-color, rgba(140,130,255,0.26));
+        box-shadow: var(--lg-card-sh-hover, 0 12px 36px rgba(0,0,12,0.42));
+    }
+    .blog-article h2 {
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-md, 1.15rem);
+        font-weight: 700;
+        margin: 0 0 var(--lg-sp-2, 0.5rem);
+    }
+    .blog-article h2 a {
+        color: var(--lg-text);
+        text-decoration: none;
+        transition: color 0.18s ease;
+    }
+    .blog-article h2 a:hover {
+        color: var(--lg-violet-bright, #A89BFF);
+    }
+    .blog-article p {
+        color: var(--lg-text-muted);
+        font-size: var(--lg-fs-sm, 0.88rem);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* ── Featured placeholder (scalable for future) ── */
+    .blog-featured-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+        gap: var(--lg-sp-3, 0.75rem);
+        margin-bottom: var(--lg-sp-8, 2rem);
+    }
+    .blog-featured-slot {
+        background: var(--lg-card-bg);
+        border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+        border-radius: var(--lg-r-lg, 16px);
+        padding: var(--lg-sp-6, 1.5rem);
+        box-shadow: var(--lg-card-sh, 0 4px 20px rgba(0,0,12,0.32));
+        display: flex;
+        flex-direction: column;
+        gap: var(--lg-sp-3, 0.75rem);
+    }
+    .blog-featured-slot .slot-label {
+        font-size: var(--lg-fs-2xs, 0.65rem);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--lg-text-helper, rgba(178,148,78,0.66));
+    }
+    .blog-featured-slot .slot-title {
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-base, 1rem);
+        font-weight: 700;
+        color: var(--lg-text-muted);
+    }
+    .blog-featured-slot .slot-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(130,120,255,0.12);
+        width: 60%;
+    }
+
+    /* ── Empty State ── */
+    .blog-empty {
+        text-align: center;
+        padding: var(--lg-sp-16, 4rem) var(--lg-sp-4, 1rem);
+    }
+    .blog-empty-visual {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto var(--lg-sp-6, 1.5rem);
+    }
+    .blog-empty-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: rgba(139,127,255,0.06);
+        border: 1px solid rgba(139,127,255,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .blog-empty-circle i {
+        font-size: 2.5rem;
+        color: var(--lg-violet-bright, #A89BFF);
+        opacity: 0.3;
+    }
+    .blog-empty-title {
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-lg, 1.4rem);
+        font-weight: 800;
+        color: var(--lg-text);
+        margin: 0 0 var(--lg-sp-2, 0.5rem);
+    }
+    .blog-empty-desc {
+        font-size: var(--lg-fs-sm, 0.88rem);
+        color: var(--lg-text-muted);
+        max-width: 380px;
+        margin: 0 auto var(--lg-sp-6, 1.5rem);
+        line-height: 1.65;
+    }
+    .blog-empty-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--lg-violet-bright, #A89BFF);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: var(--lg-fs-sm, 0.88rem);
+        padding: 8px 20px;
+        border: 1px solid rgba(139,127,255,0.22);
+        border-radius: var(--lg-r-pill, 50px);
+        background: rgba(139,127,255,0.08);
+        transition: all 0.18s ease;
+    }
+    .blog-empty-cta:hover {
+        background: rgba(139,127,255,0.14);
+        border-color: rgba(139,127,255,0.36);
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="tool-page">
-    <h1>LamGen Blog</h1>
-    {% for article in articles %}
-    <article class="tool-seo-section">
-        <h2><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
-        <p>{{ article.meta_description }}</p>
-    </article>
-    {% empty %}
-    <p>No articles yet.</p>
-    {% endfor %}
-</section>
+<div class="blog-shell">
+
+    <div class="blog-header lg-fade-in">
+        <h1>LamGen <span class="lg-gradient-text">Blog</span></h1>
+        <p>Guides, tutorials, and deep dives into productivity tools and workflows.</p>
+    </div>
+
+    {% if articles %}
+        <!-- Featured slots -->
+        <div class="blog-featured-grid lg-fade-in lg-stagger-1">
+            {% for article in articles|slice:":3" %}
+            <a href="{{ article.get_absolute_url }}" class="blog-article" style="margin-bottom:0;">
+                <h2 style="margin-bottom:0.35rem;">{{ article.title }}</h2>
+                <p>{{ article.meta_description|truncatechars:100 }}</p>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- All articles -->
+        {% for article in articles %}
+        <article class="blog-article lg-fade-in">
+            <h2><a href="{{ article.get_absolute_url }}">{{ article.title }}</a></h2>
+            <p>{{ article.meta_description }}</p>
+        </article>
+        {% endfor %}
+
+    {% else %}
+
+        <!-- Featured structure placeholder -->
+        <div class="blog-featured-grid lg-fade-in lg-stagger-1">
+            <div class="blog-featured-slot">
+                <span class="slot-label">Featured</span>
+                <span class="slot-title">Coming Soon</span>
+                <div class="slot-bar"></div>
+            </div>
+            <div class="blog-featured-slot">
+                <span class="slot-label">Tutorial</span>
+                <span class="slot-title">Coming Soon</span>
+                <div class="slot-bar" style="width:45%;"></div>
+            </div>
+            <div class="blog-featured-slot">
+                <span class="slot-label">Deep Dive</span>
+                <span class="slot-title">Coming Soon</span>
+                <div class="slot-bar" style="width:75%;"></div>
+            </div>
+        </div>
+
+        <!-- Elegant empty state -->
+        <div class="blog-empty lg-fade-in lg-stagger-2">
+            <div class="blog-empty-visual">
+                <div class="blog-empty-circle">
+                    <i class="bi bi-journal-richtext"></i>
+                </div>
+            </div>
+            <div class="blog-empty-title">Articles are brewing</div>
+            <p class="blog-empty-desc">
+                We're crafting in-depth guides and tutorials for developers, students, and writers.
+                Check back soon or explore our tools in the meantime.
+            </p>
+            <a href="{% url 'tools:index' %}" class="blog-empty-cta">
+                <i class="bi bi-tools"></i> Explore 265+ Tools
+            </a>
+        </div>
+
+    {% endif %}
+
+</div>
 {% endblock %}

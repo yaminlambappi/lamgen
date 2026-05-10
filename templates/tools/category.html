@@ -68,7 +68,7 @@
     box-shadow: 0 4px 20px var(--cat-color)22;
 }
 .cat-header-text h1 {
-    font-family: 'Syne', sans-serif;
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
     font-size: 1.4rem;
     font-weight: 800;
     margin: 0 0 3px;
@@ -132,7 +132,7 @@
     border: 1px solid var(--lg-field-border);
     border-radius: 50px;
     color: var(--lg-text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--lg-font, 'Inter', sans-serif);
     font-size: 0.88rem;
     outline: none;
     transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
@@ -344,7 +344,7 @@
     border-radius: 16px; padding: 1.35rem 1.5rem; box-shadow: var(--lg-shadow-sm);
 }
 .cat-seo-section h2 {
-    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    font-family: var(--lg-font-display, 'Syne', sans-serif); font-size: 1rem; font-weight: 700;
     color: var(--lg-text); margin: 0 0 0.75rem;
     display: flex; align-items: center; gap: 8px;
 }
@@ -394,7 +394,7 @@
             </div>
         </div>
         <div class="cat-header-right">
-            <span class="cat-tool-count">{{ tool_count|default:tools|length }} tools</span>
+            <span class="cat-tool-count">{{ tool_count }} tools</span>
             <a href="{% url 'tools:index' %}" class="cat-back-link">← All Tools</a>
         </div>
     </header>
@@ -406,7 +406,7 @@
             <input type="text"
                    id="catSearch"
                    class="cat-search"
-                   placeholder="Search {{ tool_count|default:tools|length }} {{ category.name|lower }} tools…"
+                   placeholder="Search {{ tool_count }} {{ category.name|lower }} tools…"
                    autocomplete="off"
                    aria-label="Search tools in {{ category.name }}">
         </div>
@@ -421,17 +421,39 @@
     </div>
 
     <!-- ── Results Meta ── -->
-    <div class="cat-meta" id="catMeta" aria-live="polite">{{ tool_count|default:tools|length }} tools</div>
+    <div class="cat-meta" id="catMeta" aria-live="polite">{{ tool_count }} tools</div>
 
     <!-- ── Tool Grid ── -->
-    <div class="cat-tool-grid" id="catGrid" role="list" aria-label="{{ category.name }} tools"></div>
+    <div class="cat-tool-grid" id="catGrid" role="list" aria-label="{{ category.name }} tools">
+        {% if tools %}
+            {% for tool in tools %}
+                <a href="{{ tool.get_absolute_url }}" class="ct-card" role="listitem" aria-label="{{ tool.name }}">
+                    <div class="ct-card-icon" style="background:{{ category.color_from }}18;border:1px solid {{ category.color_from }}33;color:{{ category.color_from }};">
+                        <i class="{{ tool.icon }}"></i>
+                    </div>
+                    <div class="ct-card-body">
+                        <div class="ct-card-name">{{ tool.name }}</div>
+                        <div class="ct-card-desc">{{ tool.short_desc|truncatechars:60 }}</div>
+                        {% if tool.is_new %}
+                            <span class="ct-badge ct-badge-new">New</span>
+                        {% endif %}
+                    </div>
+                </a>
+            {% endfor %}
+        {% else %}
+            <div class="ct-empty">
+                <i class="bi bi-search"></i>
+                <p>No tools match your criteria.</p>
+            </div>
+        {% endif %}
+    </div>
 
     <!-- ── SEO Landing Content ── -->
     <div class="cat-seo-wrap">
 
         <section class="cat-seo-section" aria-labelledby="cat-about-heading">
             <h2 id="cat-about-heading"><i class="{{ category.icon }}"></i> About {{ category.name }}</h2>
-            <p>{{ category.description|default:category.short_desc }} All {{ tool_count|default:tools|length }} tools are completely free, browser-based, and require no signup or installation. Everything runs locally in your browser for maximum privacy and speed.</p>
+            <p>{{ category.description|default:category.short_desc }} All {{ tool_count }} tools are completely free, browser-based, and require no signup or installation. Everything runs locally in your browser for maximum privacy and speed.</p>
             <p>Whether you're a professional, student, or hobbyist, these tools are designed to save you time and deliver instant, accurate results. No ads, no paywalls, no data collection — ever.</p>
         </section>
 
@@ -476,7 +498,7 @@
 </script>
 {% endblock %}
 
-{% block tool_js %}
+{% block extra_js %}
 <script>
 (function() {
     const dataEl = document.getElementById('catToolData');
@@ -578,7 +600,8 @@
     document.addEventListener('keydown', e => {
         if (e.key === '/' && document.activeElement !== searchEl &&
             document.activeElement.tagName !== 'INPUT' &&
-            document.activeElement.tagName !== 'TEXTAREA') {
+            document.activeElement.tagName !== 'TEXTAREA' &&
+            document.activeElement.tagName !== 'SELECT') {
             e.preventDefault();
             searchEl.focus();
         }

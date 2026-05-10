@@ -10,9 +10,9 @@
 <style>
 /* ── Shell ── */
 .launcher-shell {
-  max-width: 1440px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 1rem 1.5rem 5rem;
+  padding: var(--lg-sp-section, 1rem) var(--lg-shell-px, 1.5rem) var(--lg-sp-16, 5rem);
 }
 
 /* ── Search bar ── */
@@ -23,27 +23,28 @@
 .launcher-search {
   width: 100%;
   padding: 13px 20px 13px 46px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  background: var(--lg-field-bg);
+  border: 1px solid var(--lg-field-border);
+  border-radius: var(--lg-r-lg, 14px);
+  color: var(--lg-text);
+  font-family: var(--lg-font, 'Inter', sans-serif);
   font-size: 0.95rem;
   outline: none;
-  transition: all 0.2s;
+  transition: all 0.22s ease;
   box-sizing: border-box;
+  caret-color: var(--lg-cyan);
 }
 .launcher-search:focus {
-  border-color: var(--primary);
-  background: rgba(255,255,255,0.06);
-  box-shadow: 0 0 0 3px rgba(108,99,255,0.12);
+  border-color: var(--lg-field-border-focus);
+  background: var(--lg-field-bg-focus);
+  box-shadow: 0 0 0 3px rgba(139,127,255,0.12);
 }
 .launcher-search::placeholder { color: rgba(255,255,255,0.3); }
 .launcher-search-icon {
   position: absolute;
   left: 16px; top: 50%;
   transform: translateY(-50%);
-  color: var(--muted);
+  color: var(--lg-text-muted);
   font-size: 1rem;
   pointer-events: none;
 }
@@ -52,7 +53,7 @@
   right: 14px; top: 50%;
   transform: translateY(-50%);
   font-size: 0.68rem;
-  color: var(--muted);
+  color: var(--lg-text-muted);
   background: rgba(255,255,255,0.07);
   padding: 2px 7px;
   border-radius: 5px;
@@ -71,26 +72,25 @@
   align-items: center;
   gap: 6px;
   padding: 5px 13px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 50px;
+  background: rgba(100,90,255,0.07);
+  border: 1px solid rgba(130,120,255,0.12);
+  border-radius: var(--lg-r-pill, 50px);
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--lg-text-muted);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.18s ease;
   user-select: none;
   white-space: nowrap;
 }
 .cat-pill:hover {
-  background: rgba(255,255,255,0.08);
-  color: var(--text);
+  background: rgba(100,90,255,0.12);
+  color: var(--lg-text);
 }
 .cat-pill.active {
-  background: rgba(108,99,255,0.18);
-  border-color: var(--primary);
-  color: var(--primary);
-  box-shadow: 0 0 12px rgba(108,99,255,0.2);
+  background: rgba(139,127,255,0.16);
+  border-color: rgba(139,127,255,0.40);
+  color: var(--lg-violet-bright);
 }
 .cat-pill .pill-dot {
   width: 6px; height: 6px;
@@ -123,7 +123,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: var(--muted);
+  color: var(--lg-text-muted);
   margin-bottom: 8px;
   display: flex;
   align-items: center;
@@ -141,7 +141,7 @@
   padding: 4px 6px;
   border-radius: 7px;
   text-decoration: none;
-  color: var(--text);
+  color: var(--lg-text);
   font-size: 0.78rem;
   transition: background 0.15s;
   white-space: nowrap;
@@ -154,7 +154,7 @@
 /* ── Results meta ── */
 .results-meta {
   font-size: 0.75rem;
-  color: var(--muted);
+  color: var(--lg-text-muted);
   margin-bottom: 0.75rem;
   display: flex;
   align-items: center;
@@ -164,16 +164,16 @@
 }
 .sort-select {
   padding: 4px 10px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(100,90,255,0.07);
+  border: 1px solid rgba(130,120,255,0.12);
   border-radius: 8px;
-  color: var(--muted);
+  color: var(--lg-text-muted);
   font-size: 0.75rem;
   outline: none;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--lg-font, 'Inter', sans-serif);
 }
-.sort-select option { background: #0F0F1A; }
+.sort-select option { background: var(--lg-bg); }
 
 /* ── Dense tool grid ── */
 .tool-launcher-grid {
@@ -191,22 +191,22 @@
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(255,255,255,0.050);
-  border-radius: 14px;
+  background: var(--lg-card-bg);
+  border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+  border-radius: var(--lg-r-lg, 14px);
   text-decoration: none;
-  color: var(--text);
+  color: var(--lg-text);
   transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), background 0.22s, border-color 0.22s, box-shadow 0.22s;
   position: relative;
   overflow: hidden;
   min-height: 58px;
-  box-shadow: 0 14px 34px rgba(0,0,0,0.14), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: var(--lg-card-sh, 0 4px 20px rgba(0,0,12,0.32));
 }
 .tl-card:hover {
-  background: rgba(255,255,255,0.065);
-  border-color: rgba(255,255,255,0.10);
+  background: var(--lg-card-hover-bg);
+  border-color: var(--lg-b-hover-color, rgba(140,130,255,0.26));
   transform: translateY(-2px);
-  box-shadow: 0 18px 44px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow: var(--lg-card-sh-hover, 0 12px 36px rgba(0,0,12,0.42));
 }
 .tl-card-icon {
   width: 34px; height: 34px;
@@ -236,7 +236,7 @@
 }
 .tl-card-desc {
   font-size: 0.7rem;
-  color: var(--muted);
+  color: var(--lg-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -251,8 +251,8 @@
   border-radius: 4px;
   flex-shrink: 0;
 }
-.tl-badge-new  { background: rgba(0,245,212,0.15); color: var(--accent); }
-.tl-badge-ai   { background: rgba(108,99,255,0.2); color: var(--primary); }
+.tl-badge-new  { background: rgba(62,236,216,0.14); color: var(--lg-cyan); }
+.tl-badge-ai   { background: rgba(139,127,255,0.18); color: var(--lg-violet-bright); }
 .tl-badge-hot  { background: rgba(255,107,107,0.15); color: #FF6B6B; }
 
 /* ── Empty state ── */
@@ -260,7 +260,7 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--muted);
+  color: var(--lg-text-muted);
 }
 .empty-state i { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; opacity: 0.3; }
 
@@ -285,7 +285,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: var(--muted);
+  color: var(--lg-text-muted);
 }
 .cat-section-header-count {
   font-size: 0.65rem;
@@ -375,7 +375,7 @@
     {% endif %}
     {% if new_tools %}
     <div class="quick-strip-section">
-      <div class="quick-strip-label"><i class="bi bi-stars" style="color:var(--accent)"></i> New</div>
+      <div class="quick-strip-label"><i class="bi bi-stars" style="color:var(--lg-cyan)"></i> New</div>
       <div class="quick-strip-items">
         {% for tool in new_tools|slice:":4" %}
         <a href="{{ tool.get_absolute_url }}" class="quick-item">
@@ -413,7 +413,7 @@
 </script>
 {% endblock %}
 
-{% block tool_js %}
+{% block extra_js %}
 <script>
 (function() {
   // ── Data ──────────────────────────────────────────────────────────────────

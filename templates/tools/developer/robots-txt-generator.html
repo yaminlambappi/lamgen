@@ -1,0 +1,53 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <label class="tool-label">Site URL</label>
+  <input id="siteUrl" class="tool-input" type="url" placeholder="https://example.com">
+  <label class="tool-label">Disallow Paths (one per line)</label>
+  <textarea id="disallow" class="tool-code" placeholder="/admin/
+/private/
+/tmp/"></textarea>
+  <label class="tool-label">Allow Paths (one per line, optional)</label>
+  <textarea id="allow" class="tool-code" placeholder="/public/
+/assets/"></textarea>
+  <div class="act-row">
+    <button class="btn-go" onclick="generateRobots()"><i class="bi bi-robot"></i> Generate</button>
+    <button class="btn-sm" onclick="resetTool()"><i class="bi bi-x-circle"></i> Reset</button>
+    <span class="status" id="st"></span>
+  </div>
+  <label class="tool-label">robots.txt Output</label>
+  <textarea id="out" class="tool-code out" readonly></textarea>
+  <div class="act-row">
+    <button class="btn-sm" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+    <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download</button>
+  </div>
+</div>
+{% endblock %}
+{% block tool_js %}
+<script>
+function status(type, msg) {
+  const el = document.getElementById("st");
+  el.className = "status " + type;
+  el.innerHTML = (type === "err" ? '<i class="bi bi-exclamation-triangle-fill"></i> ' : '<i class="bi bi-check-circle-fill"></i> ') + msg;
+}
+function parseLines(v) { return v.split(/\r?\n/).map(x => x.trim()).filter(Boolean); }
+function generateRobots() {
+  const site = document.getElementById("siteUrl").value.trim();
+  if (!site) { status("err", "Site URL is required"); return; }
+  let origin;
+  try { origin = new URL(site).origin; } catch { status("err", "Invalid URL"); return; }
+  const disallow = parseLines(document.getElementById("disallow").value);
+  const allow = parseLines(document.getElementById("allow").value);
+  const lines = ["User-agent: *"];
+  if (disallow.length === 0) lines.push("Disallow:");
+  disallow.forEach(x => lines.push("Disallow: " + x));
+  allow.forEach(x => lines.push("Allow: " + x));
+  lines.push("", "Sitemap: " + origin + "/sitemap.xml");
+  document.getElementById("out").value = lines.join("\n");
+  status("ok", "robots.txt generated");
+}
+function copyOut(){const v=document.getElementById("out").value;if(v)navigator.clipboard.writeText(v);}
+function downloadOut(){const v=document.getElementById("out").value;if(!v)return;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([v],{type:"text/plain"}));a.download="robots.txt";a.click();}
+function resetTool(){["siteUrl","disallow","allow","out"].forEach(id=>document.getElementById(id).value="");document.getElementById("st").className="status";}
+</script>
+{% endblock %}

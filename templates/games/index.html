@@ -4,108 +4,164 @@
 
 {% block extra_css %}
 <style>
+    .games-shell {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: var(--lg-sp-section, 2.5rem) var(--lg-shell-px, 1.5rem) var(--lg-sp-16, 4rem);
+    }
+
+    /* ── Hero: compact, not oversized ── */
     .games-hero {
-        padding: 4rem 1.5rem;
+        padding: var(--lg-sp-10, 2.5rem) var(--lg-sp-6, 1.5rem);
         text-align: center;
-        background: radial-gradient(circle at center, rgba(120,110,255,0.15) 0%, transparent 70%);
-        border-radius: 32px;
-        margin-bottom: 3rem;
-        border: 1px solid rgba(120,110,255,0.1);
+        background: var(--lg-card-bg);
+        border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+        border-radius: var(--lg-r-xl, 20px);
+        margin-bottom: var(--lg-sp-8, 2rem);
+        box-shadow: var(--lg-card-sh, 0 4px 20px rgba(0,0,12,0.32));
+        position: relative;
+        overflow: hidden;
+    }
+    .games-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 0%, rgba(120,110,255,0.08) 0%, transparent 60%);
+        pointer-events: none;
     }
     .games-hero h1 {
-        font-family: 'Syne', sans-serif;
-        font-size: clamp(2rem, 8vw, 3rem);
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-2xl, clamp(2rem, 5vw, 3rem));
         font-weight: 800;
-        margin-bottom: 12px;
-        background: linear-gradient(135deg, #fff 0%, var(--lg-violet-bright) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        line-height: 1.1;
-    }
-    @media (max-width: 480px) {
-        .games-hero { padding: 2.5rem 1rem; border-radius: 20px; }
+        margin: 0 0 var(--lg-sp-3, 0.75rem);
+        position: relative;
+        z-index: 1;
+        color: var(--lg-text);
+        line-height: var(--lg-lh-tight, 1.2);
     }
     .games-hero p {
-        font-size: 1.1rem;
+        font-size: var(--lg-fs-base, 1rem);
         color: var(--lg-text-muted);
-        max-width: 600px;
+        max-width: 520px;
         margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        line-height: var(--lg-lh-base, 1.6);
     }
+
+    /* ── Game Grid ── */
     .games-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+        gap: var(--lg-sp-4, 1rem);
     }
-    @media (max-width: 480px) {
-        .games-grid { gap: 1rem; }
-        .game-card { padding: 1.5rem; }
-    }
+
+    /* ── Game Card: immersive, gradient overlay ── */
     .game-card {
         background: var(--lg-card-bg);
-        border: 1px solid var(--lg-card-border);
-        border-radius: 20px;
-        padding: 2rem;
+        border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+        border-radius: var(--lg-r-lg, 16px);
+        padding: 1.5rem;
         text-decoration: none;
         color: var(--lg-text);
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: transform 0.22s cubic-bezier(0.22,1,0.36,1),
+                    border-color 0.22s ease,
+                    box-shadow 0.22s ease;
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        box-shadow: var(--lg-card-shadow);
+        gap: 14px;
+        box-shadow: var(--lg-card-sh, 0 4px 20px rgba(0,0,12,0.32));
+        position: relative;
+        overflow: hidden;
+    }
+    .game-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 1rem; right: 1rem;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--game-color, rgba(139,127,255,0.3)) 50%, transparent);
+        opacity: 0.4;
+    }
+    .game-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 60%;
+        background: linear-gradient(to top, color-mix(in srgb, var(--game-color, #8B7FFF) 4%, transparent), transparent);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.22s ease;
     }
     .game-card:hover {
-        transform: translateY(-8px);
-        border-color: var(--game-color);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px var(--game-color)22;
+        transform: translateY(-4px);
+        border-color: color-mix(in srgb, var(--game-color, #8B7FFF) 35%, transparent);
+        box-shadow: var(--lg-card-sh-hover, 0 12px 36px rgba(0,0,12,0.42));
     }
-    .game-card i {
-        font-size: 2rem;
+    .game-card:hover::after { opacity: 1; }
+
+    .game-card .game-icon {
+        font-size: 1.6rem;
         color: var(--game-color);
+        position: relative;
+        z-index: 1;
     }
     .game-card h3 {
-        font-family: 'Syne', sans-serif;
-        font-size: 1.25rem;
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-md, 1.15rem);
         font-weight: 700;
         margin: 0;
+        position: relative;
+        z-index: 1;
     }
     .game-card p {
-        font-size: 0.9rem;
+        font-size: var(--lg-fs-sm, 0.88rem);
         color: var(--lg-text-muted);
-        line-height: 1.5;
+        line-height: 1.55;
         flex: 1;
+        margin: 0;
+        position: relative;
+        z-index: 1;
     }
-    .game-card .btn-play {
+    .btn-play {
         align-self: flex-start;
-        padding: 8px 20px;
-        background: var(--game-color)22;
-        border: 1px solid var(--game-color)44;
-        border-radius: 50px;
-        font-size: 0.8rem;
+        padding: 7px 18px;
+        background: color-mix(in srgb, var(--game-color, #8B7FFF) 12%, transparent);
+        border: 1px solid color-mix(in srgb, var(--game-color, #8B7FFF) 25%, transparent);
+        border-radius: var(--lg-r-pill, 50px);
+        font-size: var(--lg-fs-xs, 0.75rem);
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.8px;
         color: var(--game-color);
-        transition: all 0.2s;
+        transition: all 0.22s ease;
+        position: relative;
+        z-index: 1;
     }
     .game-card:hover .btn-play {
         background: var(--game-color);
         color: #000;
-        box-shadow: 0 0 15px var(--game-color)66;
+        border-color: var(--game-color);
+    }
+
+    @media (max-width: 480px) {
+        .games-hero { padding: 2rem 1rem; }
+        .games-grid { gap: 0.75rem; }
+        .game-card { padding: 1.25rem; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="max-width:1200px; margin:0 auto; padding:2rem 1.5rem 6rem;">
-    <div class="games-hero">
-        <h1>Mini Games Hub</h1>
-        <p>Ultra-lightweight browser games designed to kill time between tasks. No login, no loading screens, just pure dopamine.</p>
+<div class="games-shell">
+    <div class="games-hero lg-fade-in">
+        <h1>Mini Games <span class="lg-gradient-text">Hub</span></h1>
+        <p>Ultra-lightweight browser games designed to kill time between tasks. No login, no loading screens.</p>
     </div>
 
     <div class="games-grid">
         {% for game in games %}
-        <a href="javascript:void(0)" onclick="launchGame('{{ game.slug }}')" class="game-card" style="--game-color:{{ game.color }};">
-            <i class="{{ game.icon }}"></i>
+        <a href="javascript:void(0)" onclick="launchGame('{{ game.slug }}')" class="game-card lg-fade-in" style="--game-color:{{ game.color }}; animation-delay: {{ forloop.counter0 }}00ms;">
+            <i class="{{ game.icon }} game-icon"></i>
             <h3>{{ game.name }}</h3>
             <p>{{ game.short_desc }}</p>
             <div class="btn-play">Play Now</div>

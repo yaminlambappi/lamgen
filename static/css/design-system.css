@@ -1,0 +1,435 @@
+/* ═══════════════════════════════════════════════════════════════════
+   LamGen Unified Design System v3.0
+   Philosophy: Calm, intelligent, cohesive, futuristic
+   One font. One spacing scale. One animation system. One identity.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ── */
+:root {
+  /* ── Font: Single geometric family ── */
+  --lg-font: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --lg-font-display: 'Syne', 'DM Sans', system-ui, sans-serif;
+
+  /* ── Type Scale (fluid) ── */
+  --lg-fs-2xs: clamp(0.625rem, 0.8vw, 0.7rem);
+  --lg-fs-xs:  clamp(0.7rem, 1vw, 0.78rem);
+  --lg-fs-sm:  clamp(0.8rem, 1.2vw, 0.88rem);
+  --lg-fs-base: clamp(0.9rem, 1.4vw, 1rem);
+  --lg-fs-md:  clamp(1.05rem, 1.8vw, 1.2rem);
+  --lg-fs-lg:  clamp(1.25rem, 2.5vw, 1.6rem);
+  --lg-fs-xl:  clamp(1.6rem, 3.5vw, 2.2rem);
+  --lg-fs-2xl: clamp(2rem, 5vw, 3.2rem);
+  --lg-fs-hero: clamp(2.4rem, 6vw, 4rem);
+
+  /* ── Font Weights ── */
+  --lg-fw-regular: 400;
+  --lg-fw-medium: 500;
+  --lg-fw-semibold: 600;
+  --lg-fw-bold: 700;
+  --lg-fw-extrabold: 800;
+
+  /* ── Line Heights ── */
+  --lg-lh-tight: 1.2;
+  --lg-lh-snug: 1.35;
+  --lg-lh-base: 1.6;
+  --lg-lh-relaxed: 1.75;
+
+  /* ── Spacing Scale (4px base) ── */
+  --lg-sp-1: 0.25rem;   /* 4px */
+  --lg-sp-2: 0.5rem;    /* 8px */
+  --lg-sp-3: 0.75rem;   /* 12px */
+  --lg-sp-4: 1rem;      /* 16px */
+  --lg-sp-5: 1.25rem;   /* 20px */
+  --lg-sp-6: 1.5rem;    /* 24px */
+  --lg-sp-8: 2rem;      /* 32px */
+  --lg-sp-10: 2.5rem;   /* 40px */
+  --lg-sp-12: 3rem;     /* 48px */
+  --lg-sp-16: 4rem;     /* 64px */
+  --lg-sp-20: 5rem;     /* 80px */
+  --lg-sp-section: clamp(2.5rem, 5vw, 4rem);
+
+  /* ── Layout ── */
+  --lg-nav-h: 56px;
+  --lg-content-w: 1280px;
+  --lg-content-w-narrow: 900px;
+  --lg-content-w-wide: 1440px;
+  --lg-shell-px: clamp(1rem, 3vw, 1.5rem);
+
+  /* ── Radius (consistent) ── */
+  --lg-r-sm: 8px;
+  --lg-r-md: 12px;
+  --lg-r-lg: 16px;
+  --lg-r-xl: 20px;
+  --lg-r-2xl: 24px;
+  --lg-r-pill: 50px;
+  --lg-r-card: 16px;
+
+  /* ── Shadows (single system) ── */
+  --lg-sh-xs: 0 2px 8px rgba(0,0,12,0.20);
+  --lg-sh-sm: 0 4px 16px rgba(0,0,12,0.28);
+  --lg-sh-md: 0 8px 28px rgba(0,0,12,0.36);
+  --lg-sh-lg: 0 16px 48px rgba(0,0,12,0.44);
+  --lg-sh-xl: 0 24px 64px rgba(0,0,12,0.52);
+
+  /* ── Unified card elevation ── */
+  --lg-card-sh: 0 4px 20px rgba(0,0,12,0.32), inset 0 1px 0 rgba(160,150,255,0.06);
+  --lg-card-sh-hover: 0 12px 36px rgba(0,0,12,0.42), inset 0 1px 0 rgba(160,150,255,0.10);
+
+  /* ── Transition System (one timing) ── */
+  --lg-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --lg-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --lg-duration-fast: 0.15s;
+  --lg-duration: 0.22s;
+  --lg-duration-slow: 0.35s;
+  --lg-t-fast: 0.15s ease;
+  --lg-t-base: 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  --lg-t-slow: 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ── Borders (one system) ── */
+  --lg-b-subtle: 1px solid rgba(130,120,255,0.10);
+  --lg-b-base: 1px solid rgba(130,120,255,0.14);
+  --lg-b-medium: 1px solid rgba(130,120,255,0.22);
+  --lg-b-strong: 1px solid rgba(130,120,255,0.32);
+  --lg-b-color: rgba(130,120,255,0.14);
+  --lg-b-hover-color: rgba(140,130,255,0.26);
+  --lg-b-active-color: rgba(139,127,255,0.40);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REUSABLE UI PRIMITIVES
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Page Shell ── */
+.lg-shell {
+  max-width: var(--lg-content-w);
+  margin: 0 auto;
+  padding: var(--lg-sp-section) var(--lg-shell-px) var(--lg-sp-16);
+}
+.lg-shell-narrow {
+  max-width: var(--lg-content-w-narrow);
+  margin: 0 auto;
+  padding: var(--lg-sp-section) var(--lg-shell-px) var(--lg-sp-16);
+}
+.lg-shell-wide {
+  max-width: var(--lg-content-w-wide);
+  margin: 0 auto;
+  padding: var(--lg-sp-section) var(--lg-shell-px) var(--lg-sp-16);
+}
+
+/* ── Section Header ── */
+.lg-section-label {
+  font-family: var(--lg-font-display);
+  font-size: var(--lg-fs-xs);
+  font-weight: var(--lg-fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--lg-text-muted);
+  margin-bottom: var(--lg-sp-5);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lg-section-label i { font-size: 0.9rem; }
+.lg-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--lg-b-color), transparent);
+  margin-left: 8px;
+}
+
+/* ── Card (single reusable component) ── */
+.lg-card {
+  background: var(--lg-card-bg);
+  border: 1px solid var(--lg-b-color);
+  border-radius: var(--lg-r-card);
+  padding: var(--lg-sp-5);
+  box-shadow: var(--lg-card-sh);
+  transition: transform var(--lg-t-base),
+              border-color var(--lg-duration) ease,
+              box-shadow var(--lg-duration) ease;
+  position: relative;
+  overflow: hidden;
+}
+.lg-card:hover {
+  border-color: var(--lg-b-hover-color);
+  box-shadow: var(--lg-card-sh-hover);
+}
+.lg-card-interactive:hover {
+  transform: translateY(-2px);
+}
+
+/* ── Card Title ── */
+.lg-card-title {
+  font-family: var(--lg-font-display);
+  font-size: var(--lg-fs-base);
+  font-weight: var(--lg-fw-bold);
+  color: var(--lg-text);
+  margin: 0 0 var(--lg-sp-1);
+}
+
+/* ── Card Description ── */
+.lg-card-desc {
+  font-size: var(--lg-fs-sm);
+  color: var(--lg-text-muted);
+  line-height: var(--lg-lh-base);
+  margin: 0;
+}
+
+/* ── Panel Label ── */
+.lg-panel-label {
+  font-size: var(--lg-fs-xs);
+  font-weight: var(--lg-fw-bold);
+  color: var(--lg-text-helper);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: var(--lg-sp-4);
+}
+
+/* ── Hero ── */
+.lg-hero {
+  text-align: center;
+  padding: var(--lg-sp-12) var(--lg-sp-4);
+  margin-bottom: var(--lg-sp-section);
+}
+.lg-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-sp-2);
+  padding: var(--lg-sp-1) var(--lg-sp-3);
+  background: rgba(139,127,255,0.10);
+  border: 1px solid rgba(139,127,255,0.22);
+  border-radius: var(--lg-r-pill);
+  font-size: var(--lg-fs-xs);
+  font-weight: var(--lg-fw-bold);
+  color: var(--lg-violet-bright);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--lg-sp-6);
+}
+.lg-hero-title {
+  font-family: var(--lg-font-display);
+  font-size: var(--lg-fs-hero);
+  font-weight: var(--lg-fw-extrabold);
+  color: var(--lg-text);
+  margin: 0 0 var(--lg-sp-5);
+  letter-spacing: -1.5px;
+  line-height: var(--lg-lh-tight);
+}
+.lg-hero-sub {
+  font-size: var(--lg-fs-md);
+  color: var(--lg-text-muted);
+  max-width: 640px;
+  margin: 0 auto var(--lg-sp-8);
+  line-height: var(--lg-lh-base);
+}
+.lg-hero-actions {
+  display: flex;
+  gap: var(--lg-sp-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Gradient Text ── */
+.lg-gradient-text {
+  background: linear-gradient(135deg, var(--lg-violet-bright) 0%, var(--lg-cyan) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── Button: Primary ── */
+.lg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #7B6FFF 0%, #3EECD8 100%);
+  color: #fff !important;
+  border: 1px solid rgba(139,127,255,0.36);
+  border-radius: var(--lg-r-pill);
+  font-family: var(--lg-font);
+  font-weight: var(--lg-fw-semibold);
+  font-size: var(--lg-fs-base);
+  cursor: pointer;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+  transition: transform var(--lg-t-base),
+              box-shadow var(--lg-duration) ease,
+              filter var(--lg-duration) ease;
+  box-shadow: 0 4px 18px rgba(100,90,255,0.28);
+  position: relative;
+  overflow: hidden;
+}
+.lg-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(100,90,255,0.36);
+  filter: brightness(1.06);
+  color: #fff !important;
+  text-decoration: none;
+}
+.lg-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ── Button: Ghost ── */
+.lg-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: rgba(100,90,255,0.08);
+  color: var(--lg-text) !important;
+  border: 1px solid rgba(130,120,255,0.18);
+  border-radius: var(--lg-r-pill);
+  font-family: var(--lg-font);
+  font-weight: var(--lg-fw-medium);
+  font-size: var(--lg-fs-base);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--lg-t-base);
+}
+.lg-btn-ghost:hover {
+  background: rgba(100,90,255,0.14);
+  border-color: var(--lg-b-hover-color);
+  transform: translateY(-1px);
+  color: var(--lg-text) !important;
+  text-decoration: none;
+}
+
+/* ── Chip / Pill ── */
+.lg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  background: rgba(100,90,255,0.07);
+  border: 1px solid rgba(130,120,255,0.14);
+  border-radius: var(--lg-r-pill);
+  font-size: var(--lg-fs-xs);
+  font-weight: var(--lg-fw-semibold);
+  color: var(--lg-text-muted);
+  cursor: pointer;
+  transition: all var(--lg-t-fast);
+  user-select: none;
+  white-space: nowrap;
+}
+.lg-chip:hover {
+  background: rgba(100,90,255,0.12);
+  border-color: var(--lg-b-hover-color);
+  color: var(--lg-text);
+}
+.lg-chip.active {
+  background: rgba(139,127,255,0.16);
+  border-color: var(--lg-b-active-color);
+  color: var(--lg-violet-bright);
+}
+
+/* ── Search Bar ── */
+.lg-search-wrap { position: relative; }
+.lg-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--lg-text-muted);
+  font-size: 0.88rem;
+  pointer-events: none;
+}
+.lg-search-input {
+  width: 100%;
+  padding: 10px 16px 10px 40px;
+  background: var(--lg-field-bg);
+  border: 1px solid var(--lg-field-border);
+  border-radius: var(--lg-r-pill);
+  color: var(--lg-text);
+  font-family: var(--lg-font);
+  font-size: var(--lg-fs-sm);
+  outline: none;
+  transition: border-color var(--lg-t-fast), box-shadow var(--lg-t-fast), background var(--lg-t-fast);
+  caret-color: var(--lg-cyan);
+}
+.lg-search-input:focus {
+  border-color: var(--lg-field-border-focus);
+  background: var(--lg-field-bg-focus);
+  box-shadow: 0 0 0 3px rgba(139,127,255,0.12);
+}
+.lg-search-input::placeholder { color: var(--lg-placeholder); }
+
+/* ── Empty State ── */
+.lg-empty {
+  text-align: center;
+  padding: var(--lg-sp-16) var(--lg-sp-4);
+  color: var(--lg-text-muted);
+}
+.lg-empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: var(--lg-sp-4);
+  opacity: 0.2;
+  color: var(--lg-violet-bright);
+}
+.lg-empty-title {
+  font-family: var(--lg-font-display);
+  font-size: var(--lg-fs-lg);
+  font-weight: var(--lg-fw-bold);
+  color: var(--lg-text);
+  margin: 0 0 var(--lg-sp-2);
+}
+.lg-empty-desc {
+  font-size: var(--lg-fs-sm);
+  color: var(--lg-text-muted);
+  max-width: 400px;
+  margin: 0 auto var(--lg-sp-6);
+  line-height: var(--lg-lh-base);
+}
+
+/* ── Grid System ── */
+.lg-grid {
+  display: grid;
+  gap: var(--lg-sp-3);
+}
+.lg-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.lg-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.lg-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.lg-grid-auto {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.lg-grid-dense {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+/* ── Animation: Fade In ── */
+@keyframes lgFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lg-fade-in {
+  animation: lgFadeIn 0.4s var(--lg-ease) both;
+}
+.lg-stagger-1 { animation-delay: 0.06s; }
+.lg-stagger-2 { animation-delay: 0.12s; }
+.lg-stagger-3 { animation-delay: 0.18s; }
+.lg-stagger-4 { animation-delay: 0.24s; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .lg-grid-2, .lg-grid-3, .lg-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .lg-hero { padding: var(--lg-sp-8) var(--lg-sp-3); }
+  .lg-hero-title { letter-spacing: -0.5px; }
+  .lg-shell, .lg-shell-narrow, .lg-shell-wide {
+    padding-left: var(--lg-sp-3);
+    padding-right: var(--lg-sp-3);
+  }
+}
+@media (max-width: 480px) {
+  .lg-grid-2 { grid-template-columns: 1fr; }
+  .lg-grid-auto, .lg-grid-dense {
+    grid-template-columns: 1fr;
+  }
+}

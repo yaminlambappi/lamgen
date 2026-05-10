@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .content-shell {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: var(--lg-sp-section, 2.5rem) var(--lg-shell-px, 1.5rem) var(--lg-sp-16, 4rem);
+    }
+
+    /* ── Header ── */
+    .content-header {
+        margin-bottom: var(--lg-sp-8, 2rem);
+    }
+    .content-header h1 {
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-xl, clamp(1.6rem, 3.5vw, 2.2rem));
+        font-weight: 800;
+        color: var(--lg-text);
+        margin: 0 0 var(--lg-sp-2, 0.5rem);
+        line-height: var(--lg-lh-tight, 1.2);
+    }
+    .content-header p {
+        color: var(--lg-text-muted);
+        font-size: var(--lg-fs-base, 0.95rem);
+        margin: 0;
+        line-height: var(--lg-lh-base, 1.6);
+    }
+
+    /* ── Category Grid ── */
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+        gap: var(--lg-sp-3, 0.75rem);
+    }
+
+    /* ── Content Card ── */
+    .content-card {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--lg-sp-4, 1rem);
+        padding: var(--lg-sp-5, 1.25rem) var(--lg-sp-6, 1.5rem);
+        background: var(--lg-card-bg);
+        border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+        border-radius: var(--lg-r-lg, 16px);
+        text-decoration: none;
+        color: var(--lg-text);
+        box-shadow: var(--lg-card-sh, 0 4px 20px rgba(0,0,12,0.32));
+        transition: transform 0.22s cubic-bezier(0.22,1,0.36,1),
+                    border-color 0.22s ease,
+                    box-shadow 0.22s ease;
+        position: relative;
+    }
+    .content-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--lg-b-hover-color, rgba(140,130,255,0.26));
+        box-shadow: var(--lg-card-sh-hover, 0 12px 36px rgba(0,0,12,0.42));
+    }
+
+    /* ── Category Icon ── */
+    .content-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--lg-r-md, 12px);
+        background: rgba(139,127,255,0.10);
+        border: 1px solid rgba(139,127,255,0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: var(--lg-violet-bright, #A89BFF);
+        font-size: 1.1rem;
+    }
+
+    .content-card-body {
+        flex: 1;
+        min-width: 0;
+    }
+    .content-card-title {
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-base, 1rem);
+        font-weight: 700;
+        color: var(--lg-text);
+        margin: 0 0 var(--lg-sp-1, 0.25rem);
+    }
+    .content-card-desc {
+        font-size: var(--lg-fs-sm, 0.85rem);
+        color: var(--lg-text-muted);
+        line-height: 1.55;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .content-card-arrow {
+        color: var(--lg-text-muted);
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        align-self: center;
+        opacity: 0;
+        transform: translateX(-4px);
+        transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .content-card:hover .content-card-arrow {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* ── Empty State ── */
+    .content-empty {
+        text-align: center;
+        padding: var(--lg-sp-16, 4rem) var(--lg-sp-4, 1rem);
+    }
+    .content-empty-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: var(--lg-sp-4, 1rem);
+        opacity: 0.15;
+        color: var(--lg-violet-bright, #A89BFF);
+    }
+    .content-empty p {
+        color: var(--lg-text-muted);
+        margin: 0 0 var(--lg-sp-4, 1rem);
+        font-size: var(--lg-fs-base, 0.95rem);
+    }
+    .content-empty a {
+        color: var(--lg-violet-bright, #A89BFF);
+        text-decoration: none;
+        font-weight: 600;
+        transition: opacity 0.18s;
+    }
+    .content-empty a:hover { opacity: 0.8; }
+
+    @media (max-width: 480px) {
+        .content-card { padding: 1rem 1.25rem; }
+        .content-card-icon { width: 34px; height: 34px; font-size: 0.9rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-shell">
+
+    <div class="content-header lg-fade-in">
+        <h1>Content <span class="lg-gradient-text">Hub</span></h1>
+        <p>Guides, comparisons, tutorials and resources for developers, students and writers.</p>
+    </div>
+
+    {% if categories %}
+    <div class="content-grid">
+        {% for category in categories %}
+        <a href="{{ category.get_absolute_url }}" class="content-card lg-fade-in" style="animation-delay: {{ forloop.counter0 }}0ms;">
+            <div class="content-card-icon">
+                <i class="bi bi-journal-text"></i>
+            </div>
+            <div class="content-card-body">
+                <div class="content-card-title">{{ category.name }}</div>
+                {% if category.description %}
+                <p class="content-card-desc">{{ category.description|truncatechars:100 }}</p>
+                {% endif %}
+            </div>
+            <i class="bi bi-chevron-right content-card-arrow"></i>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="content-empty lg-fade-in">
+        <i class="bi bi-journal-text content-empty-icon"></i>
+        <p>Content coming soon.</p>
+        <a href="{% url 'tools:index' %}">Browse Tools →</a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,850 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}{{ workflow.title }} | LamGen{% endblock %}
+{% block meta_description %}{{ workflow.meta_description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="authority-page">
+        <div class="page-header">
+            <div class="page-breadcrumb">
+                {% include "seo/breadcrumbs.html" %}
+            </div>
+            <h1 class="page-title">{{ workflow.title }}</h1>
+            <p class="page-subtitle">{{ workflow.introduction }}</p>
+        </div>
+
+        <div class="workflow-overview">
+            <div class="workflow-stats">
+                <div class="stat-item">
+                    <span class="stat-number">{{ workflow.steps|length }}</span>
+                    <span class="stat-label">Steps</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ workflow.estimated_time }}</span>
+                    <span class="stat-label">Minutes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ workflow.difficulty }}</span>
+                    <span class="stat-label">Difficulty</span>
+                </div>
+            </div>
+            <div class="workflow-description">{{ workflow.description }}</div>
+        </div>
+
+        <div class="workflow-steps">
+            <h2 class="section-title">Workflow Steps</h2>
+            <div class="steps-container">
+                {% for step in workflow.steps %}
+                <div class="step-card">
+                    <div class="step-header">
+                        <div class="step-number">{{ forloop.counter }}</div>
+                        <div class="step-info">
+                            <h3 class="step-title">{{ step.title }}</h3>
+                            <div class="step-meta">
+                                <span class="step-duration">{{ step.estimated_time }}</span>
+                                <span class="step-difficulty">{{ step.difficulty }}</span>
+                            </div>
+                        </div>
+                        <div class="step-action">
+                            <a href="/tools/{{ step.tool_category_slug }}/{{ step.tool_slug }}/" class="btn-primary">
+                                <i class="bi bi-play-circle"></i>
+                                Start Step
+                            </a>
+                        </div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-description">{{ step.description }}</div>
+                        
+                        {% if step.prerequisites %}
+                        <div class="step-prerequisites">
+                            <h4>Prerequisites:</h4>
+                            <ul class="prerequisites-list">
+                                {% for prereq in step.prerequisites %}
+                                <li class="prerequisite-item">
+                                    <a href="/tools/{{ prereq.category_slug }}/{{ prereq.slug }}/" class="prerequisite-link">
+                                        <i class="{{ prereq.icon }}"></i>
+                                        {{ prereq.name }}
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        {% if step.tips %}
+                        <div class="step-tips">
+                            <h4>Pro Tips:</h4>
+                            <ul class="tips-list">
+                                {% for tip in step.tips %}
+                                <li class="tip-item">
+                                    <div class="tip-icon">
+                                        <i class="bi bi-lightbulb"></i>
+                                    </div>
+                                    <div class="tip-content">{{ tip }}</div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        {% if step.alternatives %}
+                        <div class="step-alternatives">
+                            <h4>Alternative Tools:</h4>
+                            <div class="alternatives-grid">
+                                {% for alt in step.alternatives %}
+                                <div class="alternative-tool">
+                                    <a href="/tools/{{ alt.category_slug }}/{{ alt.slug }}/" class="alternative-link">
+                                        <div class="alternative-icon">
+                                            <i class="{{ alt.icon }}"></i>
+                                        </div>
+                                        <div class="alternative-info">
+                                            <div class="alternative-name">{{ alt.name }}</div>
+                                            <div class="alternative-reason">{{ alt.reason }}</div>
+                                        </div>
+                                    </a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="workflow-benefits">
+            <h2 class="section-title">Benefits</h2>
+            <div class="benefits-grid">
+                {% for benefit in workflow.benefits %}
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="{{ benefit.icon }}"></i>
+                    </div>
+                    <div class="benefit-content">
+                        <h3 class="benefit-title">{{ benefit.title }}</h3>
+                        <p class="benefit-description">{{ benefit.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="workflow-use-cases">
+            <h2 class="section-title">Use Cases</h2>
+            <div class="use-cases-grid">
+                {% for use_case in workflow.use_cases %}
+                <div class="use-case-card">
+                    <div class="use-case-header">
+                        <h3 class="use-case-title">{{ use_case.title }}</h3>
+                        <div class="use-case-category">{{ use_case.category }}</div>
+                    </div>
+                    <div class="use-case-content">
+                        <p class="use-case-description">{{ use_case.description }}</p>
+                        <div class="use-case-steps">
+                            <h4>Typical Workflow:</h4>
+                            <ol class="workflow-steps-list">
+                                {% for step in use_case.steps %}
+                                <li class="workflow-step-item">
+                                    <span class="step-text">{{ step }}</span>
+                                    {% if step.tool %}
+                                        <a href="/tools/{{ step.tool.category_slug }}/{{ step.tool.slug }}/" class="step-tool-link">
+                                            <i class="{{ step.tool.icon }}"></i>
+                                            {{ step.tool.name }}
+                                        </a>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="related-workflows">
+            <h2 class="section-title">Related Workflows</h2>
+            <div class="workflows-grid">
+                {% for related in workflow.related_workflows %}
+                <div class="workflow-card-small">
+                    <div class="workflow-card-header">
+                        <div class="workflow-icon">
+                            <i class="{{ related.icon }}"></i>
+                        </div>
+                        <div class="workflow-info">
+                            <h3 class="workflow-title-small">{{ related.title }}</h3>
+                            <p class="workflow-description-small">{{ related.description }}</p>
+                        </div>
+                    </div>
+                    <a href="/workflows/{{ related.slug }}/" class="workflow-link">
+                        <i class="bi bi-arrow-right"></i>
+                        View Workflow
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="related-tools-section">
+            {% include "seo/related_tools.html" %}
+        </div>
+
+        <div class="people-also-use-section">
+            {% include "seo/people_also_use.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.authority-page {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.page-breadcrumb {
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: var(--lg-text);
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    color: var(--lg-text-muted);
+    margin: 0;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.workflow-overview {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    box-shadow: var(--lg-shadow-sm);
+}
+
+.workflow-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 12px;
+    min-width: 120px;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--lg-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+
+.workflow-description {
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--lg-text);
+    line-height: 1.6;
+}
+
+.workflow-steps {
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+}
+
+.steps-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+}
+
+.step-card {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--lg-shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.step-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: var(--lg-primary);
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    background: var(--lg-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.step-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.step-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    color: var(--lg-text);
+}
+
+.step-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.step-duration,
+.step-difficulty {
+    padding: 0.5rem 1rem;
+    background: rgba(100, 90, 255, 0.1);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.step-duration {
+    color: var(--lg-cyan);
+}
+
+.step-difficulty {
+    color: var(--lg-violet);
+}
+
+.step-action {
+    flex-shrink: 0;
+}
+
+.btn-primary {
+    background: var(--lg-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary:hover {
+    background: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.step-content {
+    color: var(--lg-text);
+    line-height: 1.8;
+}
+
+.step-description {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.step-prerequisites,
+.step-tips,
+.step-alternatives {
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid rgba(100, 90, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.step-prerequisites h4,
+.step-tips h4,
+.step-alternatives h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--lg-primary);
+    margin: 0 0 1rem;
+}
+
+.prerequisites-list,
+.tips-list {
+    list-style: none;
+    padding: 0;
+}
+
+.prerequisite-item,
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(100, 90, 255, 0.1);
+}
+
+.prerequisite-item:last-child,
+.tip-item:last-child {
+    border-bottom: none;
+}
+
+.prerequisite-link,
+.tip-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.prerequisite-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--lg-text);
+    font-weight: 600;
+}
+
+.prerequisite-link:hover {
+    color: var(--lg-primary);
+}
+
+.prerequisite-link i {
+    color: var(--lg-violet);
+    font-size: 1rem;
+}
+
+.tip-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lg-cyan);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.tip-icon i {
+    color: white;
+    font-size: 0.9rem;
+}
+
+.alternatives-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.alternative-tool {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.alternative-tool:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.alternative-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: var(--lg-text);
+}
+
+.alternative-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lg-violet);
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.alternative-icon i {
+    color: white;
+    font-size: 1rem;
+}
+
+.alternative-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.alternative-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--lg-text);
+}
+
+.alternative-reason {
+    font-size: 0.8rem;
+    color: var(--lg-text-muted);
+}
+
+.workflow-benefits {
+    margin-bottom: 3rem;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.benefit-card {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.benefit-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 50%;
+    margin-bottom: 1.5rem;
+}
+
+.benefit-icon i {
+    color: white;
+    font-size: 2rem;
+}
+
+.benefit-content {
+    color: var(--lg-text);
+}
+
+.benefit-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--lg-text);
+}
+
+.benefit-description {
+    font-size: 1rem;
+    color: var(--lg-text-muted);
+    line-height: 1.6;
+}
+
+.workflow-use-cases {
+    margin-bottom: 3rem;
+}
+
+.use-cases-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.use-case-card {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--lg-shadow-sm);
+}
+
+.use-case-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.use-case-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--lg-text);
+}
+
+.use-case-category {
+    background: var(--lg-violet);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.use-case-content {
+    color: var(--lg-text);
+    line-height: 1.6;
+}
+
+.use-case-description {
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.use-case-steps-list {
+    list-style: none;
+    padding: 0;
+    counter-reset: workflow-step;
+}
+
+.workflow-step-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    counter-increment: workflow-step;
+    position: relative;
+}
+
+.workflow-step-item::before {
+    content: counter(workflow-step);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: var(--lg-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.step-text {
+    flex: 1;
+    color: var(--lg-text);
+}
+
+.step-tool-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--lg-primary);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.step-tool-link:hover {
+    color: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.step-tool-link i {
+    color: var(--lg-violet);
+    font-size: 1rem;
+}
+
+.related-workflows {
+    margin-bottom: 3rem;
+}
+
+.workflows-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.workflow-card-small {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.workflow-card-small:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.workflow-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.workflow-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.workflow-icon i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+.workflow-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.workflow-title-small {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--lg-text);
+}
+
+.workflow-description-small {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+    line-height: 1.5;
+}
+
+.workflow-link {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--lg-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.workflow-link:hover {
+    background: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .authority-page {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .workflow-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        min-width: 100px;
+        padding: 1rem;
+    }
+    
+    .steps-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .step-card {
+        padding: 1.5rem;
+    }
+    
+    .benefits-grid,
+    .use-cases-grid,
+    .workflows-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .workflow-card-small {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}

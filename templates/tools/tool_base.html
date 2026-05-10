@@ -157,7 +157,7 @@
     box-sizing: border-box;
     box-shadow: var(--lg-field-shadow) !important;
     caret-color: var(--lg-cyan);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 .tool-canvas textarea:focus,
 .tool-canvas .tool-code:focus,
@@ -213,7 +213,7 @@
     border-radius: 50px !important;
     font-size: 0.88rem !important;
     font-weight: 600 !important;
-    font-family: 'DM Sans', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
     background: linear-gradient(135deg, #7B6FFF 0%, #3EECD8 100%) !important;
     border: 1px solid rgba(139,127,255,0.40) !important;
     color: #fff !important;
@@ -265,7 +265,7 @@
     border-radius: 50px !important;
     font-size: 0.78rem !important;
     font-weight: 500 !important;
-    font-family: 'DM Sans', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
     background: rgba(100,90,255,0.09) !important;
     border: 1px solid rgba(130,120,255,0.18) !important;
     color: var(--lg-text-muted) !important;
@@ -483,7 +483,7 @@
     border: none;
     cursor: pointer;
     text-align: left;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.88rem;
     font-weight: 600;
     color: var(--lg-text);
@@ -741,19 +741,9 @@
     </div>
     {% endblock tool_seo %}
 
-    <!-- ── Related Tools ── -->
-    {% if related_tools %}
-    <aside class="tool-related-section" aria-label="Related tools">
-        <div class="tool-related-title"><i class="bi bi-grid-3x3-gap"></i> Related Tools</div>
-        <nav class="tool-related-grid" aria-label="Related tools navigation">
-            {% for rt in related_tools|slice:":8" %}
-            <a href="{{ rt.get_absolute_url }}" class="tool-related-link">
-                <i class="{{ rt.icon }}" style="color:{{ rt.category.color_from }}"></i>
-                {{ rt.name }}
-            </a>
-            {% endfor %}
-        </nav>
-    </aside>
+    <!-- ── Enhanced Internal Links ── -->
+    {% if internal_links %}
+        {% include "seo/internal_links.html" with internal_links=internal_links section_title="Related Tools" columns=4 %}
     {% endif %}
 
     <!-- ── Trust Footer ── -->
@@ -764,10 +754,6 @@
         <div class="trust-item"><i class="bi bi-person-x"></i> No account needed</div>
         <div class="trust-item"><i class="bi bi-gift"></i> Always free</div>
     </footer>
-    <section class="tool-seo-section">
-        <h2><i class="bi bi-code-square"></i> Embed this tool</h2>
-        <textarea readonly class="tool-code" id="embedSnippet"><iframe src="{{ request.scheme }}://{{ request.get_host }}{% url 'tools:embed' category.slug tool.slug %}" width="100%" height="550" style="border:0;border-radius:12px;" loading="lazy"></iframe></textarea>
-    </section>
 
 </article>
 {% endblock %}
@@ -864,5 +850,6 @@ function toggleFaq(btn) {
     else run();
 })();
 </script>
+<script src="{% static 'js/tool-runtime.js' %}"></script>
 {% block tool_js %}{% endblock %}
 {% endblock %}

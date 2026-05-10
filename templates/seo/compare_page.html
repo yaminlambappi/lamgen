@@ -1,0 +1,506 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}{{ comparison.title }} | LamGen{% endblock %}
+{% block meta_description %}{{ comparison.meta_description }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="authority-page">
+        <div class="page-header">
+            <div class="page-breadcrumb">
+                {% include "seo/breadcrumbs.html" %}
+            </div>
+            <h1 class="page-title">{{ comparison.title }}</h1>
+            <p class="page-subtitle">{{ comparison.introduction }}</p>
+        </div>
+
+        <div class="comparison-content">
+            <div class="comparison-table">
+                <table class="comparison-table-content">
+                    <thead>
+                        <tr>
+                            <th class="feature-header">Feature</th>
+                            {% for tool in comparison.tools_compared %}
+                                <th class="tool-header">
+                                    <div class="tool-info">
+                                        <div class="tool-name">{{ tool.name }}</div>
+                                        <div class="tool-category">{{ tool.category }}</div>
+                                    </div>
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for feature in comparison.comparison_table %}
+                            <tr class="feature-row">
+                                <td class="feature-name">
+                                    <div class="feature-title">{{ feature.name }}</div>
+                                    <div class="feature-description">{{ feature.description }}</div>
+                                </td>
+                                {% for tool_data in feature.tools %}
+                                    <td class="tool-cell {{ tool_data.status }}">
+                                        <div class="cell-content">
+                                            {% if tool_data.value == '✓' %}
+                                                <div class="check-icon">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                </div>
+                                            {% elif tool_data.value == '✗' %}
+                                                <div class="cross-icon">
+                                                    <i class="bi bi-x-circle-fill"></i>
+                                                </div>
+                                            {% else %}
+                                                <div class="text-content">{{ tool_data.value }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="comparison-details">
+                <div class="comparison-section">
+                    <h2 class="section-title">Detailed Analysis</h2>
+                    <div class="analysis-content">
+                        {% for analysis in comparison.detailed_analysis %}
+                            <div class="analysis-item">
+                                <h3 class="analysis-title">{{ analysis.title }}</h3>
+                                <div class="analysis-content">{{ analysis.content|safe }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="comparison-section">
+                    <h2 class="section-title">Use Cases</h2>
+                    <div class="use-cases">
+                        {% for use_case in comparison.use_cases %}
+                            <div class="use-case">
+                                <h4 class="use-case-title">{{ use_case.title }}</h4>
+                                <div class="use-case-content">{{ use_case.content|safe }}</div>
+                                <div class="use-case-tools">
+                                    <span class="use-case-label">Best for:</span>
+                                    {% for tool in use_case.recommended_tools %}
+                                        <a href="/tools/{{ tool.category_slug }}/{{ tool.slug }}/" class="recommended-tool">
+                                            {{ tool.name }}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="comparison-section">
+                    <h2 class="section-title">Verdict</h2>
+                    <div class="verdict-content">
+                        <div class="verdict-winner">
+                            <div class="winner-info">
+                                <h3 class="winner-title">Winner: {{ comparison.verdict.winner.name }}</h3>
+                                <p class="winner-reason">{{ comparison.verdict.reason }}</p>
+                                <div class="winner-score">
+                                    <span class="score-label">Overall Score:</span>
+                                    <span class="score-value">{{ comparison.verdict.score }}/{{ comparison.verdict.max_score }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="verdict-details">
+                            <h4>Why {{ comparison.verdict.winner.name }} Wins:</h4>
+                            <ul class="verdict-points">
+                                {% for point in comparison.verdict.points %}
+                                    <li class="verdict-point">
+                                        <div class="point-icon">
+                                            {% if point.positive %}
+                                                <i class="bi bi-check-circle-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="point-content">{{ point.content }}</div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="related-tools-section">
+            {% include "seo/related_tools.html" %}
+        </div>
+
+        <div class="people-also-use-section">
+            {% include "seo/people_also_use.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.authority-page {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 1rem;
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: var(--lg-text);
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    color: var(--lg-text-muted);
+    margin: 0;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.comparison-content {
+    margin-bottom: 3rem;
+}
+
+.comparison-table {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--lg-shadow-sm);
+}
+
+.comparison-table-content {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.feature-header {
+    background: var(--lg-primary);
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--lg-violet);
+}
+
+.tool-header {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.tool-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tool-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--lg-text);
+}
+
+.tool-category {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+    background: rgba(100, 90, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+.feature-row {
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.feature-row:last-child {
+    border-bottom: none;
+}
+
+.feature-row:nth-child(even) {
+    background: rgba(100, 90, 255, 0.02);
+}
+
+.feature-name {
+    padding: 1.5rem;
+    background: rgba(100, 90, 255, 0.05);
+    border-right: 1px solid var(--lg-card-border);
+    font-weight: 600;
+    min-width: 200px;
+}
+
+.feature-title {
+    font-size: 1.1rem;
+    color: var(--lg-text);
+    margin-bottom: 0.5rem;
+}
+
+.feature-description {
+    font-size: 0.9rem;
+    color: var(--lg-text-muted);
+    line-height: 1.4;
+}
+
+.tool-cell {
+    padding: 1.5rem;
+    text-align: center;
+    border-right: 1px solid var(--lg-card-border);
+    font-size: 0.9rem;
+}
+
+.tool-cell:last-child {
+    border-right: none;
+}
+
+.cell-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+}
+
+.check-icon,
+.cross-icon {
+    font-size: 1.5rem;
+}
+
+.check-icon {
+    color: var(--lg-cyan);
+}
+
+.cross-icon {
+    color: var(--lg-violet);
+}
+
+.text-content {
+    font-weight: 600;
+    color: var(--lg-text);
+}
+
+.comparison-details {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.comparison-section {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    color: var(--lg-text);
+}
+
+.analysis-content,
+.use-cases {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.analysis-item,
+.use-case {
+    background: rgba(100, 90, 255, 0.05);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.analysis-title,
+.use-case-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--lg-primary);
+    margin: 0 0 1rem;
+}
+
+.analysis-content {
+    color: var(--lg-text);
+    line-height: 1.6;
+}
+
+.use-case-content {
+    color: var(--lg-text);
+    line-height: 1.6;
+}
+
+.use-case-tools {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.use-case-label {
+    font-size: 0.8rem;
+    color: var(--lg-text-muted);
+    margin-right: 0.5rem;
+}
+
+.recommended-tool {
+    background: var(--lg-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.recommended-tool:hover {
+    background: var(--lg-violet);
+    transform: translateY(-2px);
+}
+
+.verdict-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+.verdict-winner {
+    background: linear-gradient(135deg, var(--lg-primary), var(--lg-violet));
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    color: white;
+}
+
+.winner-info {
+    text-align: center;
+}
+
+.winner-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+}
+
+.winner-reason {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.winner-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.score-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.score-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.verdict-details {
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.verdict-points {
+    list-style: none;
+    padding: 0;
+}
+
+.verdict-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--lg-card-border);
+}
+
+.verdict-point:last-child {
+    border-bottom: none;
+}
+
+.point-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.point-content {
+    flex: 1;
+    color: var(--lg-text);
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .authority-page {
+        margin: 1rem;
+        padding: 1rem;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .comparison-table {
+        overflow-x: auto;
+    }
+    
+    .comparison-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .verdict-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .feature-name {
+        min-width: 150px;
+        font-size: 0.9rem;
+    }
+    
+    .tool-cell {
+        padding: 1rem;
+        font-size: 0.8rem;
+    }
+}
+</style>
+{% endblock %}

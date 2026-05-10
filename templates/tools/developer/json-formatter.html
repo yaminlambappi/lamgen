@@ -24,7 +24,7 @@
     padding:0 22px; height:40px;
     background:linear-gradient(135deg,#7B6FFF 0%,#3EECD8 100%);
     color:#fff; border:1px solid rgba(139,127,255,.40);
-    border-radius:50px; font-family:'DM Sans',sans-serif;
+    border-radius:50px; font-family:'Inter',sans-serif;
     font-weight:600; font-size:.88rem; cursor:pointer;
     transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s,filter .18s;
     box-shadow:0 6px 22px rgba(100,90,255,.30);
@@ -37,7 +37,7 @@
     padding:0 14px; height:34px;
     background:rgba(100,90,255,.09); border:1px solid rgba(130,120,255,.18);
     border-radius:50px; font-size:.78rem; cursor:pointer;
-    color:var(--lg-text-muted); font-family:'DM Sans',sans-serif;
+    color:var(--lg-text-muted); font-family:'Inter',sans-serif;
     transition:all .15s;
 }
 .btn-sm:hover { background:rgba(100,90,255,.16); border-color:rgba(140,130,255,.30); color:var(--lg-text); transform:translateY(-1px); }
@@ -60,7 +60,7 @@
     padding:0 14px; height:34px; display:inline-flex; align-items:center;
     background:rgba(100,90,255,.07); border:1px solid rgba(130,120,255,.14);
     border-radius:50px; font-size:.78rem; cursor:pointer;
-    color:var(--lg-text-muted); font-family:'DM Sans',sans-serif; transition:all .15s;
+    color:var(--lg-text-muted); font-family:'Inter',sans-serif; transition:all .15s;
 }
 .mode-tab.active { background:rgba(139,127,255,.18); border-color:rgba(139,127,255,.40); color:var(--lg-violet-bright); }
 .output-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem; }
@@ -276,6 +276,15 @@ function downloadText(content, filename, mime='text/plain') {
 function showErr(id, msg) { const el=document.getElementById(id); el.className='status err'; el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg; }
 function showOk(id, msg)  { const el=document.getElementById(id); el.className='status ok';  el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg; }
 function hideStatus(id)   { document.getElementById(id).className='status'; }
+
+// Expose functions to global scope for onclick handlers
+window.formatJSON = formatJSON;
+window.loadEx = loadEx;
+window.setMode = setMode;
+window.clearAll = clearAll;
+window.copyOut = copyOut;
+window.downloadOut = downloadOut;
+
 document.addEventListener('keydown', e => { if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatJSON(); } });
 })();
 </script>

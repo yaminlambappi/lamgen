@@ -1,0 +1,109 @@
+{% extends "tools/tool_base.html" %}
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <label class="tool-label" for="sqlIn">SQL Input</label>
+  <textarea id="sqlIn" class="tool-code" placeholder="SELECT id,name FROM users WHERE status='active' ORDER BY created_at DESC;"></textarea>
+  <div class="act-row">
+    <button class="btn-go" id="btnFormat" onclick="formatSql()"><i class="bi bi-magic"></i> Format</button>
+    <button class="btn-sm" onclick="minifySql()"><i class="bi bi-arrows-collapse"></i> Minify</button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Reset</button>
+    <span class="status" id="st"></span>
+  </div>
+  <label class="tool-label" for="sqlOut">Output</label>
+  <textarea id="sqlOut" class="tool-code out" readonly placeholder="Formatted SQL appears here"></textarea>
+  <div class="act-row">
+    <button class="btn-sm" id="copyBtn" onclick="copyOut()"><i class="bi bi-clipboard"></i> Copy</button>
+    <button class="btn-sm" onclick="downloadOut()"><i class="bi bi-download"></i> Download .sql</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
+<script>
+const BREAK_BEFORE = new Set(["SELECT","FROM","WHERE","GROUP BY","ORDER BY","HAVING","LIMIT","OFFSET","INSERT INTO","VALUES","UPDATE","SET","DELETE FROM","INNER JOIN","LEFT JOIN","RIGHT JOIN","FULL JOIN","JOIN","ON","UNION","UNION ALL","WITH"]);
+const KEYWORDS = ["SELECT","FROM","WHERE","GROUP BY","ORDER BY","HAVING","LIMIT","OFFSET","INSERT INTO","VALUES","UPDATE","SET","DELETE FROM","INNER JOIN","LEFT JOIN","RIGHT JOIN","FULL JOIN","JOIN","ON","UNION ALL","UNION","WITH","AND","OR","CASE","WHEN","THEN","ELSE","END","AS","IN","NOT","NULL","IS","DISTINCT"];
+
+function show(type, msg) {
+  const el = document.getElementById("st");
+  el.className = "status " + type;
+  el.innerHTML = (type === "err" ? '<i class="bi bi-exclamation-triangle-fill"></i> ' : '<i class="bi bi-check-circle-fill"></i> ') + msg;
+}
+
+function normalizeKeywords(sql) {
+  let out = sql;
+  KEYWORDS.sort((a,b)=>b.length-a.length).forEach(k => {
+    const rx = new RegExp("\\b" + k.replace(/\s+/g, "\\s+") + "\\b", "gi");
+    out = out.replace(rx, k);
+  });
+  return out;
+}
+
+function tokenize(sql) {
+  return sql
+    .replace(/\r\n/g, "\n")
+    .replace(/\s+/g, " ")
+    .replace(/\s*,\s*/g, ", ")
+    .trim();
+}
+
+function formatSql() {
+  const btn = document.getElementById("btnFormat");
+  const raw = document.getElementById("sqlIn").value.trim();
+  if (!raw) { show("err", "Please provide SQL input"); return; }
+  btn.disabled = true;
+  try {
+    const sql = normalizeKeywords(tokenize(raw));
+    let out = sql;
+    BREAK_BEFORE.forEach(k => {
+      const rx = new RegExp("\\b" + k.replace(/\s+/g, "\\s+") + "\\b", "g");
+      out = out.replace(rx, "\n" + k);
+    });
+    out = out.replace(/\n{2,}/g, "\n").trim();
+    out = out.replace(/\b(AND|OR)\b/g, "\n  $1");
+    out = out.replace(/,\s*(?![^\(]*\))/g, ",\n  ");
+    document.getElementById("sqlOut").value = out;
+    show("ok", "SQL formatted");
+  } catch (e) {
+    show("err", "Formatting failed: " + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function minifySql() {
+  const raw = document.getElementById("sqlIn").value.trim();
+  if (!raw) { show("err", "Please provide SQL input"); return; }
+  const out = normalizeKeywords(raw).replace(/\s+/g, " ").trim();
+  document.getElementById("sqlOut").value = out;
+  show("ok", "SQL minified");
+}
+
+function copyOut() {
+  const text = document.getElementById("sqlOut").value;
+  if (!text) return;
+  navigator.clipboard.writeText(text);
+  const b = document.getElementById("copyBtn");
+  const old = b.innerHTML;
+  b.innerHTML = '<i class="bi bi-check2"></i> Copied';
+  setTimeout(()=> b.innerHTML = old, 1300);
+}
+
+function downloadOut() {
+  const text = document.getElementById("sqlOut").value;
+  if (!text) return;
+  const blob = new Blob([text], { type: "text/sql;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "formatted.sql";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearAll() {
+  document.getElementById("sqlIn").value = "";
+  document.getElementById("sqlOut").value = "";
+  document.getElementById("st").className = "status";
+}
+</script>
+{% endblock %}

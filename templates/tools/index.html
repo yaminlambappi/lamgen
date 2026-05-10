@@ -1,76 +1,61 @@
 {% extends "base.html" %}
 
-{% block title %}{{ page_title|default:"LamGen // Command Core" }}{% endblock %}
+{% block title %}{{ page_title|default:"LamGen // Tools" }}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .os-shell {
-        max-width: 1440px;
+    .tools-shell {
+        max-width: 1280px;
         margin: 0 auto;
-        padding: 1rem 1.5rem 4rem;
+        padding: var(--lg-sp-section, 2rem) var(--lg-shell-px, 1.5rem) var(--lg-sp-16, 4rem);
         display: flex;
         flex-direction: column;
-        gap: 2.5rem;
-        position: relative;
+        gap: var(--lg-sp-section, 2.5rem);
     }
 
-    /* Subtle grid overlay */
-    .os-shell::before {
-        content: '';
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background-image:
-            linear-gradient(rgba(120,110,255,0.025) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(120,110,255,0.025) 1px, transparent 1px);
-        background-size: 40px 40px;
-        pointer-events: none; z-index: -1;
-        mask-image: radial-gradient(ellipse at top, black 0%, transparent 55%);
-        -webkit-mask-image: radial-gradient(ellipse at top, black 0%, transparent 55%);
-    }
-
-    /* Section zone titles */
+    /* ── Section zone titles ── */
     .zone-title {
-    font-family: var(--font-display);
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-bold);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--lg-text-muted);
-    margin-bottom: 1.25rem;
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        font-size: var(--lg-fs-xs, 0.75rem);
+        font-weight: var(--lg-fw-bold, 700);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--lg-text-muted);
+        margin-bottom: var(--lg-sp-5, 1.25rem);
         display: flex;
         align-items: center;
         gap: 8px;
     }
-    .zone-title i { font-size: 0.95rem; }
+    .zone-title i { font-size: 0.9rem; }
     .zone-title::after {
         content: '';
         flex: 1;
         height: 1px;
-        background: linear-gradient(90deg, rgba(120,110,255,0.13), transparent);
+        background: linear-gradient(90deg, var(--lg-b-color, rgba(130,120,255,0.14)), transparent);
         margin-left: 8px;
     }
 
-    /* Bento grid */
+    /* ── Bento grid ── */
     .bento-grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 1rem;
-        margin-bottom: 0.5rem;
+        gap: var(--lg-sp-3, 0.75rem);
     }
 
-    /* Panel — real surface, not fog */
+    /* ── Panel ── */
     .panel {
         background: var(--lg-card-bg);
-        border: 1px solid var(--lg-card-border);
-        border-radius: 16px;
-        padding: 1.25rem;
+        border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+        border-radius: var(--lg-r-card, 16px);
+        padding: var(--lg-sp-5, 1.25rem);
         position: relative;
         overflow: hidden;
-        transition: border-color 0.22s, box-shadow 0.22s;
-        box-shadow: var(--lg-card-shadow);
+        transition: border-color 0.22s ease, box-shadow 0.22s ease;
+        box-shadow: var(--lg-card-sh, 0 4px 20px rgba(0,0,12,0.32));
     }
     .panel:hover {
-        border-color: var(--lg-card-hover-border);
-        box-shadow: var(--lg-card-hover-shadow);
+        border-color: var(--lg-b-hover-color, rgba(140,130,255,0.26));
+        box-shadow: var(--lg-card-sh-hover, 0 12px 36px rgba(0,0,12,0.42));
     }
 
     .span-12 { grid-column: span 12; }
@@ -79,7 +64,7 @@
     .span-4  { grid-column: span 4; }
     .span-3  { grid-column: span 3; }
 
-    /* Category workspace cards */
+    /* ── Category workspace cards ── */
     .ws-card {
         display: flex;
         align-items: flex-start;
@@ -87,45 +72,44 @@
         text-decoration: none;
         color: var(--lg-text);
         padding: 10px;
-        border-radius: 12px;
+        border-radius: var(--lg-r-md, 12px);
         border: 1px solid transparent;
-        transition: background 0.18s, border-color 0.18s, transform 0.18s;
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
     }
     .ws-card:hover {
-        background: rgba(120,110,255,0.11);
-        border-color: rgba(120,110,255,0.14);
+        background: rgba(120,110,255,0.08);
+        border-color: rgba(120,110,255,0.12);
         transform: translateY(-1px);
     }
     .ws-icon {
-        width: 38px; height: 38px;
+        width: 36px; height: 36px;
         border-radius: 10px;
         flex-shrink: 0;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.1rem;
+        font-size: 1rem;
         background: var(--cat-color, var(--lg-violet))18;
         border: 1px solid var(--cat-color, var(--lg-violet))33;
         color: var(--cat-color, var(--lg-violet));
-        transition: background 0.18s, box-shadow 0.18s, color 0.18s;
+        transition: background 0.22s ease, box-shadow 0.22s ease, color 0.22s ease;
     }
     .ws-card:hover .ws-icon {
         background: var(--cat-color, var(--lg-violet));
         color: #fff;
         border-color: var(--cat-color, var(--lg-violet));
-        box-shadow: 0 4px 16px var(--cat-color, var(--lg-violet))44;
+        box-shadow: 0 4px 14px var(--cat-color, var(--lg-violet))44;
     }
     .ws-info h3 {
-        font-size: var(--fs-base);
-        font-weight: var(--fw-bold);
-        font-family: var(--font-display);
-        margin: 0 0 4px;
+        font-size: var(--lg-fs-sm, 0.88rem);
+        font-weight: var(--lg-fw-bold, 700);
+        font-family: var(--lg-font-display, 'Syne', sans-serif);
+        margin: 0 0 3px;
         color: var(--lg-text);
     }
     .ws-meta {
         display: flex; align-items: center; gap: 8px;
-        font-size: var(--fs-xs);
+        font-size: var(--lg-fs-xs, 0.75rem);
         color: var(--lg-text-muted);
-        font-family: var(--font-primary);
-        font-weight: var(--fw-medium);
+        font-weight: var(--lg-fw-medium, 500);
     }
     .ws-meta span { display: flex; align-items: center; gap: 4px; }
     .ws-meta span::before {
@@ -133,58 +117,57 @@
         width: 4px; height: 4px;
         border-radius: 50%;
         background: var(--cat-color, var(--lg-cyan));
-        opacity: 0.8;
+        opacity: 0.7;
     }
 
-    /* Quick action links */
-    .action-list { display: grid; gap: 6px; }
+    /* ── Quick action links ── */
+    .action-list { display: grid; gap: 5px; }
     .action-link {
         display: flex; align-items: center; gap: 10px;
         padding: 9px 12px;
-        background: rgba(100,90,255,0.07);
-        border: 1px solid rgba(120,110,255,0.12);
-        border-radius: 10px;
+        background: rgba(100,90,255,0.06);
+        border: 1px solid rgba(120,110,255,0.10);
+        border-radius: var(--lg-r-md, 12px);
         text-decoration: none;
         color: var(--lg-text);
-        transition: background 0.18s, border-color 0.18s, transform 0.18s;
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
     }
     .action-link:hover {
-        background: rgba(120,110,255,0.13);
-        border-color: rgba(130,120,255,0.20);
+        background: rgba(120,110,255,0.11);
+        border-color: rgba(130,120,255,0.18);
         transform: translateX(2px);
     }
     .action-link i { font-size: 1rem; flex-shrink: 0; }
     .action-text {
-        font-size: var(--fs-base);
-        font-weight: var(--fw-semibold);
+        font-size: var(--lg-fs-sm, 0.88rem);
+        font-weight: var(--lg-fw-semibold, 600);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         flex: 1;
     }
     .action-label {
-        font-size: var(--fs-xs);
+        font-size: var(--lg-fs-2xs, 0.65rem);
         padding: 2px 8px;
-        background: rgba(120,110,255,0.12);
-        border: 1px solid rgba(120,110,255,0.14);
-        border-radius: 50px;
-        font-family: var(--font-primary);
+        background: rgba(120,110,255,0.10);
+        border: 1px solid rgba(120,110,255,0.12);
+        border-radius: var(--lg-r-pill, 50px);
         text-transform: uppercase;
         color: var(--lg-text-muted);
         flex-shrink: 0;
     }
 
-    /* Panel section label */
+    /* ── Panel section label ── */
     .panel-label {
-        font-size: var(--fs-xs);
-        font-weight: var(--fw-bold);
+        font-size: var(--lg-fs-xs, 0.75rem);
+        font-weight: var(--lg-fw-bold, 700);
         color: var(--lg-text-helper);
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        margin-bottom: 1rem;
+        letter-spacing: 1.2px;
+        margin-bottom: var(--lg-sp-4, 1rem);
     }
 
-    /* Tool grid */
+    /* ── Tool grid ── */
     .tool-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
@@ -194,24 +177,24 @@
         display: flex; align-items: center; gap: 11px;
         padding: 11px 13px;
         background: var(--lg-card-bg);
-        border: 1px solid var(--lg-card-border);
-        border-radius: 12px;
+        border: 1px solid var(--lg-b-color, rgba(130,120,255,0.14));
+        border-radius: var(--lg-r-md, 12px);
         text-decoration: none;
         color: var(--lg-text);
-        transition: background 0.18s, border-color 0.18s, transform 0.18s, box-shadow 0.18s;
-        box-shadow: var(--lg-shadow-sm);
+        transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+        box-shadow: var(--lg-sh-xs, 0 2px 8px rgba(0,0,12,0.20));
     }
     .tool-card-mini:hover {
         background: var(--lg-card-hover-bg);
-        border-color: var(--lg-card-hover-border);
+        border-color: var(--lg-b-hover-color, rgba(140,130,255,0.26));
         transform: translateY(-2px);
-        box-shadow: var(--lg-shadow-md);
+        box-shadow: var(--lg-sh-sm, 0 4px 16px rgba(0,0,12,0.28));
     }
     .t-icon { font-size: 1.05rem; flex-shrink: 0; }
     .t-details { flex: 1; overflow: hidden; }
     .t-name {
-        font-size: var(--fs-sm);
-        font-weight: var(--fw-semibold);
+        font-size: var(--lg-fs-sm, 0.85rem);
+        font-weight: var(--lg-fw-semibold, 600);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -224,13 +207,17 @@
     }
     @media (max-width: 640px) {
         .span-6, .span-4, .span-3 { grid-column: span 12; }
-        .os-shell { padding: 0.75rem 0.75rem 4rem; gap: 2rem; }
+        .tools-shell { padding: 0.75rem 0.75rem 4rem; gap: 2rem; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="os-shell">
+<div class="tools-shell">
+
+    <!-- ── Prayer / Azan Card ── -->
+    {% include "partials/spiritual_banner.html" %}
+
     <!-- Active Systems -->
     <div>
         <div class="zone-title" style="color:var(--lg-cyan);"><i class="bi bi-cpu"></i> Active Systems</div>
@@ -255,25 +242,25 @@
             <!-- Mini Games Hub -->
             <div class="panel span-4">
                 <div class="panel-label">Mini Games</div>
-                <div style="margin-bottom:16px;">
-                    <div style="font-family:var(--font-display); font-weight:var(--fw-bold); font-size:var(--fs-base); color:var(--lg-text);">Fast games for slow moments.</div>
-                    <div style="font-size:var(--fs-sm); color:var(--lg-text-muted); font-weight:var(--fw-medium);">Launch instantly. No login needed.</div>
+                <div style="margin-bottom:14px;">
+                    <div style="font-family:var(--lg-font-display, 'Syne', sans-serif); font-weight:700; font-size:var(--lg-fs-base, 1rem); color:var(--lg-text);">Fast games for slow moments.</div>
+                    <div style="font-size:var(--lg-fs-sm, 0.85rem); color:var(--lg-text-muted); font-weight:500;">Launch instantly. No login needed.</div>
                 </div>
                 <div class="action-list">
                     {% for game in nav_games|slice:":4" %}
-                    <a href="javascript:void(0)" onclick="launchGame('{{ game.slug }}')" class="action-link" style="border-color:{{ game.color }}33; background:{{ game.color }}08;">
+                    <a href="javascript:void(0)" onclick="launchGame('{{ game.slug }}')" class="action-link" style="border-color:{{ game.color }}22; background:{{ game.color }}06;">
                         <i class="{{ game.icon }}" style="color:{{ game.color }};"></i>
                         <span class="action-text">{{ game.name }}</span>
                         <i class="bi bi-play-fill" style="font-size:0.8rem; color:var(--lg-text-muted);"></i>
                     </a>
                     {% endfor %}
-                    <a href="{% url 'games:index' %}" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:10px; font-size:0.75rem; color:var(--lg-cyan); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:4px; opacity:0.8; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">
+                    <a href="{% url 'games:index' %}" style="display:flex; align-items:center; justify-content:center; gap:8px; padding:8px; font-size:0.72rem; color:var(--lg-cyan); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:4px; opacity:0.7; transition:opacity 0.18s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
                         See All Games <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
             </div>
 
-            <!-- Recent tools telemetry -->
+            <!-- Recently used -->
             <div class="panel span-12">
                 <div class="panel-label">Recently Used</div>
                 <div id="recentlyUsedLocal" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;">
@@ -281,7 +268,7 @@
                     <a href="{{ tool.get_absolute_url }}" class="action-link" style="min-width:175px; flex-shrink:0;">
                         <i class="{{ tool.icon }}" style="color:{{ tool.category.color_from }}; font-size:0.9rem;"></i>
                         <span class="action-text" style="font-size:0.78rem;">{{ tool.name }}</span>
-                        <span class="action-label" style="font-size:0.55rem;">{{ tool.category.name }}</span>
+                        <span class="action-label">{{ tool.category.name }}</span>
                     </a>
                     {% endfor %}
                 </div>
@@ -345,7 +332,7 @@
             if (recentWrap && recent.length) {
                 recentWrap.innerHTML = recent.filter(s => bySlug[s]).map((s) => {
                     const t = bySlug[s];
-                    return `<a href="${t.url}" class="action-link" style="min-width:175px; flex-shrink:0;"><i class="${t.icon}" style="color:${t.color}; font-size:0.9rem;"></i><span class="action-text" style="font-size:0.78rem;">${t.name}</span><span class="action-label" style="font-size:0.55rem;">${t.category}</span></a>`;
+                    return `<a href="${t.url}" class="action-link" style="min-width:175px; flex-shrink:0;"><i class="${t.icon}" style="color:${t.color}; font-size:0.9rem;"></i><span class="action-text" style="font-size:0.78rem;">${t.name}</span><span class="action-label">${t.category}</span></a>`;
                 }).join('');
             }
             const scores = Object.keys(localStorage).filter(k => k.startsWith('lamgen_tool_stats_')).map((k) => {

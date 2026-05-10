@@ -1,0 +1,118 @@
+{% load static %}
+<!-- Enhanced Internal Links Component -->
+<link rel="stylesheet" href="{% static 'css/seo/internal-links.css' %}">
+
+<div class="internal-links-section" aria-label="Related tools and resources">
+    <div class="internal-links-header">
+        <h3 class="internal-links-title">
+            <i class="bi bi-link-45deg"></i>
+            {% if section_title %}{{ section_title }}{% else %}Related Tools & Resources{% endif %}
+        </h3>
+        <p class="internal-links-subtitle">Discover more tools to boost your productivity</p>
+    </div>
+    
+    <div class="internal-links-grid" style="--grid-columns: {{ columns|default:4 }};">
+        {% for link in internal_links %}
+            <article class="internal-link-card" data-link-type="{{ link.link_type }}" data-relevance="{{ link.relevance_score|default:0.5 }}">
+                <a href="{{ link.url }}" 
+                   class="internal-link-anchor" 
+                   title="{{ link.description|truncatechars:100 }}"
+                   {% for attr, value in link.link_attributes.items %}{{ attr }}="{{ value|safe }}"{% endfor %}
+                   data-link-id="{{ link.tool_id|default:link.category_id|default:link.page_id|default:link.variant_id }}">
+                    
+                    <div class="link-card-header">
+                        {% if link.type == 'tool' %}
+                            <div class="tool-icon-badge" style="background: {{ link.color_from }}1A; border: 1px solid {{ link.color_from }}38; color: {{ link.color_from }};">
+                                <i class="{{ link.icon }}"></i>
+                            </div>
+                        {% elif link.type == 'category' %}
+                            <div class="category-icon-badge" style="background: {{ link.color_from }}1A; border: 1px solid {{ link.color_from }}38; color: {{ link.color_from }};">
+                                <i class="{{ link.icon }}"></i>
+                            </div>
+                        {% elif link.type == 'seo_page' %}
+                            <div class="seo-icon-badge">
+                                <i class="bi bi-search"></i>
+                            </div>
+                        {% elif link.type == 'longtail' %}
+                            <div class="variant-icon-badge">
+                                <i class="bi bi-diagram-3"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="link-meta">
+                            {% if link.category %}
+                                <span class="link-category">{{ link.category }}</span>
+                            {% endif %}
+                            {% if link.is_featured or link.featured_tool %}
+                                <span class="featured-badge">
+                                    <i class="bi bi-star-fill"></i>
+                                    Featured
+                                </span>
+                            {% endif %}
+                            {% if link.is_new or link.new_tool %}
+                                <span class="new-badge">
+                                    <i class="bi bi-lightning-fill"></i>
+                                    New
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="link-card-content">
+                        <h4 class="link-title">{{ link.title }}</h4>
+                        <p class="link-description">{{ link.description|truncatechars:80 }}</p>
+                        
+                        {% if link.link_type == 'tool' and link.view_count %}
+                            <div class="link-stats">
+                                <span class="usage-count">
+                                    <i class="bi bi-eye-fill"></i>
+                                    {{ link.view_count|default:0 }} uses
+                                </span>
+                            </div>
+                        {% elif link.link_type == 'category' and link.tool_count %}
+                            <div class="link-stats">
+                                <span class="tool-count">
+                                    <i class="bi bi-grid-3x3-gap"></i>
+                                    {{ link.tool_count }} tools
+                                </span>
+                            </div>
+                        {% elif link.link_type == 'seo_page' and link.item_count %}
+                            <div class="link-stats">
+                                <span class="item-count">
+                                    <i class="bi bi-list-ul"></i>
+                                    {{ link.item_count }} items
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="link-card-footer">
+                        <span class="link-action-text">
+                            {% if link.link_type == 'tool' %}
+                                Try {{ link.title|truncatechars:20 }}
+                            {% elif link.link_type == 'category' %}
+                                Explore {{ link.title|truncatechars:20 }}
+                            {% elif link.link_type == 'seo_page' %}
+                                Learn {{ link.title|truncatechars:20 }}
+                            {% elif link.link_type == 'longtail' %}
+                                {{ link.anchor_text_suggestions.0|default:link.title|truncatechars:25 }}
+                            {% else %}
+                                View {{ link.title|truncatechars:20 }}
+                            {% endif %}
+                        </span>
+                        <i class="bi bi-arrow-right-short link-arrow"></i>
+                    </div>
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+    
+    {% if show_more_link %}
+    <div class="internal-links-footer">
+        <a href="{{ show_more_link.url }}" class="show-more-link">
+            <span>{{ show_more_link.text }}</span>
+            <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    {% endif %}
+</div>

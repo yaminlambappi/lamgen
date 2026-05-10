@@ -8,10 +8,12 @@ from django.db.models import Q, F
 from django.core.cache import cache
 from django.conf import settings
 from .models import Tool, ToolCategory, ToolBookmark, ToolUsageHistory
-from .services.islamic_panel import PrayerTimesService
+from tools.services.internal_linking import internal_linking_engine
+from tools.services.islamic_panel import PrayerTimesService
 from seo.models import LongTailVariant
 from tools.data.elite_content import ELITE_TOOL_DATA
 from .utils.rate_limit import rate_limit
+from config.games import GAMES_CONFIG
 import json
 
 
@@ -230,6 +232,11 @@ def tool_view(request, category_slug, tool_slug):
 
     # Get related tools
     related_tools = get_related_tools(tool, all_category_tools)
+    # Get enhanced internal links with safe fallback
+    try:
+        internal_links = internal_linking_engine.get_tool_internal_links(tool, "tool_page")
+    except Exception:
+        internal_links = []
 
     # Use stored SEO content if present; otherwise generate and save
     if not tool.seo_intro:
@@ -273,12 +280,10 @@ def tool_view(request, category_slug, tool_slug):
         'elite': ELITE_TOOL_DATA.get(tool.slug, {}),
         'is_bookmarked': is_bookmarked,
         'related_tools': related_tools,
-        # SEO metadata
+        'internal_links': internal_links,
         'page_title': meta_title,
         'meta_description': meta_desc,
         'canonical_url': canonical,
-        'og_type': 'website',
-        # JSON-LD schemas
         'schema_json': tool_schema,
         'tool_schema': tool_schema,
         'faq_schema': faq_schema,
@@ -290,7 +295,6 @@ def tool_view(request, category_slug, tool_slug):
     })
 
 
-@cache_control(public=True, max_age=3600)
 def longtail_view(request, category_slug, tool_slug, variant_slug):
     category = get_object_or_404(ToolCategory, slug=category_slug, is_active=True)
     tool = get_object_or_404(Tool, slug=tool_slug, category=category, is_active=True)
@@ -300,30 +304,58 @@ def longtail_view(request, category_slug, tool_slug, variant_slug):
         variant_slug=variant_slug,
         is_active=True,
     )
-    all_category_tools = list(
-        Tool.objects.filter(category=category, is_active=True).exclude(id=tool.id).order_by('order', 'name')
+
+    import json as _json
+    from .utils.metadata import (
+        build_software_application_schema,
+        build_faq_schema,
+        build_breadcrumb_schema,
+        generate_use_cases,
+        generate_faq_items,
+        get_related_tools,
     )
-    from .utils.metadata import get_related_tools, generate_use_cases, generate_faq_items
-    related_tools = get_related_tools(tool, all_category_tools, limit=8)
-    
+
+    # Get enhanced internal links using smart linking engine
+    try:
+        internal_links = internal_linking_engine.get_tool_internal_links(tool, "tool_page")
+    except Exception:
+        internal_links = []
+
+    # Related tools — always computed regardless of internal_links
+    all_category_tools = list(
+        Tool.objects.filter(category=category, is_active=True)
+        .exclude(id=tool.id)
+        .order_by('order', 'name')
+    )
+    related_tools = get_related_tools(tool, all_category_tools)
+
     # Use stored SEO content from variant, fallback to generated
     seo_intro = variant.unique_intro
     seo_use_cases = variant.use_cases or generate_use_cases(tool.name, tool.tags or '')
     seo_faq_items = variant.faq_items or generate_faq_items(tool.name, tool.short_desc, category.name)
-    
+
+    # JSON-LD schemas
+    tool_schema = _json.dumps(build_software_application_schema(tool, request))
+    faq_schema = _json.dumps(build_faq_schema(seo_faq_items))
+    breadcrumb_schema = _json.dumps(build_breadcrumb_schema(request, category, tool))
+
     # SELF-REFERENTIAL CANONICAL: Each longtail page indexes independently
-    # with its own unique content to avoid duplicate content issues
     canonical = request.build_absolute_uri(variant.get_absolute_url())
-    
+
     return render(request, tool.template_name, {
         'tool': tool,
         'category': category,
         'variant': variant,
         'elite': ELITE_TOOL_DATA.get(tool.slug, {}),
         'related_tools': related_tools,
+        'internal_links': internal_links,
         'page_title': variant.meta_title,
         'meta_description': variant.meta_description,
         'canonical_url': canonical,
+        'schema_json': tool_schema,
+        'tool_schema': tool_schema,
+        'faq_schema': faq_schema,
+        'breadcrumb_schema': breadcrumb_schema,
         'seo_intro': seo_intro,
         'seo_use_cases': seo_use_cases,
         'seo_faq_items': seo_faq_items,
@@ -455,8 +487,16 @@ def islamic_panel_api(request):
     """Location-aware prayer snapshot for the global Islamic utility strip."""
     latitude = request.GET.get('lat')
     longitude = request.GET.get('lon')
-    snapshot = PrayerTimesService.get_snapshot(latitude=latitude, longitude=longitude)
-    return JsonResponse(snapshot)
+    try:
+        snapshot = PrayerTimesService.get_snapshot(latitude=latitude, longitude=longitude)
+        return JsonResponse(snapshot)
+    except Exception:
+        fallback_snapshot = PrayerTimesService._build_placeholder_snapshot(
+            PrayerTimesService.DEFAULT_LOCATION["latitude"],
+            PrayerTimesService.DEFAULT_LOCATION["longitude"],
+            fallback_label=PrayerTimesService.DEFAULT_LOCATION["label"],
+        )
+        return JsonResponse(fallback_snapshot)
 
 
 @require_POST
@@ -566,6 +606,16 @@ def trending_view(request):
         'page_title': 'Trending Tools — LamGen',
         'meta_description': 'Most popular free online tools on LamGen. See what others are using right now.',
     })
+
+
+@cache_control(public=True, max_age=300)  # 5 minutes cache
+def games_data_api(request):
+    """API endpoint to provide games data as JSON"""
+    try:
+        # Return the static games configuration
+        return JsonResponse(GAMES_CONFIG, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def models_F(val):

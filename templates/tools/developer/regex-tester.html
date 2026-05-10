@@ -6,7 +6,7 @@
 .dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
 .tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
 .act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.82rem;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
 .btn-sm:hover{background:rgba(255,255,255,.1)}
 .status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
 .status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
@@ -77,6 +77,7 @@
   <div class="act-row">
     <div class="status" id="st"></div>
     <div id="matchBadge"></div>
+    <button class="btn-sm" onclick="copyMatches()"><i class="bi bi-clipboard"></i> Copy Matches</button>
     <button class="btn-sm" onclick="clearAll()"><i class="bi bi-x-circle"></i> Clear</button>
   </div>
 
@@ -226,6 +227,12 @@ function clearAll() {
   document.getElementById('matchSection').style.display = 'none';
   document.getElementById('matchBadge').innerHTML = '';
   hideStatus('st');
+}
+
+function copyMatches() {
+  const rows = Array.from(document.querySelectorAll('#matchBody tr td:nth-child(2)')).map(td => td.textContent.trim()).filter(Boolean);
+  if (!rows.length) return;
+  navigator.clipboard.writeText(rows.join('\n'));
 }
 
 // Sync overlay scroll with textarea
