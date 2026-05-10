@@ -1767,6 +1767,36 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
 
 
 /* ================================================================
+   ICON SYSTEM — Bootstrap Icons reliability layer
+   Ensures icon containers never render as empty squares.
+   ================================================================ */
+
+/* Force font-display: block on Bootstrap Icons so glyphs swap in
+   immediately rather than showing invisible text during load */
+@font-face {
+    font-family: "bootstrap-icons";
+    font-display: block;
+    src: url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/fonts/bootstrap-icons.woff2") format("woff2"),
+         url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/fonts/bootstrap-icons.woff") format("woff");
+}
+
+/* Icon containers — always show colored background even before font loads.
+   The ::before pseudo-element is the glyph; the container itself is always visible. */
+[class*="bi-"] {
+    font-family: "bootstrap-icons" !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    vertical-align: -0.125em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent invisible-text FOIT — show colored box while font loads */
+    color: inherit;
+}
+
+/* ================================================================
    LAYOUT ENGINE — legacy classes kept for compatibility
    ================================================================ */
 .app-shell {
