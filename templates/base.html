@@ -136,50 +136,7 @@
     <div class="space-bg" aria-hidden="true"></div>
 
     <!-- ── Global Header ── -->
-    <header class="app-header" role="banner">
-        <div class="header-inner">
-            <!-- Left: Brand -->
-            <a href="{% url 'home' %}" class="nav-brand" aria-label="LamGen Home">
-                <img src="{% static 'img/favicon.svg' %}" alt="" class="brand-icon" width="28" height="28" aria-hidden="true">
-                <span class="nav-brand-name">LamGen</span>
-            </a>
-
-            <!-- Center: Navigation -->
-            <nav class="nav-menu" role="navigation" aria-label="Main navigation">
-                <a href="{% url 'tools:index' %}" class="nav-link {% if request.resolver_match.namespace == 'tools' %}active{% endif %}">Tools</a>
-                <a href="{% url 'seo:index' %}" class="nav-link {% if request.resolver_match.namespace == 'seo' %}active{% endif %}">Content</a>
-                <a href="{% url 'games:index' %}" class="nav-link {% if request.resolver_match.namespace == 'games' %}active{% endif %}">Games</a>
-                <a href="{% url 'blog:index' %}" class="nav-link {% if request.resolver_match.namespace == 'blog' %}active{% endif %}">Blog</a>
-            </nav>
-
-            <!-- Right: Actions -->
-            <div class="nav-actions">
-                <button class="nav-search-btn" onclick="openPaletteGlobal()" aria-label="Search tools">
-                    <i class="bi bi-search" aria-hidden="true"></i>
-                </button>
-                {% include "partials/auth_prompt.html" %}
-                <button class="nav-mobile-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu" aria-expanded="false" id="mobileMenuBtn">
-                    <i class="bi bi-list" aria-hidden="true"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Mobile Menu -->
-        <div class="nav-mobile-menu" id="mobileMenu" role="navigation" aria-label="Mobile navigation">
-            <a href="{% url 'tools:index' %}" class="nav-mobile-link {% if request.resolver_match.namespace == 'tools' %}active{% endif %}">
-                <i class="bi bi-tools"></i> Tools
-            </a>
-            <a href="{% url 'seo:index' %}" class="nav-mobile-link {% if request.resolver_match.namespace == 'seo' %}active{% endif %}">
-                <i class="bi bi-journal-text"></i> Content
-            </a>
-            <a href="{% url 'games:index' %}" class="nav-mobile-link {% if request.resolver_match.namespace == 'games' %}active{% endif %}">
-                <i class="bi bi-controller"></i> Games
-            </a>
-            <a href="{% url 'blog:index' %}" class="nav-mobile-link {% if request.resolver_match.namespace == 'blog' %}active{% endif %}">
-                <i class="bi bi-newspaper"></i> Blog
-            </a>
-        </div>
-    </header>
+    {% include "partials/navbar.html" %}
 
     <!-- ── Main Content ── -->
     <main id="main-content" role="main">
@@ -215,9 +172,6 @@
         </div>
     </div>
 
-    <!-- ── Modals ── -->
-    {% include "games/modal.html" %}
-
     <!-- ── Scripts ── -->
     {% block extra_js %}{% endblock %}
 
@@ -235,31 +189,98 @@
         .then(d => { window.GAMES_DATA = d; })
         .catch(() => {});
 
+    // ── Navbar scroll state ──
+    (function() {
+        var header = document.getElementById('appHeader');
+        if (!header) return;
+        var ticking = false;
+        function onScroll() {
+            if (!ticking) {
+                requestAnimationFrame(function() {
+                    header.classList.toggle('scrolled', window.scrollY > 12);
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+    })();
+
     // ── Mobile menu ──
     function toggleMobileMenu() {
-        const menu = document.getElementById('mobileMenu');
-        const btn = document.getElementById('mobileMenuBtn');
-        const isOpen = menu.classList.contains('open');
+        var menu = document.getElementById('mobileMenu');
+        var btn  = document.getElementById('mobileMenuBtn');
+        if (!menu || !btn) return;
+        var isOpen = menu.classList.contains('open');
         if (isOpen) {
             menu.classList.remove('open');
+            btn.classList.remove('is-open');
             btn.setAttribute('aria-expanded', 'false');
-            btn.querySelector('i').className = 'bi bi-list';
         } else {
             menu.classList.add('open');
+            btn.classList.add('is-open');
             btn.setAttribute('aria-expanded', 'true');
-            btn.querySelector('i').className = 'bi bi-x-lg';
         }
     }
     // Close mobile menu on outside click
     document.addEventListener('click', function(e) {
-        const menu = document.getElementById('mobileMenu');
-        const btn = document.getElementById('mobileMenuBtn');
-        if (menu && menu.classList.contains('open') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        var menu = document.getElementById('mobileMenu');
+        var btn  = document.getElementById('mobileMenuBtn');
+        if (!menu || !menu.classList.contains('open')) return;
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
             menu.classList.remove('open');
+            btn.classList.remove('is-open');
             btn.setAttribute('aria-expanded', 'false');
-            btn.querySelector('i').className = 'bi bi-list';
         }
     });
+    // Close dropdown menus on outside click
+    document.addEventListener('click', function(e) {
+        document.querySelectorAll('.nav-dropdown.open').forEach(function(dd) {
+            if (!dd.contains(e.target)) dd.classList.remove('open');
+        });
+    });
+
+    // ── Fullscreen toggle ──
+    (function() {
+        var btn = document.getElementById('navFullscreenBtn');
+        if (!btn) return;
+
+        function syncState() {
+            var active = !!(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement
+            );
+            btn.classList.toggle('is-fullscreen', active);
+            btn.setAttribute('aria-pressed', String(active));
+            btn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Toggle fullscreen');
+        }
+
+        window.toggleNavFullscreen = function() {
+            if (
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement
+            ) {
+                (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen)
+                    .call(document);
+            } else {
+                var el = document.documentElement;
+                (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen)
+                    .call(el);
+            }
+        };
+
+        document.addEventListener('fullscreenchange',       syncState);
+        document.addEventListener('webkitfullscreenchange', syncState);
+        document.addEventListener('mozfullscreenchange',    syncState);
+
+        // Hide button if Fullscreen API not supported
+        if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled) {
+            btn.style.display = 'none';
+        }
+    })();
 
     // ── Command Palette ──
     (function() {
@@ -365,186 +386,6 @@
     })();
     </script>
 
-    <style>
-    /* ══════════════════════════════════════════════
-       NAVBAR — unified design system
-    ══════════════════════════════════════════════ */
-    .app-header, .app-header * { box-sizing: border-box; }
 
-    .app-header {
-        position: sticky;
-        top: 0;
-        z-index: 500;
-        width: 100%;
-        background: rgba(7,9,26,0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(130,120,255,0.08);
-        box-shadow: 0 1px 20px rgba(0,0,12,0.22);
-    }
-
-    .header-inner {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 0 var(--lg-sp-6, 1.5rem);
-        height: 56px;
-        overflow: hidden;
-    }
-
-    .nav-brand {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-        flex-shrink: 0;
-        order: 0;
-        min-width: 0;
-    }
-    .brand-icon {
-        width: 26px; height: 26px;
-        border-radius: 6px;
-        flex-shrink: 0;
-    }
-    .nav-brand-name {
-        font-family: 'Syne', sans-serif;
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: var(--lg-text, #f0eeff);
-        letter-spacing: -0.2px;
-        white-space: nowrap;
-        background: none;
-        -webkit-background-clip: unset;
-        -webkit-text-fill-color: unset;
-        display: block;
-    }
-
-    .nav-menu {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        position: static;
-        flex-direction: row;
-        background: none;
-        border: none;
-        padding: 0;
-        order: 0;
-    }
-    .nav-link {
-        padding: 6px 14px;
-        border-radius: var(--lg-r-pill, 50px);
-        font-size: 0.86rem;
-        font-weight: 500;
-        color: rgba(200,195,255,0.60);
-        text-decoration: none;
-        transition: color 0.18s ease, background 0.18s ease;
-        font-family: 'Inter', sans-serif;
-        white-space: nowrap;
-        line-height: 1;
-    }
-    .nav-link:hover {
-        color: var(--lg-text, #f0eeff);
-        background: rgba(120,110,255,0.09);
-    }
-    .nav-link.active {
-        color: var(--lg-text, #f0eeff);
-        background: rgba(120,110,255,0.13);
-        font-weight: 600;
-    }
-
-    .nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-shrink: 0;
-        justify-content: flex-end;
-    }
-    .nav-search-btn {
-        width: 32px; height: 32px;
-        border-radius: 50%;
-        background: rgba(120,110,255,0.07);
-        border: 1px solid rgba(130,120,255,0.12);
-        color: rgba(200,195,255,0.60);
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.85rem;
-        transition: background 0.18s ease, color 0.18s ease;
-        flex-shrink: 0;
-    }
-    .nav-search-btn:hover {
-        background: rgba(120,110,255,0.14);
-        color: var(--lg-text, #f0eeff);
-    }
-    .nav-mobile-toggle {
-        display: none;
-        width: 32px; height: 32px;
-        border-radius: 8px;
-        background: rgba(120,110,255,0.07);
-        border: 1px solid rgba(130,120,255,0.12);
-        color: rgba(200,195,255,0.60);
-        cursor: pointer;
-        align-items: center; justify-content: center;
-        font-size: 1rem;
-        transition: background 0.18s ease, color 0.18s ease;
-        flex-shrink: 0;
-    }
-    .nav-mobile-toggle:hover {
-        background: rgba(120,110,255,0.14);
-        color: var(--lg-text, #f0eeff);
-    }
-
-    .nav-mobile-menu {
-        background: rgba(7,9,26,0.97);
-        border-top: 1px solid rgba(130,120,255,0.08);
-        padding: 6px 1rem 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        overflow: hidden;
-        max-height: 0;
-        opacity: 0;
-        transition: max-height 0.28s cubic-bezier(0.22,1,0.36,1),
-                    opacity 0.22s ease,
-                    padding 0.22s ease;
-    }
-    .nav-mobile-menu.open {
-        max-height: 280px;
-        opacity: 1;
-        padding: 6px 1rem 10px;
-    }
-    .nav-mobile-link {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 9px 12px;
-        border-radius: 10px;
-        color: rgba(200,195,255,0.60);
-        text-decoration: none;
-        font-size: 0.88rem;
-        font-weight: 500;
-        font-family: 'Inter', sans-serif;
-        transition: background 0.18s ease, color 0.18s ease;
-    }
-    .nav-mobile-link:hover,
-    .nav-mobile-link.active {
-        background: rgba(120,110,255,0.10);
-        color: var(--lg-text, #f0eeff);
-    }
-    .nav-mobile-link i { font-size: 0.9rem; width: 16px; text-align: center; }
-
-    @media (max-width: 768px) {
-        .nav-menu { display: none !important; }
-        .nav-mobile-toggle { display: flex !important; }
-        .header-inner { padding: 0 1rem; }
-    }
-    @media (max-width: 480px) {
-        .nav-brand-name { font-size: 0.95rem; }
-        .header-inner { padding: 0 0.75rem; }
-    }
-    body { overflow-x: hidden; }
-    </style>
 </body>
 </html>

@@ -1,0 +1,193 @@
+{% load static %}
+
+<header class="app-header" id="appHeader" role="banner">
+    <div class="header-inner">
+
+        {# ── Brand (always left) ── #}
+        <a href="{% url 'home' %}" class="nav-brand" aria-label="LamGen Home">
+            <div class="nav-brand-logo" aria-hidden="true">
+                <img src="{% static 'img/favicon.svg' %}" alt="" width="18" height="18">
+            </div>
+            <span class="nav-brand-name">LamGen</span>
+        </a>
+
+        {# ── Navigation links (always center) ── #}
+        <nav class="nav-menu" role="navigation" aria-label="Main navigation">
+            <a href="{% url 'tools:index' %}"
+               class="nav-link {% if request.resolver_match.namespace == 'tools' %}active{% endif %}">
+                Tools
+            </a>
+            <a href="{% url 'seo:index' %}"
+               class="nav-link {% if request.resolver_match.namespace == 'seo' %}active{% endif %}">
+                Content
+            </a>
+            <a href="{% url 'games:index' %}"
+               class="nav-link {% if request.resolver_match.namespace == 'games' %}active{% endif %}">
+                Games
+            </a>
+            <a href="{% url 'blog:index' %}"
+               class="nav-link {% if request.resolver_match.namespace == 'blog' %}active{% endif %}">
+                Blog
+            </a>
+        </nav>
+
+        {# ── Actions (always right) ── #}
+        <div class="nav-actions">
+
+            {# ── Search button — inline SVG, no font dependency ── #}
+            <button class="nav-action-icon-btn nav-search-btn"
+                    id="navSearchBtn"
+                    onclick="openPaletteGlobal()"
+                    aria-label="Search tools"
+                    aria-keyshortcuts="Control+K"
+                    type="button">
+                <svg class="nav-btn-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true" focusable="false">
+                    <circle cx="8.5" cy="8.5" r="5.25"/>
+                    <line x1="12.5" y1="12.5" x2="17" y2="17"/>
+                </svg>
+                <span class="nav-search-label">Search</span>
+                <span class="nav-search-kbd" aria-hidden="true">
+                    <kbd>⌘</kbd><kbd>K</kbd>
+                </span>
+            </button>
+
+            {# ── Fullscreen button — inline SVG ── #}
+            <button class="nav-action-icon-btn nav-fullscreen-btn"
+                    id="navFullscreenBtn"
+                    onclick="toggleNavFullscreen()"
+                    aria-label="Toggle fullscreen"
+                    aria-pressed="false"
+                    type="button">
+                {# Expand icon (default) #}
+                <svg class="nav-btn-icon fs-icon-expand" viewBox="0 0 20 20" fill="none"
+                     stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <polyline points="3,8 3,3 8,3"/>
+                    <polyline points="17,8 17,3 12,3"/>
+                    <polyline points="3,12 3,17 8,17"/>
+                    <polyline points="17,12 17,17 12,17"/>
+                </svg>
+                {# Compress icon (active/fullscreen state) #}
+                <svg class="nav-btn-icon fs-icon-compress" viewBox="0 0 20 20" fill="none"
+                     stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <polyline points="8,3 8,8 3,8"/>
+                    <polyline points="12,3 12,8 17,8"/>
+                    <polyline points="8,17 8,12 3,12"/>
+                    <polyline points="12,17 12,12 17,12"/>
+                </svg>
+            </button>
+
+            {# ── Auth area ── #}
+            {% if user.is_authenticated %}
+            <div class="nav-dropdown">
+                <button class="nav-user-btn nav-dropdown-toggle"
+                        onclick="this.closest('.nav-dropdown').classList.toggle('open')"
+                        aria-label="Account menu"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        type="button">
+                    <svg class="nav-btn-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true" focusable="false">
+                        <circle cx="10" cy="7" r="3.5"/>
+                        <path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6"/>
+                    </svg>
+                </button>
+                <div class="nav-dropdown-menu" role="menu">
+                    <div class="menu-label">{{ user.username }}</div>
+                    <div class="divider"></div>
+                    <a href="{% url 'home' %}" role="menuitem">
+                        <i class="bi bi-person" aria-hidden="true"></i> Account
+                    </a>
+                    <div class="divider"></div>
+                    <form method="post" action="{% url 'accounts:logout' %}" style="display:contents;">
+                        {% csrf_token %}
+                        <button type="submit" class="danger-item" role="menuitem">
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% endif %}
+
+            {# ── Mobile hamburger — inline SVG ── #}
+            <button class="nav-mobile-toggle"
+                    onclick="toggleMobileMenu()"
+                    aria-label="Toggle navigation menu"
+                    aria-expanded="false"
+                    aria-controls="mobileMenu"
+                    id="mobileMenuBtn"
+                    type="button">
+                {# Hamburger (default) #}
+                <svg class="nav-btn-icon mob-icon-open" viewBox="0 0 20 20" fill="none"
+                     stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                     aria-hidden="true" focusable="false">
+                    <line x1="3" y1="6"  x2="17" y2="6"/>
+                    <line x1="3" y1="10" x2="17" y2="10"/>
+                    <line x1="3" y1="14" x2="17" y2="14"/>
+                </svg>
+                {# Close X (open state) #}
+                <svg class="nav-btn-icon mob-icon-close" viewBox="0 0 20 20" fill="none"
+                     stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                     aria-hidden="true" focusable="false">
+                    <line x1="4" y1="4" x2="16" y2="16"/>
+                    <line x1="16" y1="4" x2="4" y2="16"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    {# ── Mobile menu ── #}
+    <nav class="nav-mobile-menu"
+         id="mobileMenu"
+         role="navigation"
+         aria-label="Mobile navigation">
+
+        {# Mobile search shortcut #}
+        <button class="nav-mobile-search"
+                onclick="toggleMobileMenu(); openPaletteGlobal();"
+                aria-label="Search tools"
+                type="button">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                 width="16" height="16" aria-hidden="true" focusable="false">
+                <circle cx="8.5" cy="8.5" r="5.25"/>
+                <line x1="12.5" y1="12.5" x2="17" y2="17"/>
+            </svg>
+            <span>Search tools…</span>
+            <span class="nav-mobile-search-hint" aria-hidden="true">
+                <kbd>⌘</kbd><kbd>K</kbd>
+            </span>
+        </button>
+
+        <div class="nav-mobile-divider" aria-hidden="true"></div>
+
+        <a href="{% url 'tools:index' %}"
+           class="nav-mobile-link {% if request.resolver_match.namespace == 'tools' %}active{% endif %}">
+            <i class="bi bi-tools" aria-hidden="true"></i> Tools
+        </a>
+        <a href="{% url 'seo:index' %}"
+           class="nav-mobile-link {% if request.resolver_match.namespace == 'seo' %}active{% endif %}">
+            <i class="bi bi-journal-text" aria-hidden="true"></i> Content
+        </a>
+        <a href="{% url 'games:index' %}"
+           class="nav-mobile-link {% if request.resolver_match.namespace == 'games' %}active{% endif %}">
+            <i class="bi bi-controller" aria-hidden="true"></i> Games
+        </a>
+        <a href="{% url 'blog:index' %}"
+           class="nav-mobile-link {% if request.resolver_match.namespace == 'blog' %}active{% endif %}">
+            <i class="bi bi-newspaper" aria-hidden="true"></i> Blog
+        </a>
+
+        {% if not user.is_authenticated %}
+        <div class="nav-mobile-divider" aria-hidden="true"></div>
+        <a href="{% url 'accounts:login' %}" class="nav-mobile-link">
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Sign in
+        </a>
+        {% endif %}
+    </nav>
+</header>
