@@ -21,24 +21,24 @@
                         <div class="info-item">
                             <h3>General Inquiries</h3>
                             <p>For general questions, feedback, or support:</p>
-                            <a href="mailto:support@lamgen.lamlab.me" class="contact-link">support@lamgen.lamlab.me</a>
+                            <a href="mailto:connect@lamlab.me" class="contact-link">connect@lamlab.me</a>
                         </div>
                         <div class="info-item">
                             <h3>Privacy & Security</h3>
                             <p>For privacy concerns or security issues:</p>
-                            <a href="mailto:privacy@lamgen.lamlab.me" class="contact-link">privacy@lamgen.lamlab.me</a>
+                            <a href="mailto:connect@lamlab.me" class="contact-link">connect@lamlab.me</a>
                         </div>
                         <div class="info-item">
                             <h3>Business Inquiries</h3>
                             <p>For partnerships, enterprise, or business opportunities:</p>
-                            <a href="mailto:business@lamgen.lamlab.me" class="contact-link">business@lamgen.lamlab.me</a>
+                            <a href="mailto:connect@lamlab.me" class="contact-link">connect@lamlab.me</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="contact-form">
                     <h2><i class="bi bi-chat-dots"></i> Send us a Message</h2>
-                    <form method="post" action="mailto:support@lamgen.lamlab.me" class="contact-form-element" onsubmit="return handleContactSubmit(event)">
+                    <form method="post" action="mailto:connect@lamlab.me" class="contact-form-element" onsubmit="return handleContactSubmit(event)">
                         {% csrf_token %}
                         
                         <div class="form-group">
@@ -107,7 +107,7 @@
                         const email = document.getElementById('email').value;
                         const subject = document.getElementById('subject').value;
                         const message = document.getElementById('message').value;
-                        const mailto = `mailto:support@lamgen.lamlab.me?subject=${encodeURIComponent('[LamGen] ' + subject)}&body=${encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + message)}`;
+                        const mailto = `mailto:connect@lamlab.me?subject=${encodeURIComponent('[LamGen] ' + subject)}&body=${encodeURIComponent('Name: ' + name + '\nEmail: ' + email + '\n\n' + message)}`;
                         window.location.href = mailto;
                     }
                     </script>
