@@ -43,6 +43,7 @@ else:
     sitemaps = get_sitemaps()
 
 from tools.views import index as control_center_view
+from tools.admin_views import tool_system_health_view
 
 _urlpatterns_prefix = []
 if settings.DEBUG:
@@ -53,6 +54,7 @@ if settings.DEBUG:
     _urlpatterns_prefix += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns = _urlpatterns_prefix + [
+    path('admin/system-health/', admin.site.admin_view(tool_system_health_view), name='admin_tool_system_health'),
     path('admin/', admin.site.urls),
     path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'img/favicon.svg', permanent=False)),
     path('robots.txt', robots_txt, name='robots_txt'),

@@ -3,20 +3,24 @@
 <style>
 .dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
 .tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:.4rem}
-.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code{width:100%;min-height:180px;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:
+'JetBrains Mono',monospace;font-size:.85rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
 .tool-code:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
 .tool-code::placeholder{color:rgba(255,255,255,.2)}
 .tool-code.out{background:rgba(0,0,0,.4)}
 .act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,var(--primary),#8B85FF);color:#fff;border:none;border-radius:10px;font-family:
+'Inter',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(108,99,255,.25)}
 .btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,.4)}
-.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:
+'Inter',sans-serif}
 .btn-sm:hover{background:rgba(255,255,255,.1)}
 .status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
 .status.err{display:flex;background:rgba(255,107,107,.1);color:#FF6B6B;border:1px solid rgba(255,107,107,.25)}
 .status.ok{display:flex;background:rgba(0,245,212,.08);color:var(--accent);border:1px solid rgba(0,245,212,.2)}
 .mode-tabs{display:flex;gap:4px;flex-wrap:wrap}
-.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:'Inter',sans-serif}
+.mode-tab{padding:6px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted);transition:all .2s;font-family:
+'Inter',sans-serif}
 .mode-tab.active{background:rgba(108,99,255,.15);border-color:var(--primary);color:var(--primary)}
 .opt-row{display:flex;gap:1rem;flex-wrap:wrap;align-items:center}
 .opt-label{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:var(--muted);cursor:pointer}
@@ -42,12 +46,12 @@
     <div>
       <span style="font-size:.85rem;color:var(--muted);margin-right:.5rem">Scope:</span>
       <select style="padding:7px 12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;outline:none;cursor:pointer" id="encodeScope">
-        <option value="html">HTML special chars only (&lt; &gt; &amp; &quot; &#39;)</option>
+        <option value="html">HTML special chars only (< > & " &#39;)</option>
         <option value="all">All non-ASCII characters</option>
         <option value="full">All non-ASCII + HTML special chars</option>
       </select>
     </div>
-    <label class="opt-label"><input type="checkbox" id="useNamed" checked> Named entities (&amp;amp; vs &amp;#38;)</label>
+    <label class="opt-label"><input type="checkbox" id="useNamed" checked> Named entities (& vs &#38;)</label>
   </div>
 
   <div>
@@ -83,146 +87,197 @@
 
 {% block tool_js %}
 <script>
-let currentMode = 'encode';
+(function() {
+  let currentMode = 'encode';
 
-const NAMED_ENTITIES = {
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  '©': '&copy;', '®': '&reg;', '™': '&trade;', '€': '&euro;', '£': '&pound;',
-  '¥': '&yen;', '°': '&deg;', '±': '&plusmn;', '×': '&times;', '÷': '&divide;',
-  '½': '&frac12;', '¼': '&frac14;', '¾': '&frac34;', '→': '&rarr;', '←': '&larr;',
-  '↑': '&uarr;', '↓': '&darr;', '•': '&bull;', '…': '&hellip;', '—': '&mdash;',
-  '–': '&ndash;', '"': '&ldquo;', '"': '&rdquo;', ''': '&lsquo;', ''': '&rsquo;',
-  '«': '&laquo;', '»': '&raquo;', '¡': '&iexcl;', '¿': '&iquest;', 'à': '&agrave;',
-  'á': '&aacute;', 'â': '&acirc;', 'ã': '&atilde;', 'ä': '&auml;', 'å': '&aring;',
-  'æ': '&aelig;', 'ç': '&ccedil;', 'è': '&egrave;', 'é': '&eacute;', 'ê': '&ecirc;',
-  'ë': '&euml;', 'ì': '&igrave;', 'í': '&iacute;', 'î': '&icirc;', 'ï': '&iuml;',
-  'ñ': '&ntilde;', 'ò': '&ograve;', 'ó': '&oacute;', 'ô': '&ocirc;', 'õ': '&otilde;',
-  'ö': '&ouml;', 'ø': '&oslash;', 'ù': '&ugrave;', 'ú': '&uacute;', 'û': '&ucirc;',
-  'ü': '&uuml;', 'ý': '&yacute;', 'ÿ': '&yuml;', 'ß': '&szlig;'
-};
+  const NAMED_ENTITIES = {
+    '&': '&',
+    '<': '<',
+    '>': '>',
+    '"': '"',
+    "'": '&#39;',
+    '©': '&copy;',
+    '®': '&reg;',
+    '™': '&trade;',
+    '€': '&euro;',
+    '£': '&pound;',
+    '¥': '&yen;',
+    '°': '&deg;',
+    '±': '&plusmn;',
+    '×': '&times;',
+    '÷': '&divide;',
+    '½': '&frac12;',
+    '¼': '&frac14;',
+    '¾': '&frac34;',
+    '→': '&rarr;',
+    '←': '&larr;',
+    '↑': '&uarr;',
+    '↓': '&darr;',
+    '•': '&bull;',
+    '…': '&hellip;',
+    '—': '&mdash;',
+    '–': '&ndash;',
+    '“': '&ldquo;',
+    '”': '&rdquo;',
+    '‘': '&lsquo;',
+    '’': '&rsquo;',
+    '«': '&laquo;',
+    '»': '&raquo;',
+    '¡': '&iexcl;',
+    '¿': '&iquest;',
+    'à': '&agrave;',
+    'á': '&aacute;',
+    'â': '&acirc;',
+    'ã': '&atilde;',
+    'ä': '&auml;',
+    'å': '&aring;',
+    'æ': '&aelig;',
+    'ç': '&ccedil;',
+    'è': '&egrave;',
+    'é': '&eacute;',
+    'ê': '&ecirc;',
+    'ë': '&euml;',
+    'ì': '&igrave;',
+    'í': '&iacute;',
+    'î': '&icirc;',
+    'ï': '&iuml;',
+    'ñ': '&ntilde;',
+    'ò': '&ograve;',
+    'ó': '&oacute;',
+    'ô': '&ocirc;',
+    'õ': '&otilde;',
+    'ö': '&ouml;',
+    'ø': '&oslash;',
+    'ù': '&ugrave;',
+    'ú': '&uacute;',
+    'û': '&ucirc;',
+    'ü': '&uuml;',
+    'ý': '&yacute;',
+    'ÿ': '&yuml;',
+    'ß': '&szlig;'
+  };
 
-const EXAMPLES = {
-  html: `<div class="container">
-  <h1>Hello & Welcome!</h1>
-  <p>Use "quotes" and 'apostrophes' freely.</p>
-  <a href="https://example.com?a=1&b=2">Link</a>
-</div>`,
-  unicode: `Café au lait costs €3.50
-Copyright © 2024 — All rights reserved™
-Temperature: 25°C ± 2°
-Fractions: ½ ¼ ¾`,
-  xss: `<script>alert('XSS Attack!')</script>
-<img src="x" onerror="alert(1)">
-<a href="javascript:void(0)">Click me</a>`
-};
+  const EXAMPLES = {
+    html: `<div class="container">
+    <h1>Hello & Welcome!</h1>
+    <p>Use "quotes" and 'apostrophes' freely.</p>
+    <a href="https://example.com?a=1&b=2">Link</a>
+  </div>`,
+    unicode: `Café au lait costs €3.50
+  Copyright © 2024 — All rights reserved™
+  Temperature: 25°C ± 2°
+  Fractions: ½ ¼ ¾`,
+    xss: `<script>alert(\'XSS Attack!\')</scr` + `ipt>\n<img src="#" onerror="alert(1)">\n<a href="javascript:void(0)">Click me</a>`
+  };
 
-function loadEx(key) {
-  document.getElementById('inputText').value = EXAMPLES[key];
-}
-
-function setMode(btn, mode) {
-  currentMode = mode;
-  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const isEncode = mode === 'encode';
-  document.getElementById('inputLabel').textContent = isEncode ? 'Input Text' : 'Encoded Text';
-  document.getElementById('outputLabel').textContent = isEncode ? 'Encoded Output' : 'Decoded Output';
-  document.getElementById('actionBtn').innerHTML = isEncode ? '<i class="bi bi-shield-fill"></i> Encode' : '<i class="bi bi-unlock-fill"></i> Decode';
-  document.getElementById('encodeOpts').style.display = isEncode ? 'flex' : 'none';
-}
-
-function process() {
-  const input = document.getElementById('inputText').value;
-  if (!input) { showErr('st','No input provided'); return; }
-  hideStatus('st');
-
-  let output = '';
-  let count = 0;
-
-  if (currentMode === 'encode') {
-    const scope = document.getElementById('encodeScope').value;
-    const useNamed = document.getElementById('useNamed').checked;
-
-    output = input.split('').map(char => {
-      const code = char.charCodeAt(0);
-      // Always encode HTML special chars
-      if (NAMED_ENTITIES[char] && (scope === 'html' || scope === 'full')) {
-        count++;
-        return useNamed ? NAMED_ENTITIES[char] : `&#${code};`;
-      }
-      // Encode non-ASCII
-      if (code > 127 && (scope === 'all' || scope === 'full')) {
-        count++;
-        if (useNamed && NAMED_ENTITIES[char]) return NAMED_ENTITIES[char];
-        return `&#${code};`;
-      }
-      return char;
-    }).join('');
-  } else {
-    // Decode
-    output = input
-      .replace(/&([a-zA-Z]+);/g, (match, name) => {
-        const el = document.createElement('textarea');
-        el.innerHTML = match;
-        const decoded = el.value;
-        if (decoded !== match) { count++; return decoded; }
-        return match;
-      })
-      .replace(/&#(\d+);/g, (match, num) => { count++; return String.fromCharCode(parseInt(num)); })
-      .replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => { count++; return String.fromCharCode(parseInt(hex, 16)); });
+  window.loadEx = function(key) {
+    document.getElementById('inputText').value = EXAMPLES[key];
   }
 
-  document.getElementById('outputText').value = output;
-  document.getElementById('stats').innerHTML = `
-    <span><i class="bi bi-arrow-repeat"></i> ${count} entities ${currentMode === 'encode' ? 'encoded' : 'decoded'}</span>
-    <span><i class="bi bi-file-earmark"></i> ${output.length} chars output</span>
-  `;
-  showOk('st', `${currentMode === 'encode' ? 'Encoded' : 'Decoded'} — ${count} entities`);
-}
+  window.setMode = function(btn, mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const isEncode = mode === 'encode';
+    document.getElementById('inputLabel').textContent = isEncode ? 'Input Text' : 'Encoded Text';
+    document.getElementById('outputLabel').textContent = isEncode ? 'Encoded Output' : 'Decoded Output';
+    document.getElementById('actionBtn').innerHTML = isEncode ? '<i class="bi bi-shield-fill"></i> Encode' : '<i class="bi bi-unlock-fill"></i> Decode';
+    document.getElementById('encodeOpts').style.display = isEncode ? 'flex' : 'none';
+  }
 
-function swapIO() {
-  const input = document.getElementById('inputText');
-  const output = document.getElementById('outputText');
-  const temp = input.value;
-  input.value = output.value;
-  output.value = temp;
-}
+  window.process = function() {
+    const input = document.getElementById('inputText').value;
+    if (!input) { showErr('st', 'No input provided'); return; }
+    hideStatus('st');
 
-function copyOut() {
-  const v = document.getElementById('outputText').value;
-  if (!v) return;
-  navigator.clipboard.writeText(v).then(() => {
-    const btn = document.getElementById('btnCopy');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
-    btn.style.color = 'var(--accent)';
-    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+    let output = '';
+    let count = 0;
+
+    if (currentMode === 'encode') {
+      const scope = document.getElementById('encodeScope').value;
+      const useNamed = document.getElementById('useNamed').checked;
+
+      output = input.split('').map(char => {
+        const code = char.charCodeAt(0);
+        // Always encode HTML special chars
+        if (NAMED_ENTITIES[char] && (scope === 'html' || scope === 'full')) {
+          count++;
+          return useNamed ? NAMED_ENTITIES[char] : `&#${code};`;
+        }
+        // Encode non-ASCII
+        if (code > 127 && (scope === 'all' || scope === 'full')) {
+          count++;
+          if (useNamed && NAMED_ENTITIES[char]) return NAMED_ENTITIES[char];
+          return `&#${code};`;
+        }
+        return char;
+      }).join('');
+    } else {
+      // Decode
+      output = input
+        .replace(/&([a-zA-Z]+);/g, (match, name) => {
+          const el = document.createElement('textarea');
+          el.innerHTML = match;
+          const decoded = el.value;
+          if (decoded !== match) { count++; return decoded; }
+          return match;
+        })
+        .replace(/&#(\d+);/g, (match, num) => { count++; return String.fromCharCode(parseInt(num)); })
+        .replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => { count++; return String.fromCharCode(parseInt(hex, 16)); });
+    }
+
+    document.getElementById('outputText').value = output;
+    document.getElementById('stats').innerHTML = `
+      <span><i class="bi bi-arrow-repeat"></i> ${count} entities ${currentMode === 'encode' ? 'encoded' : 'decoded'}</span>
+      <span><i class="bi bi-file-earmark"></i> ${output.length} chars output</span>
+    `;
+    showOk('st', `${currentMode === 'encode' ? 'Encoded' : 'Decoded'} — ${count} entities`);
+  }
+
+  window.swapIO = function() {
+    const input = document.getElementById('inputText');
+    const output = document.getElementById('outputText');
+    const temp = input.value;
+    input.value = output.value;
+    output.value = temp;
+  }
+
+  window.copyOut = function() {
+    const v = document.getElementById('outputText').value;
+    if (!v) return;
+    navigator.clipboard.writeText(v).then(() => {
+      const btn = document.getElementById('btnCopy');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+      btn.style.color = 'var(--accent)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+    });
+  }
+
+  window.downloadOut = function() {
+    const v = document.getElementById('outputText').value;
+    if (!v) return;
+    const blob = new Blob([v], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${currentMode}d.txt`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  window.clearAll = function() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('outputText').value = '';
+    document.getElementById('stats').innerHTML = '';
+    hideStatus('st');
+  }
+
+  function showErr(id, msg) { const el = document.getElementById(id); el.className = 'status err'; el.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + msg; }
+  function showOk(id, msg) { const el = document.getElementById(id); el.className = 'status ok'; el.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + msg; }
+  function hideStatus(id) { document.getElementById(id).className = 'status'; }
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); process(); }
   });
-}
-
-function downloadOut() {
-  const v = document.getElementById('outputText').value;
-  if (!v) return;
-  const blob = new Blob([v], {type:'text/plain'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `${currentMode}d.txt`; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function clearAll() {
-  document.getElementById('inputText').value = '';
-  document.getElementById('outputText').value = '';
-  document.getElementById('stats').innerHTML = '';
-  hideStatus('st');
-}
-
-function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
-function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
-function hideStatus(id){document.getElementById(id).className='status';}
-
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); process(); }
-});
+})();
 </script>
 {% endblock %}

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LamGen Tool Health — {{ report.generated_at|default:"" }}</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --text: #e6edf3;
+      --muted: #8b9cb3;
+      --ok: #3fb950;
+      --warn: #d29922;
+      --bad: #f85149;
+      --border: #30363d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.5;
+    }
+    header {
+      padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, #161b22 0%, var(--bg) 100%);
+    }
+    h1 { margin: 0 0 0.25rem; font-size: 1.35rem; font-weight: 600; }
+    .meta { color: var(--muted); font-size: 0.875rem; }
+    main { padding: 1.5rem 2rem 3rem; max-width: 1200px; margin: 0 auto; }
+    .summary {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem 1.25rem;
+    }
+    .card .n { font-size: 1.75rem; font-weight: 700; }
+    .card .l { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .ok .n { color: var(--ok); }
+    .warn .n { color: var(--warn); }
+    .bad .n { color: var(--bad); }
+    h2 { font-size: 1.1rem; margin: 2rem 0 0.75rem; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td { padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .pill {
+      display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .pill-healthy { background: rgba(63,185,80,0.15); color: var(--ok); }
+    .pill-warning { background: rgba(210,153,34,0.15); color: var(--warn); }
+    .pill-broken { background: rgba(248,81,73,0.15); color: var(--bad); }
+    .slug { font-family: ui-monospace, monospace; font-size: 0.8rem; color: #79c0ff; }
+    ul.issues { margin: 0.25rem 0 0; padding-left: 1.1rem; color: var(--muted); font-size: 0.8rem; }
+    .hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.35rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tool Health Audit</h1>
+    <div class="meta">
+      {% if report.run_id %}Run <code>{{ report.run_id }}</code> · {% endif %}
+      {{ report.generated_at }} · Base {{ report.base_url }}
+    </div>
+  </header>
+  <main>
+    {% with s=report.summary %}
+    <div class="summary">
+      <div class="card"><div class="l">Total</div><div class="n">{{ s.total }}</div></div>
+      <div class="card ok"><div class="l">Healthy</div><div class="n">{{ s.healthy }}</div></div>
+      <div class="card warn"><div class="l">Warnings</div><div class="n">{{ s.warning }}</div></div>
+      <div class="card bad"><div class="l">Broken</div><div class="n">{{ s.broken }}</div></div>
+    </div>
+    {% endwith %}
+
+    <h2>By category</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Total</th>
+          <th>Healthy</th>
+          <th>Warnings</th>
+          <th>Broken</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in report.categories %}
+        <tr>
+          <td><strong>{{ c.name }}</strong><br><span class="slug">{{ c.slug }}</span></td>
+          <td>{{ c.total }}</td>
+          <td>{{ c.healthy }}</td>
+          <td>{{ c.warning }}</td>
+          <td>{{ c.broken }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No categories in report.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Broken tools</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Category</th>
+          <th>HTTP</th>
+          <th>Load (ms)</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in report.broken_tools %}
+        <tr>
+          <td>
+            <span class="slug">{{ t.tool_slug }}</span><br>{{ t.tool_name }}
+            {% if t.issues %}
+            <ul class="issues">{% for i in t.issues|slice:":4" %}<li>{{ i }}</li>{% endfor %}</ul>
+            {% endif %}
+            {% if t.suggested_fixes %}
+            <div class="hint">{% for f in t.suggested_fixes|slice:":2" %}→ {{ f }}<br>{% endfor %}</div>
+            {% endif %}
+          </td>
+          <td>{{ t.category_name }}</td>
+          <td>{{ t.http_status|default:"—" }}</td>
+          <td>{{ t.load_time_ms|default:"—" }}</td>
+          <td><span class="pill pill-broken">broken</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">None — all tools passed critical checks.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Warnings</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Category</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in report.warnings %}
+        <tr>
+          <td><span class="slug">{{ t.tool_slug }}</span></td>
+          <td>{{ t.category_name }}</td>
+          <td>
+            {% if t.console_errors %}Console: {{ t.console_errors|length }} errors<br>{% endif %}
+            {% if t.network_failures %}
+              {% for nf in t.network_failures|slice:":2" %}
+                Network: {{ nf }}<br>
+              {% endfor %}
+            {% endif %}
+            {% if t.template_file_missing %}Template path / loader issue<br>{% endif %}
+            {% if t.suggested_fixes %}<div class="hint">{% for f in t.suggested_fixes|slice:":2" %}→ {{ f }}<br>{% endfor %}</div>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No warnings.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

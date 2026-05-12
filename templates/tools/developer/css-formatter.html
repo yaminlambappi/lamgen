@@ -65,181 +65,182 @@
 
 {% block tool_js %}
 <script>
-// Register CSS formatter tool data
-registerToolData('cssFormatter', {
-  examples: {
-    simple: `.container{display:flex;flex-direction:column;gap:1rem;background:#fff;padding:20px;border-radius:8px}.btn{display:inline-flex;align-items:center;padding:10px 20px;background:#6C63FF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px}.btn:hover{background:#5a52e0;transform:translateY(-1px)}`,
-    media: `body{margin:0;font-family:sans-serif;background:#f5f5f5}.container{max-width:1200px;margin:0 auto;padding:0 20px}@media(max-width:768px){.container{padding:0 10px}.nav{display:none}.mobile-nav{display:block}}@media(max-width:480px){body{font-size:14px}}`,
-    vars: `:root{--primary:#6C63FF;--accent:#00F5D4;--bg:#0a0a0f;--text:#ffffff;--muted:rgba(255,255,255,0.5);--border:rgba(255,255,255,0.1)}.card{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1.5rem;border-radius:12px}.card-title{color:var(--primary);font-size:1.2rem}`
+(function() {
+  // Register CSS formatter tool data
+  registerToolData("cssFormatter", {
+    examples: {
+      simple: `.container{display:flex;flex-direction:column;gap:1rem;background:#fff;padding:20px;border-radius:8px}.btn{display:inline-flex;align-items:center;padding:10px 20px;background:#6C63FF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px}.btn:hover{background:#5a52e0;transform:translateY(-1px)}`,
+      media: `body{margin:0;font-family:sans-serif;background:#f5f5f5}.container{max-width:1200px;margin:0 auto;padding:0 20px}@media(max-width:768px){.container{padding:0 10px}.nav{display:none}.mobile-nav{display:block}}@media(max-width:480px){body{font-size:14px}}`,
+      vars: `:root{--primary:#6C63FF;--accent:#00F5D4;--bg:#0a0a0f;--text:#ffffff;--muted:rgba(255,255,255,0.5);--border:rgba(255,255,255,0.1)}.card{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1.5rem;border-radius:12px}.card-title{color:var(--primary);font-size:1.2rem}`
+    }
+  });
+
+  const EXAMPLES = window.LamGenTools.cssFormatter.examples;
+
+  window.loadEx = function(key) {
+    document.getElementById('cssIn').value = EXAMPLES[key];
+    formatCSS();
   }
-});
 
-const EXAMPLES = window.LamGenTools.cssFormatter.examples;
+  window.formatCSS = function() {
+    const raw = document.getElementById('cssIn').value.trim();
+    if (!raw) { showErr('st','No input provided'); return; }
+    hideStatus('st');
 
-function loadEx(key) {
-  document.getElementById('cssIn').value = EXAMPLES[key];
-  formatCSS();
-}
+    try {
+      const sortProps = document.getElementById('sortProps').checked;
+      const blankLines = document.getElementById('blankLines').checked;
+      const singleLine = document.getElementById('singleLine').checked;
 
-function formatCSS() {
-  const raw = document.getElementById('cssIn').value.trim();
-  if (!raw) { showErr('st','No input provided'); return; }
-  hideStatus('st');
+      // Tokenize CSS
+      const tokens = tokenizeCSS(raw);
+      const formatted = formatTokens(tokens, sortProps, blankLines, singleLine);
 
-  try {
-    const sortProps = document.getElementById('sortProps').checked;
-    const blankLines = document.getElementById('blankLines').checked;
-    const singleLine = document.getElementById('singleLine').checked;
+      document.getElementById('cssOut').value = formatted;
 
-    // Tokenize CSS
-    const tokens = tokenizeCSS(raw);
-    const formatted = formatTokens(tokens, sortProps, blankLines, singleLine);
-
-    document.getElementById('cssOut').value = formatted;
-
-    // Stats
-    const ruleCount = (formatted.match(/\{/g) || []).length;
-    const propCount = (formatted.match(/:\s*[^;{]+;/g) || []).length;
-    const lines = formatted.split('\n').length;
-    document.getElementById('stats').innerHTML = `
-      <span><i class="bi bi-braces"></i> ${ruleCount} rules</span>
-      <span><i class="bi bi-list-ul"></i> ${propCount} properties</span>
-      <span><i class="bi bi-file-earmark"></i> ${lines} lines</span>
-    `;
-    showOk('st','CSS formatted');
-  } catch(e) {
-    showErr('st', 'Error: ' + e.message);
+      // Stats
+      const ruleCount = (formatted.match(/\{/g) || []).length;
+      const propCount = (formatted.match(/:\s*[^;{]+;/g) || []).length;
+      const lines = formatted.split('\n').length;
+      document.getElementById('stats').innerHTML = `
+        <span><i class="bi bi-braces"></i> ${ruleCount} rules</span>
+        <span><i class="bi bi-list-ul"></i> ${propCount} properties</span>
+        <span><i class="bi bi-file-earmark"></i> ${lines} lines</span>
+      `;
+      showOk('st','CSS formatted');
+    } catch(e) {
+      showErr('st', 'Error: ' + e.message);
+    }
   }
-}
 
-function tokenizeCSS(css) {
-  // Remove comments
-  css = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  const tokens = [];
-  let i = 0;
-  while (i < css.length) {
-    // Skip whitespace
-    if (/\s/.test(css[i])) { i++; continue; }
-    // At-rule
-    if (css[i] === '@') {
-      let j = i;
-      while (j < css.length && css[j] !== '{' && css[j] !== ';') j++;
-      if (css[j] === ';') {
-        tokens.push({ type: 'at-simple', value: css.slice(i, j+1).trim() });
-        i = j + 1;
-      } else {
-        const selector = css.slice(i, j).trim();
-        // Find matching brace
-        let depth = 0, k = j;
-        while (k < css.length) {
-          if (css[k] === '{') depth++;
-          else if (css[k] === '}') { depth--; if (depth === 0) break; }
-          k++;
+  function tokenizeCSS(css) {
+    // Remove comments
+    css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    const tokens = [];
+    let i = 0;
+    while (i < css.length) {
+      // Skip whitespace
+      if (/\s/.test(css[i])) { i++; continue; }
+      // At-rule
+      if (css[i] === '@') {
+        let j = i;
+        while (j < css.length && css[j] !== '{' && css[j] !== ';') j++;
+        if (css[j] === ';') {
+          tokens.push({ type: 'at-simple', value: css.slice(i, j+1).trim() });
+          i = j + 1;
+        } else {
+          const selector = css.slice(i, j).trim();
+          // Find matching brace
+          let depth = 0, k = j;
+          while (k < css.length) {
+            if (css[k] === '{') depth++;
+            else if (css[k] === '}') { depth--; if (depth === 0) break; }
+            k++;
+          }
+          const inner = css.slice(j+1, k).trim();
+          tokens.push({ type: 'at-block', selector, inner });
+          i = k + 1;
         }
-        const inner = css.slice(j+1, k).trim();
-        tokens.push({ type: 'at-block', selector, inner });
-        i = k + 1;
+        continue;
       }
-      continue;
+      // Rule
+      let j = i;
+      while (j < css.length && css[j] !== '{') j++;
+      if (j >= css.length) break;
+      const selector = css.slice(i, j).trim();
+      let depth = 0, k = j;
+      while (k < css.length) {
+        if (css[k] === '{') depth++;
+        else if (css[k] === '}') { depth--; if (depth === 0) break; }
+        k++;
+      }
+      const body = css.slice(j+1, k).trim();
+      tokens.push({ type: 'rule', selector, body });
+      i = k + 1;
     }
-    // Rule
-    let j = i;
-    while (j < css.length && css[j] !== '{') j++;
-    if (j >= css.length) break;
-    const selector = css.slice(i, j).trim();
-    let depth = 0, k = j;
-    while (k < css.length) {
-      if (css[k] === '{') depth++;
-      else if (css[k] === '}') { depth--; if (depth === 0) break; }
-      k++;
-    }
-    const body = css.slice(j+1, k).trim();
-    tokens.push({ type: 'rule', selector, body });
-    i = k + 1;
+    return tokens;
   }
-  return tokens;
-}
 
-function parseProps(body) {
-  const props = [];
-  const parts = body.split(';');
-  parts.forEach(p => {
-    p = p.trim();
-    if (!p) return;
-    const colon = p.indexOf(':');
-    if (colon === -1) return;
-    props.push({ prop: p.slice(0, colon).trim(), val: p.slice(colon+1).trim() });
-  });
-  return props;
-}
+  function parseProps(body) {
+    const props = [];
+    const parts = body.split(';');
+    parts.forEach(p => {
+      p = p.trim();
+      if (!p) return;
+      const colon = p.indexOf(':');
+      if (colon === -1) return;
+      props.push({ prop: p.slice(0, colon).trim(), val: p.slice(colon+1).trim() });
+    });
+    return props;
+  }
 
-function formatTokens(tokens, sortProps, blankLines, singleLine) {
-  const sep = blankLines ? '\n\n' : '\n';
-  const parts = tokens.map(token => {
-    if (token.type === 'at-simple') return token.value;
-    if (token.type === 'rule') {
-      let props = parseProps(token.body);
-      if (sortProps) props.sort((a,b) => a.prop.localeCompare(b.prop));
-      if (singleLine) {
-        return `${token.selector} { ${props.map(p=>`${p.prop}: ${p.val};`).join(' ')} }`;
-      }
-      const propsStr = props.map(p => `  ${p.prop}: ${p.val};`).join('\n');
-      return `${token.selector} {\n${propsStr}\n}`;
-    }
-    if (token.type === 'at-block') {
-      // Parse inner rules
-      const innerTokens = tokenizeCSS(token.inner);
-      const innerFormatted = innerTokens.map(t => {
-        if (t.type !== 'rule') return '  ' + t.value;
-        let props = parseProps(t.body);
+  function formatTokens(tokens, sortProps, blankLines, singleLine) {
+    const sep = blankLines ? '\n\n' : '\n';
+    const parts = tokens.map(token => {
+      if (token.type === 'at-simple') return token.value;
+      if (token.type === 'rule') {
+        let props = parseProps(token.body);
         if (sortProps) props.sort((a,b) => a.prop.localeCompare(b.prop));
-        if (singleLine) return `  ${t.selector} { ${props.map(p=>`${p.prop}: ${p.val};`).join(' ')} }`;
-        const propsStr = props.map(p => `    ${p.prop}: ${p.val};`).join('\n');
-        return `  ${t.selector} {\n${propsStr}\n  }`;
-      }).join('\n');
-      return `${token.selector} {\n${innerFormatted}\n}`;
-    }
-    return '';
+        if (singleLine) {
+          return `${token.selector} { ${props.map(p=>`${p.prop}: ${p.val};`).join(' ')} }`;
+        }
+        const propsStr = props.map(p => `  ${p.prop}: ${p.val};`).join('\n');
+        return `${token.selector} {\n${propsStr}\n}`;
+      }
+      if (token.type === 'at-block') {
+        // Parse inner rules
+        const innerTokens = tokenizeCSS(token.inner);
+        const innerFormatted = innerTokens.map(t => {
+          if (t.type !== 'rule') return '  ' + t.value;
+          let props = parseProps(t.body);
+          if (sortProps) props.sort((a,b) => a.prop.localeCompare(b.prop));
+          if (singleLine) return `  ${t.selector} { ${props.map(p=>`${p.prop}: ${p.val};`).join(' ')} }`;
+          const propsStr = props.map(p => `    ${p.prop}: ${p.val};`).join('\n');
+          return `  ${t.selector} {\n${propsStr}\n  }`;
+        }).join('\n');
+        return `${token.selector} {\n${innerFormatted}\n}`;
+      }
+      return '';
+    });
+    return parts.join(sep);
+  }
+
+  window.copyOut = function() {
+    const v = document.getElementById('cssOut').value;
+    if (!v) return;
+    navigator.clipboard.writeText(v).then(() => {
+      const btn = document.getElementById('btnCopy');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+      btn.style.color = 'var(--accent)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
+    });
+  }
+
+  window.downloadOut = function() {
+    const v = document.getElementById('cssOut').value;
+    if (!v) return;
+    const blob = new Blob([v], {type:'text/css'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'formatted.css'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  window.clearAll = function() {
+    document.getElementById('cssIn').value = '';
+    document.getElementById('cssOut').value = '';
+    document.getElementById('stats').innerHTML = '';
+    hideStatus('st');
+  }
+
+  function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
+  function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
+  function hideStatus(id){document.getElementById(id).className='status';}
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatCSS(); }
   });
-  return parts.join(sep);
-}
-
-function copyOut() {
-  const v = document.getElementById('cssOut').value;
-  if (!v) return;
-  navigator.clipboard.writeText(v).then(() => {
-    const btn = document.getElementById('btnCopy');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
-    btn.style.color = 'var(--accent)';
-    setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 2000);
-  });
-}
-
-function downloadOut() {
-  const v = document.getElementById('cssOut').value;
-  if (!v) return;
-  const blob = new Blob([v], {type:'text/css'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'formatted.css'; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function clearAll() {
-  document.getElementById('cssIn').value = '';
-  document.getElementById('cssOut').value = '';
-  document.getElementById('stats').innerHTML = '';
-  hideStatus('st');
-}
-
-function showErr(id,msg){const el=document.getElementById(id);el.className='status err';el.innerHTML='<i class="bi bi-exclamation-triangle-fill"></i> '+msg;}
-function showOk(id,msg){const el=document.getElementById(id);el.className='status ok';el.innerHTML='<i class="bi bi-check-circle-fill"></i> '+msg;}
-function hideStatus(id){document.getElementById(id).className='status';}
-
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); formatCSS(); }
-});
 })();
 </script>
 {% endblock %}

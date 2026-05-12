@@ -1,0 +1,18 @@
+{% extends "admin/index.html" %}
+{% block content %}
+{{ block.super }}
+<div class="module" style="margin-top: 1rem;">
+  <table>
+    <caption>
+      <a href="{% url 'admin_tool_system_health' %}" class="section">System Health — Tool audit</a>
+    </caption>
+    <tbody>
+      <tr>
+        <td scope="row">
+          Open the latest Playwright tool health report (JSON paths, broken tools summary).
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}
