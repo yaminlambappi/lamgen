@@ -52,3 +52,5 @@ logs/
 # Tool audit system
 reports/tool_health/*
 !reports/tool_health/.gitkeep
+
+audit_results.txt
