@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.conf import settings
 from .models import Tool, ToolCategory, ToolBookmark, ToolUsageHistory
 from apps.tools.services.internal_linking import internal_linking_engine
-from apps.tools.services.islamic_panel import PrayerTimesService
+
 from apps.seo.models import LongTailVariant
 from apps.tools.data.elite_content import ELITE_TOOL_DATA
 from .utils.rate_limit import rate_limit
@@ -524,21 +524,7 @@ def search_view(request):
     return JsonResponse({"results": results})
 
 
-@require_GET
-@cache_control(private=True, max_age=300)
-def islamic_panel_api(request):
-    """Location-aware prayer snapshot for the global Islamic utility strip."""
-    latitude = request.GET.get("lat")
-    longitude = request.GET.get("lon")
-    try:
-        snapshot = PrayerTimesService.get_snapshot(latitude=latitude, longitude=longitude)
-        return JsonResponse(snapshot)
-    except Exception as e:
-        logger.error(f"Error getting Islamic panel data: {e}")
-        fallback_snapshot = PrayerTimesService._build_placeholder_snapshot(
-            PrayerTimesService.DEFAULT_LOCATION["latitude"], PrayerTimesService.DEFAULT_LOCATION["longitude"], fallback_label=PrayerTimesService.DEFAULT_LOCATION["label"]
-        )
-        return JsonResponse(fallback_snapshot)
+
 
 
 @require_POST
