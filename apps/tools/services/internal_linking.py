@@ -318,6 +318,9 @@ class InternalLinkingEngine:
         return {
             'type': 'tool',
             'tool_id': tool.id,
+            'category_id': tool.category_id,
+            'page_id': None,
+            'variant_id': None,
             'title': tool.name,
             'description': tool.short_desc,
             'url': tool.get_absolute_url(),
@@ -337,7 +340,10 @@ class InternalLinkingEngine:
         
         return {
             'type': 'category',
+            'tool_id': None,
             'category_id': category.id,
+            'page_id': None,
+            'variant_id': None,
             'title': category.name,
             'description': category.short_desc or category.description[:100] + '...',
             'url': category.get_absolute_url(),
@@ -354,7 +360,10 @@ class InternalLinkingEngine:
         
         return {
             'type': 'seo_page',
+            'tool_id': None,
+            'category_id': None,
             'page_id': page.id,
+            'variant_id': None,
             'title': page.topic,
             'description': page.meta_description or page.content_intro[:100] + '...',
             'url': page.get_absolute_url(),
@@ -369,6 +378,9 @@ class InternalLinkingEngine:
         
         return {
             'type': 'longtail',
+            'tool_id': None,
+            'category_id': None,
+            'page_id': None,
             'variant_id': variant.id,
             'title': variant.meta_title,
             'description': variant.meta_description,
