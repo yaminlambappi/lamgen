@@ -140,7 +140,7 @@ class InternalLinkingEngine:
                 links.append(self._tool_to_link(tool, "global_trending"))
         
         # 4. Popular SEO pages
-        popular_seo_pages = SEOPage.objects.filter(is_active=True).order_by('-view_count')[:4]
+        popular_seo_pages = SEOPage.objects.filter(is_active=True).order_by('-updated_at')[:4]
         for page in popular_seo_pages:
             links.append(self._seo_page_to_link(page, "popular_seo"))
         
@@ -310,7 +310,7 @@ class InternalLinkingEngine:
         """Get SEO pages related to this category"""
         
         # This could be enhanced with category-SEO page relationships
-        return SEOPage.objects.filter(is_active=True).order_by('-view_count')[:limit]
+        return SEOPage.objects.filter(is_active=True).order_by('-updated_at')[:limit]
     
     def _tool_to_link(self, tool: Tool, link_type: str) -> Dict[str, Any]:
         """Convert tool to link format"""
@@ -362,7 +362,6 @@ class InternalLinkingEngine:
             'category': page.category.name,
             'category_slug': page.category.slug,
             'item_count': len(page.items),
-            'view_count': page.view_count
         }
     
     def _longtail_to_link(self, variant: LongTailVariant, link_type: str) -> Dict[str, Any]:
