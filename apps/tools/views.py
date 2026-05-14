@@ -29,7 +29,7 @@ def index(request):
     )
     featured_tools = Tool.objects.filter(is_active=True, is_featured=True).select_related("category")[:8]
     new_tools = Tool.objects.filter(is_active=True, is_new=True).select_related("category")[:6]
-    trending = Tool.objects.filter(is_active=True).order_by("-view_count").select_related("category")[:8]
+    trending = Tool.objects.filter(is_active=True).order_by("-created_at").select_related("category")[:8]
     most_used = Tool.objects.filter(is_active=True).order_by("-usage_count").select_related("category")[:8]
 
     recent_slugs = request.session.get("recent_tools", [])
@@ -93,7 +93,7 @@ def tools_index_view(request):
     slug_order = {s: i for i, s in enumerate(recent_slugs)}
     recent_tools.sort(key=lambda t: slug_order.get(t.slug, 999))
 
-    trending = Tool.objects.filter(is_active=True).order_by("-view_count").select_related("category")[:8]
+    trending = Tool.objects.filter(is_active=True).order_by("-created_at").select_related("category")[:8]
     new_tools = Tool.objects.filter(is_active=True, is_new=True).select_related("category")[:6]
 
     active_tool_count = Tool.objects.filter(is_active=True).count()
@@ -172,7 +172,7 @@ def category_view(request, category_slug):
 
     # Featured and trending tools for the landing hub
     featured = [t for t in tools if t.is_featured][:4]
-    trending = sorted(tools, key=lambda t: -t.view_count)[:6]
+    trending = sorted(tools, key=lambda t: t.created_at, reverse=True)[:6]
     newest = [t for t in tools if t.is_new][:4]
 
     return render(
@@ -208,7 +208,7 @@ def tool_view(request, category_slug, tool_slug):
     views += 1
     cache.set(cache_key, views, 60 * 5)
     if views % 10 == 0:
-        Tool.objects.filter(pk=tool.pk).update(view_count=F("view_count") + 1)
+        pass
 
     # Track in session
     recent = request.session.get("recent_tools", [])
@@ -641,7 +641,7 @@ def record_usage(request):
 @require_GET
 def trending_view(request):
     """Trending tools page."""
-    tools = Tool.objects.filter(is_active=True).order_by("-view_count").select_related("category")[:30]
+    tools = Tool.objects.filter(is_active=True).order_by("-created_at").select_related("category")[:30]
     return render(
         request,
         "tools/trending.html",

@@ -258,7 +258,7 @@ class InternalLinkingEngine:
         variants = LongTailVariant.objects.filter(
             tool=tool,
             is_active=True
-        ).order_by('-view_count')[:limit]
+        ).order_by('-updated_at')[:limit]
         
         links = []
         for variant in variants:
