@@ -15,8 +15,15 @@ import time
 
 
 @require_GET
-def guide_view(request, guide_slug):
+def guide_view(request, guide_slug=None):
     """View for guide pages"""
+    if not guide_slug:
+        # Index listing of all available guides
+        return render(request, 'seo/guide_index.html', {
+            'page_title': 'Guides — LamGen',
+            'meta_description': 'Step-by-step guides for developers, students, and writers. Learn how to use free online tools effectively.',
+            'canonical_url': request.build_absolute_uri(),
+        })
     cache_key = f"guide_{guide_slug}"
     cached_content = cache.get(cache_key)
     
@@ -28,7 +35,18 @@ def guide_view(request, guide_slug):
     
     if not guide_data:
         return render(request, '404.html', status=404)
-    
+
+    base_url = request.build_absolute_uri('/')
+    breadcrumb_schema = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
+            {'@type': 'ListItem', 'position': 2, 'name': 'Guides', 'item': f'{base_url}content/guides/'},
+            {'@type': 'ListItem', 'position': 3, 'name': guide_data['title'], 'item': request.build_absolute_uri()},
+        ]
+    })
+
     context = {
         'page_title': guide_data['title'],
         'meta_description': guide_data['meta_description'],
@@ -36,7 +54,7 @@ def guide_view(request, guide_slug):
         'og_type': 'article',
         'guide': guide_data,
         'schema_json': guide_data.get('schema_json'),
-        'breadcrumb_schema': guide_data.get('breadcrumb_schema'),
+        'breadcrumb_schema': breadcrumb_schema,
     }
     
     # Cache for 1 hour
@@ -46,8 +64,14 @@ def guide_view(request, guide_slug):
 
 
 @require_GET
-def compare_view(request, compare_slug):
+def compare_view(request, compare_slug=None):
     """View for comparison pages"""
+    if not compare_slug:
+        return render(request, 'seo/compare_index.html', {
+            'page_title': 'Tool Comparisons — LamGen',
+            'meta_description': 'Compare popular tools, formats, and technologies. Find the right tool for your use case.',
+            'canonical_url': request.build_absolute_uri(),
+        })
     cache_key = f"compare_{compare_slug}"
     cached_content = cache.get(cache_key)
     
@@ -59,7 +83,18 @@ def compare_view(request, compare_slug):
     
     if not compare_data:
         return render(request, '404.html', status=404)
-    
+
+    base_url = request.build_absolute_uri('/')
+    breadcrumb_schema = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
+            {'@type': 'ListItem', 'position': 2, 'name': 'Compare', 'item': f'{base_url}content/compare/'},
+            {'@type': 'ListItem', 'position': 3, 'name': compare_data['title'], 'item': request.build_absolute_uri()},
+        ]
+    })
+
     context = {
         'page_title': compare_data['title'],
         'meta_description': compare_data['meta_description'],
@@ -67,7 +102,7 @@ def compare_view(request, compare_slug):
         'og_type': 'article',
         'comparison': compare_data,
         'schema_json': compare_data.get('schema_json'),
-        'breadcrumb_schema': compare_data.get('breadcrumb_schema'),
+        'breadcrumb_schema': breadcrumb_schema,
     }
     
     # Cache for 1 hour
@@ -77,8 +112,14 @@ def compare_view(request, compare_slug):
 
 
 @require_GET
-def learn_view(request, topic_slug):
+def learn_view(request, topic_slug=None):
     """View for learning pages"""
+    if not topic_slug:
+        return render(request, 'seo/learn_index.html', {
+            'page_title': 'Learn — LamGen',
+            'meta_description': 'Tutorials and learning resources for developers, students, and writers.',
+            'canonical_url': request.build_absolute_uri(),
+        })
     cache_key = f"learn_{topic_slug}"
     cached_content = cache.get(cache_key)
     
@@ -90,7 +131,18 @@ def learn_view(request, topic_slug):
     
     if not learn_data:
         return render(request, '404.html', status=404)
-    
+
+    base_url = request.build_absolute_uri('/')
+    breadcrumb_schema = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
+            {'@type': 'ListItem', 'position': 2, 'name': 'Learn', 'item': f'{base_url}content/learn/'},
+            {'@type': 'ListItem', 'position': 3, 'name': learn_data['title'], 'item': request.build_absolute_uri()},
+        ]
+    })
+
     context = {
         'page_title': learn_data['title'],
         'meta_description': learn_data['meta_description'],
@@ -98,7 +150,7 @@ def learn_view(request, topic_slug):
         'og_type': 'article',
         'learn': learn_data,
         'schema_json': learn_data.get('schema_json'),
-        'breadcrumb_schema': learn_data.get('breadcrumb_schema'),
+        'breadcrumb_schema': breadcrumb_schema,
     }
     
     # Cache for 1 hour
@@ -108,8 +160,14 @@ def learn_view(request, topic_slug):
 
 
 @require_GET
-def best_tools_view(request, category_slug):
+def best_tools_view(request, category_slug=None):
     """View for best tools pages"""
+    if not category_slug:
+        return render(request, 'seo/best_tools_index.html', {
+            'page_title': 'Best Tools by Category — LamGen',
+            'meta_description': 'Expert-curated lists of the best free online tools by category.',
+            'canonical_url': request.build_absolute_uri(),
+        })
     cache_key = f"best_tools_{category_slug}"
     cached_content = cache.get(cache_key)
     
@@ -121,7 +179,18 @@ def best_tools_view(request, category_slug):
     
     if not best_tools_data:
         return render(request, '404.html', status=404)
-    
+
+    base_url = request.build_absolute_uri('/')
+    breadcrumb_schema = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
+            {'@type': 'ListItem', 'position': 2, 'name': 'Best Tools', 'item': f'{base_url}content/best-tools/'},
+            {'@type': 'ListItem', 'position': 3, 'name': best_tools_data['title'], 'item': request.build_absolute_uri()},
+        ]
+    })
+
     context = {
         'page_title': best_tools_data['title'],
         'meta_description': best_tools_data['meta_description'],
@@ -129,7 +198,7 @@ def best_tools_view(request, category_slug):
         'og_type': 'article',
         'best_tools': best_tools_data,
         'schema_json': best_tools_data.get('schema_json'),
-        'breadcrumb_schema': best_tools_data.get('breadcrumb_schema'),
+        'breadcrumb_schema': breadcrumb_schema,
     }
     
     # Cache for 1 hour
@@ -139,8 +208,14 @@ def best_tools_view(request, category_slug):
 
 
 @require_GET
-def workflow_view(request, workflow_slug):
+def workflow_view(request, workflow_slug=None):
     """View for workflow pages"""
+    if not workflow_slug:
+        return render(request, 'seo/workflow_index.html', {
+            'page_title': 'Tool Workflows — LamGen',
+            'meta_description': 'Multi-step tool workflows for common tasks. Chain tools together for maximum productivity.',
+            'canonical_url': request.build_absolute_uri(),
+        })
     cache_key = f"workflow_{workflow_slug}"
     cached_content = cache.get(cache_key)
     
@@ -152,7 +227,18 @@ def workflow_view(request, workflow_slug):
     
     if not workflow_data:
         return render(request, '404.html', status=404)
-    
+
+    base_url = request.build_absolute_uri('/')
+    breadcrumb_schema = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
+            {'@type': 'ListItem', 'position': 2, 'name': 'Workflows', 'item': f'{base_url}content/workflows/'},
+            {'@type': 'ListItem', 'position': 3, 'name': workflow_data['title'], 'item': request.build_absolute_uri()},
+        ]
+    })
+
     context = {
         'page_title': workflow_data['title'],
         'meta_description': workflow_data['meta_description'],
@@ -160,7 +246,7 @@ def workflow_view(request, workflow_slug):
         'og_type': 'article',
         'workflow': workflow_data,
         'schema_json': workflow_data.get('schema_json'),
-        'breadcrumb_schema': workflow_data.get('breadcrumb_schema'),
+        'breadcrumb_schema': breadcrumb_schema,
     }
     
     # Cache for 1 hour

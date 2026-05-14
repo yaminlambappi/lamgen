@@ -32,9 +32,11 @@ def robots_txt(request):
         "Disallow: /admin/",
         "Disallow: /users/",
         "Disallow: /api/",
-        "Disallow: /embed/",
-        "Disallow: *.json",  # block API endpoints
-        "Disallow: /*?*",     # block duplicate query strings
+        "Disallow: /media/og/",
+        "",
+        # Embed pages are intentionally iframed — noindex is set in the view,
+        # but we also disallow crawling to save crawl budget.
+        "Disallow: /tools/*/embed/",
         "",
         f"Sitemap: {settings.SITE_URL}/sitemap.xml",
     ]

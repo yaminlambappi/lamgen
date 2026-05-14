@@ -14,6 +14,7 @@ def index_view(request):
         'categories': categories,
         'page_title': 'SEO Content Hub — Guides, Comparisons & Resources | LamGen',
         'meta_description': 'Browse our comprehensive SEO content including guides, comparisons, learning resources, and best tools recommendations.',
+        'canonical_url': request.build_absolute_uri('/content/'),
     })
 
 
@@ -28,6 +29,7 @@ def category_view(request, category_slug):
         'pages': pages,
         'page_title': f'{category.name} — Browse All Topics | LamGen',
         'meta_description': category.description[:160] if category.description else f'Browse all {category.name.lower()} topics. Free, curated content ready to use.',
+        'canonical_url': request.build_absolute_uri(category.get_absolute_url()),
     })
 
 
@@ -50,4 +52,5 @@ def page_view(request, category_slug, page_slug):
         'related_pages': related,
         'page_title': page.meta_title,
         'meta_description': page.meta_description,
+        'canonical_url': request.build_absolute_uri(page.get_absolute_url()),
     })

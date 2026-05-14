@@ -61,15 +61,17 @@ class StructuredDataEngine:
         if tool.og_image:
             schema["screenshot"] = self.request.build_absolute_uri(tool.og_image)
         
-        # Add aggregate rating if available
-        if tool.view_count > 0:
-            schema["aggregateRating"] = {
-                "@type": "AggregateRating",
-                "ratingValue": "4.5",
-                "ratingCount": str(tool.view_count),
-                "bestRating": "5",
-                "worstRating": "1"
-            }
+        # Add aggregate rating if available — only add when real user ratings exist
+        # DO NOT add fabricated ratings; Google will penalize fake AggregateRating markup.
+        # Uncomment and populate from a real ratings model when available:
+        # if tool.rating_count and tool.rating_count >= 5:
+        #     schema["aggregateRating"] = {
+        #         "@type": "AggregateRating",
+        #         "ratingValue": str(round(tool.average_rating, 1)),
+        #         "ratingCount": str(tool.rating_count),
+        #         "bestRating": "5",
+        #         "worstRating": "1"
+        #     }
         
         # Add software version
         schema["softwareVersion"] = "1.0"
@@ -245,7 +247,7 @@ class StructuredDataEngine:
             "@type": "WebSite",
             "name": "LamGen",
             "url": self.base_url,
-            "description": "265+ Free Online Tools for Developers, Students & Writers",
+            "description": "300+ Free Online Tools for Developers, Students & Writers",
             "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
@@ -518,8 +520,8 @@ class StructuredDataEngine:
             if steps:
                 schemas.append(self.generate_howto_schema(tool, steps))
             
-            # Review schema (placeholder)
-            schemas.append(self.generate_review_schema(tool))
+            # NOTE: Review schema removed — do not emit fake reviews.
+            # Add real reviews here when a user review system is implemented.
             
         elif context_type == "category":
             category = kwargs.get("category")

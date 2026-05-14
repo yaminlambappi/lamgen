@@ -19,12 +19,19 @@
     <meta property="og:url" content="{{ canonical_url|default:request.build_absolute_uri }}">
     <meta property="og:type" content="{{ og_type|default:'website' }}">
     <meta property="og:site_name" content="LamGen">
-    <meta property="og:locale" content="{{ LANGUAGE_CODE|default:'en' }}_{{ LANGUAGE_CODE|default:'en'|upper }}">
-    <meta property="og:image" content="{% block og_image %}{% static 'img/og-default.png' %}{% endblock %}">
+    <meta property="og:locale" content="{% if LANGUAGE_CODE == 'ar' %}ar_SA{% elif LANGUAGE_CODE == 'hi' %}hi_IN{% elif LANGUAGE_CODE == 'bn' %}bn_BD{% elif LANGUAGE_CODE == 'es' %}es_ES{% else %}en_US{% endif %}">
+    <meta property="og:image" content="{% block og_image %}{% if og_image_url %}{{ og_image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-default.png' %}{% endif %}{% endblock %}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="{{ page_title|default:'LamGen — Free Online Tools' }}">
     <link rel="alternate" hreflang="x-default" href="{{ request.build_absolute_uri }}">
+    <link rel="alternate" hreflang="en" href="{{ request.build_absolute_uri }}">
+    {% get_available_languages as LANGUAGES %}
+    {% for lang_code, lang_name in LANGUAGES %}
+        {% if lang_code != 'en' %}
+    <link rel="alternate" hreflang="{{ lang_code }}" href="{{ request.scheme }}://{{ request.get_host }}/{{ lang_code }}{{ request.path }}">
+        {% endif %}
+    {% endfor %}
     {% include "partials/perf_head.html" %}
     {% include "partials/critical_css.html" %}
 
@@ -33,7 +40,7 @@
     <meta name="twitter:site" content="@lamgen">
     <meta name="twitter:title" content="{% if page_title %}{{ page_title }}{% else %}LamGen — {{ nav_active_tool_count|default:"300" }}+ Free Online Tools{% endif %}">
     {% if meta_description %}<meta name="twitter:description" content="{{ meta_description }}">{% endif %}
-    <meta name="twitter:image" content="{% block twitter_image %}{% static 'img/og-default.png' %}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{% if og_image_url %}{{ og_image_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/og-default.png' %}{% endif %}{% endblock %}">
 
     <!-- ── JSON-LD Schemas ── -->
     {% if schema_json %}<script type="application/ld+json">{{ schema_json|safe }}</script>{% endif %}

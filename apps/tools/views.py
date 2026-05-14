@@ -109,6 +109,7 @@ def tools_index_view(request):
             "new_tools": new_tools,
             "page_title": "All Tools — LamGen",
             "meta_description": (f"Browse {approx_tools}+ free online tools. Developer tools, writing tools, image tools, " "SEO tools and more."),
+            "canonical_url": request.build_absolute_uri("/tools/"),
         },
     )
 
@@ -267,17 +268,12 @@ def tool_view(request, category_slug, tool_slug):
         tool.seo_intro = generate_intro_paragraph(tool.name, tool.short_desc, category.name)
         tool.use_cases = generate_use_cases(tool.name, tool.tags or "")
         tool.faq_items = generate_faq_items(tool.name, tool.short_desc, category.name)
-        # Save async via Celery to avoid blocking response, or sync for now
-        from django.conf import settings
-
-        if not settings.DEBUG:
-            pass
-        else:
-            Tool.objects.filter(pk=tool.pk).update(
-                seo_intro=tool.seo_intro,
-                use_cases=tool.use_cases,
-                faq_items=tool.faq_items,
-            )
+        # Persist generated SEO content so it's only generated once
+        Tool.objects.filter(pk=tool.pk).update(
+            seo_intro=tool.seo_intro,
+            use_cases=tool.use_cases,
+            faq_items=tool.faq_items,
+        )
 
     seo_intro = tool.seo_intro
     seo_use_cases = tool.use_cases or generate_use_cases(tool.name, tool.tags or "")
@@ -291,6 +287,14 @@ def tool_view(request, category_slug, tool_slug):
 
     # Canonical URL
     canonical = request.build_absolute_uri(tool.get_absolute_url())
+
+    # OG image — use dynamic generated image, fallback to custom or default
+    if tool.og_image:
+        og_image_url = request.build_absolute_uri(tool.og_image)
+    else:
+        og_image_url = request.build_absolute_uri(
+            f"/og-image/{category.slug}/{tool.slug}.png"
+        )
 
     # Meta title/description — use stored values if set, else generate
     meta_title = tool.meta_title or generate_meta_title(tool.name, category.name)
@@ -309,6 +313,7 @@ def tool_view(request, category_slug, tool_slug):
             "page_title": meta_title,
             "meta_description": meta_desc,
             "canonical_url": canonical,
+            "og_image_url": og_image_url,
             "schema_json": tool_schema,
             "tool_schema": tool_schema,
             "faq_schema": faq_schema,
@@ -641,6 +646,7 @@ def trending_view(request):
             "tools": tools,
             "page_title": "Trending Tools — LamGen",
             "meta_description": "Most popular free online tools on LamGen. See what others are using right now.",
+            "canonical_url": request.build_absolute_uri("/tools/trending/"),
         },
     )
 

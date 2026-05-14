@@ -56,15 +56,20 @@ class SmartPriorityMixin:
 
 
 class StaticViewSitemap(Sitemap):
-    priority = 1.0  # Homepage highest
     changefreq = 'daily'
     protocol = 'https'
 
     def items(self):
-        return ['home', 'tools:index']
+        return [
+            ('home', 1.0),
+            ('tools:index', 0.9),
+        ]
 
     def location(self, item):
-        return reverse(item)
+        return reverse(item[0])
+
+    def priority(self, item):
+        return item[1]
 
 
 class ToolSitemap(SmartPriorityMixin, Sitemap):

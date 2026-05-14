@@ -35,8 +35,12 @@ class ContentArticle(models.Model):
             self.slug = slugify(self.title)
         if not self.meta_title:
             self.meta_title = self.title[:70]
-        if not self.meta_description:
-            self.meta_description = self.title[:160]
+        if not self.meta_description and self.body:
+            # Strip markdown and use first 160 chars of body as fallback description
+            import re
+            plain = re.sub(r'[#*`_\[\]()>~\-]', '', self.body).strip()
+            plain = re.sub(r'\s+', ' ', plain)
+            self.meta_description = plain[:157] + '...' if len(plain) > 160 else plain
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

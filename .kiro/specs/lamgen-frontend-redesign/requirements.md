@@ -44,7 +44,7 @@ After deep exploration of the codebase, the following architectural facts and is
 
 - **Design_System**: The unified set of CSS custom properties (tokens), component classes, and layout utilities defined in `static/css/main.css` and `static/css/design-system.css`
 - **Base_Template**: `templates/base.html` — the root Django template extended by all pages
-- **Tool_Base**: `templates/tools/tool_base.html` — the shared template for all 265+ individual tool pages
+- **Tool_Base**: `templates/tools/tool_base.html` — the shared template for all 300+ Free Tools individual tool pages
 - **Token**: A CSS custom property (e.g., `--lg-violet`, `--lg-card-bg`) used to express design decisions
 - **Tool_Canvas**: The `.tool-canvas` wrapper element on tool pages that contains the interactive tool workspace
 - **Spiritual_Banner**: The Islamic prayer utilities panel rendered at the top of the tools index page
@@ -78,7 +78,7 @@ After deep exploration of the codebase, the following architectural facts and is
 
 ### Requirement 2: CSS Architecture Deduplication
 
-**User Story:** As a developer, I want tool page styles defined once in the global stylesheet, so that the 265+ tool pages don't each carry hundreds of lines of redundant inline CSS.
+**User Story:** As a developer, I want tool page styles defined once in the global stylesheet, so that the 300+ Free Tools tool pages don't each carry hundreds of lines of redundant inline CSS.
 
 #### Acceptance Criteria
 
