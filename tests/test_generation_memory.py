@@ -11,9 +11,9 @@ from hypothesis import HealthCheck, given
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 
-from generation.models import GenerationJob
-from generation.services.orchestrator import GenerationPipelineOrchestrator
-from generation.services.section_memory import SectionMemoryService
+from apps.generation.models import GenerationJob
+from apps.generation.services.orchestrator import GenerationPipelineOrchestrator
+from apps.generation.services.section_memory import SectionMemoryService
 from tests.factories import UserFactory
 
 
@@ -212,7 +212,7 @@ class TestSectionMemoryDeletedOnJobCompletionOrFailure:
             # so that fail_job()'s internal SectionMemoryService.delete() uses the same
             # fakeredis instance as the initialise() call.
             with patch(
-                "generation.services.orchestrator.redis.Redis.from_url",
+                "apps.generation.services.orchestrator.redis.Redis.from_url",
                 return_value=fake_redis,
             ), patch.object(
                 SectionMemoryService, "_get_redis", return_value=fake_redis

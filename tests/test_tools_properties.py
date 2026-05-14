@@ -17,7 +17,7 @@ from hypothesis import strategies as st
 @h_settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow], deadline=None)
 @pytest.mark.django_db
 def test_tool_metadata_autogeneration(name, short_desc):
-    from tools.models import Tool, ToolCategory
+    from apps.tools.models import Tool, ToolCategory
     cat, _ = ToolCategory.objects.get_or_create(
         slug='prop-test-cat',
         defaults={'name': 'Property Test', 'order': 999},
@@ -47,7 +47,7 @@ def test_tool_metadata_autogeneration(name, short_desc):
 @h_settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow], deadline=None)
 @pytest.mark.django_db
 def test_tool_canonical_url(cat_slug, tool_slug):
-    from tools.models import Tool, ToolCategory
+    from apps.tools.models import Tool, ToolCategory
     cat, _ = ToolCategory.objects.get_or_create(
         slug=cat_slug,
         defaults={'name': cat_slug, 'order': 999},
@@ -100,7 +100,7 @@ def test_search_result_count_bounded(client, q):
 @h_settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow], deadline=None)
 @pytest.mark.django_db
 def test_metadata_length_invariants(name, short_desc):
-    from tools.models import Tool, ToolCategory
+    from apps.tools.models import Tool, ToolCategory
     cat, _ = ToolCategory.objects.get_or_create(
         slug='meta-len-test',
         defaults={'name': 'Meta Length Test', 'order': 999},
@@ -123,7 +123,7 @@ def test_metadata_length_invariants(name, short_desc):
 @pytest.mark.django_db
 def test_bookmark_toggle_idempotence(client):
     from django.contrib.auth import get_user_model
-    from tools.models import Tool, ToolCategory
+    from apps.tools.models import Tool, ToolCategory
     User = get_user_model()
     user = User.objects.create_user(
         username='bm_test_user',
@@ -187,7 +187,7 @@ def test_unauthenticated_bookmark_returns_401(client, tool_slug):
 @pytest.mark.django_db
 def test_session_bookmark_merge(client):
     from django.contrib.auth import get_user_model
-    from tools.models import Tool, ToolCategory, ToolBookmark
+    from apps.tools.models import Tool, ToolCategory, ToolBookmark
     User = get_user_model()
 
     cat, _ = ToolCategory.objects.get_or_create(
@@ -220,7 +220,7 @@ def test_session_bookmark_merge(client):
         email='merge@test.com',
         university='Test University',
     )
-    client.post('/accounts/login/', {'username': 'merge_test_user', 'password': 'testpass123'})
+    client.post('/users/login/', {'username': 'merge_test_user', 'password': 'testpass123'})
 
     # All 5 bookmarks should now be in DB
     db_slugs = set(
@@ -235,7 +235,7 @@ def test_session_bookmark_merge(client):
 @given(slug=st.from_regex(r'[a-z][a-z0-9\-]{5,40}', fullmatch=True))
 @h_settings(max_examples=100)
 def test_seo_content_determinism(slug):
-    from seo.engine.content_generator import generate_items
+    from apps.seo.engine.content_generator import generate_items
     result1 = generate_items('captions', 'Test Topic', slug)
     result2 = generate_items('captions', 'Test Topic', slug)
     assert result1 == result2, 'generate_items must be deterministic for the same slug'
@@ -246,7 +246,7 @@ def test_seo_content_determinism(slug):
 @given(slug=st.from_regex(r'[a-z][a-z0-9\-]{5,40}', fullmatch=True))
 @h_settings(max_examples=100)
 def test_seo_content_minimum_count(slug):
-    from seo.engine.content_generator import generate_items
+    from apps.seo.engine.content_generator import generate_items
     items = generate_items('captions', 'Test Topic', slug)
     assert len(items) >= 20, f'Expected >= 20 items, got {len(items)}'
 
@@ -257,7 +257,7 @@ def test_seo_content_minimum_count(slug):
 @h_settings(max_examples=100, suppress_health_check=[HealthCheck.too_slow])
 def test_mime_validation_rejects_non_pdf_as_pdf(content):
     import io
-    from tools.utils.file_validation import validate_mime
+    from apps.tools.utils.file_validation import validate_mime
     file_obj = io.BytesIO(content)
     is_valid, detected = validate_mime(file_obj, 'pdf')
     assert isinstance(is_valid, bool)

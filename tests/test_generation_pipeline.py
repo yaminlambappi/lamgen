@@ -12,14 +12,14 @@ import fakeredis
 import pytest
 from django.utils import timezone
 
-from generation.models import (
+from apps.generation.models import (
     AssignmentBrief,
     DocumentOutline,
     GeneratedSection,
     GenerationJob,
 )
-from generation.services.section_memory import SectionMemoryService
-from generation.tasks import continue_generation_pipeline, run_generation_pipeline
+from apps.generation.services.section_memory import SectionMemoryService
+from apps.generation.tasks import continue_generation_pipeline, run_generation_pipeline
 from tests.factories import GenerationJobFactory, UserFactory
 
 
@@ -100,15 +100,15 @@ class TestFullPipelineSmokeTest:
 
         with (
             patch(
-                "generation.services.claude_service.ClaudeService.call",
+                "apps.generation.services.claude_service.ClaudeService.call",
                 side_effect=mock_claude_call,
             ),
             patch(
-                "generation.services.section_memory.SectionMemoryService._get_redis",
+                "apps.generation.services.section_memory.SectionMemoryService._get_redis",
                 return_value=fake_redis,
             ),
             patch(
-                "generation.services.orchestrator.redis.Redis.from_url",
+                "apps.generation.services.orchestrator.redis.Redis.from_url",
                 return_value=fake_redis,
             ),
         ):

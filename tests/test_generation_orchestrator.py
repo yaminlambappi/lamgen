@@ -14,8 +14,8 @@ from hypothesis import HealthCheck, given
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 
-from generation.models import GenerationJob
-from generation.services.orchestrator import GenerationPipelineOrchestrator
+from apps.generation.models import GenerationJob
+from apps.generation.services.orchestrator import GenerationPipelineOrchestrator
 from tests.factories import UserFactory
 
 
@@ -62,7 +62,7 @@ class TestPipelineProgressMonotonicallyIncreasing:
         previous_percentage = -1
 
         with patch(
-            "generation.services.orchestrator.redis.Redis.from_url",
+            "apps.generation.services.orchestrator.redis.Redis.from_url",
             return_value=fake_redis,
         ):
             for stage in selected_stages:
@@ -139,10 +139,10 @@ class TestPipelineFailureStopsExecutionAndRecordsError:
         orchestrator = GenerationPipelineOrchestrator()
 
         with patch(
-            "generation.services.orchestrator.redis.Redis.from_url",
+            "apps.generation.services.orchestrator.redis.Redis.from_url",
             return_value=fake_redis,
         ), patch(
-            "generation.services.orchestrator.SectionMemoryService.delete"
+            "apps.generation.services.orchestrator.SectionMemoryService.delete"
         ):
             orchestrator.fail_job(job, stage, error_msg)
 

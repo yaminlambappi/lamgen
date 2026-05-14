@@ -16,9 +16,9 @@ from hypothesis import HealthCheck, given
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 
-from generation.models import GenerationJob, TokenUsageLog
-from generation.services.claude_service import ClaudeAPIError, ClaudeService
-from generation.services.section_memory import SectionMemory
+from apps.generation.models import GenerationJob, TokenUsageLog
+from apps.generation.services.claude_service import ClaudeAPIError, ClaudeService
+from apps.generation.services.section_memory import SectionMemory
 from tests.factories import UserFactory
 
 
@@ -62,8 +62,8 @@ class TestClaudeRetryExponentialBackoff:
             anthropic.APIConnectionError(request=MagicMock())
         )
 
-        with patch("generation.services.claude_service.anthropic.Anthropic") as mock_anthropic, \
-             patch("generation.services.claude_service.time.sleep") as mock_sleep:
+        with patch("apps.generation.services.claude_service.anthropic.Anthropic") as mock_anthropic, \
+             patch("apps.generation.services.claude_service.time.sleep") as mock_sleep:
 
             mock_anthropic.return_value = mock_client_instance
             mock_sleep.side_effect = lambda s: sleep_calls.append(s)
@@ -143,7 +143,7 @@ class TestTokenUsageLogging:
         mock_client_instance = MagicMock()
         mock_client_instance.messages.create.return_value = mock_response
 
-        with patch("generation.services.claude_service.anthropic.Anthropic") as mock_anthropic:
+        with patch("apps.generation.services.claude_service.anthropic.Anthropic") as mock_anthropic:
             mock_anthropic.return_value = mock_client_instance
 
             result = ClaudeService().call(

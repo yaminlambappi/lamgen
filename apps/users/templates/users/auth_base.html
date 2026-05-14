@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: calc(100vh - 68px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: var(--glow);
+        animation: fadeUp 0.5s ease forwards;
+    }
+    @media (max-width: 480px) {
+        .auth-card { padding: 2rem 1.25rem; border-radius: 16px; }
+        .auth-logo h2 { font-size: 1.3rem; }
+    }
+    .auth-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .auth-logo .logo-icon {
+        width: 52px; height: 52px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 14px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 0.75rem;
+    }
+    .auth-logo h2 {
+        font-family: 'Syne', sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    .auth-logo p { color: var(--muted); font-size: 0.875rem; }
+
+    .form-group { margin-bottom: 1.1rem; }
+    .nexus-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+
+    .auth-submit {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, var(--primary), #8B85FF);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+        box-shadow: 0 0 20px rgba(108,99,255,0.35);
+        margin-top: 0.5rem;
+    }
+    .auth-submit:hover { transform: translateY(-2px); box-shadow: 0 0 35px rgba(108,99,255,0.55); }
+
+    .auth-divider {
+        display: flex; align-items: center; gap: 12px;
+        margin: 1.25rem 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+    .auth-footer {
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--muted);
+    }
+    .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .auth-footer a:hover { text-decoration: underline; }
+
+    .error-alert {
+        padding: 10px 14px;
+        background: rgba(255,107,107,0.08);
+        border: 1px solid rgba(255,107,107,0.25);
+        border-radius: 10px;
+        color: var(--danger);
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .google-btn {
+        width: 100%;
+        padding: 10px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        color: var(--muted);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: all 0.2s;
+    }
+    .google-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+    {% block auth_css %}{% endblock %}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card" {% block auth_card_style %}{% endblock %}>
+        <div class="auth-logo">
+            <div class="logo-icon">✦</div>
+            <h2>{% block auth_title %}{% endblock %}</h2>
+            <p>{% block auth_subtitle %}{% endblock %}</p>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="error-alert">
+            {% for error in form.non_field_errors %}
+            <div><i class="bi bi-exclamation-triangle"></i> {{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% block auth_form %}{% endblock %}
+        </form>
+
+        {% block auth_extra_form %}{% endblock %}
+
+    </div>
+</div>
+{% endblock %}

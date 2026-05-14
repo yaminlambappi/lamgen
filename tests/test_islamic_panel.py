@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.template.loader import render_to_string
 from django.urls import reverse
 
-from tools.services.islamic_panel import IslamicContentService, PrayerTimesService
+from apps.tools.services.islamic_panel import IslamicContentService, PrayerTimesService
 
 
 SAMPLE_PRAYER_PAYLOAD = {

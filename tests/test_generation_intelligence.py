@@ -13,8 +13,8 @@ from hypothesis import HealthCheck, given
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 
-from generation.models import AssignmentBrief, GenerationJob
-from generation.services.assignment_intelligence import AssignmentIntelligenceEngine
+from apps.generation.models import AssignmentBrief, GenerationJob
+from apps.generation.services.assignment_intelligence import AssignmentIntelligenceEngine
 from tests.factories import UserFactory
 
 
@@ -102,7 +102,7 @@ class TestAssignmentBriefExtractionCompleteness:
         ]
 
         with patch(
-            "generation.services.assignment_intelligence.ClaudeService.call",
+            "apps.generation.services.assignment_intelligence.ClaudeService.call",
             side_effect=mock_claude_call,
         ):
             brief = AssignmentIntelligenceEngine().analyse(text_chunks, job)

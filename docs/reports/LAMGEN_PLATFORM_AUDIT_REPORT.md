@@ -1,0 +1,2094 @@
+# LamGen Platform Audit Report
+
+## 1. Category and Tool Inventory
+
+### Developer Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **JSON Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **XML Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **YAML Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **SQL Beautifier**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **HTML Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **CSS Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **JavaScript Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **CSS Minifier**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **JavaScript Minifier**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **JSON to CSV Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Base64 Encoder / Decoder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **URL Encoder / Decoder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **JWT Decoder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Regex Tester**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Cron Expression Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **UUID Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Hash Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Lorem Ipsum Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Fake Data Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Markdown Previewer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Diff Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Color Palette Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **CSS Gradient Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **robots.txt Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **.htaccess Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **.env Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Unix Timestamp Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **HTML Entity Encoder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **JSON to TypeScript**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Color Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Number Base Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **CSS Box Shadow Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **CSS Border Radius Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image to Base64**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **TOML to JSON Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Student Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **GPA Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **CGPA Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Grade Predictor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Word Counter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Reading Time Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Readability Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Pomodoro Timer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Exam Countdown**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Flashcard Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Timetable Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Paragraph Organizer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Academic Title Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Research Topic Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Plagiarism Checklist**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **APA Citation Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **MLA Citation Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Harvard Citation Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Essay Outline Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Study Planner**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Thesis Statement Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Bibliography Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Assignment Word Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Writing Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Case Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Fancy Text Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Unicode Text Styles**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Duplicate Line Remover**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Keyword Density Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Headline Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Sentence Shortener**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text Cleaner**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Passive to Active Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Readability Improver**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text Simplifier**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Paragraph Expander**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Introduction Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Conclusion Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Email Subject Line Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Bullet Point Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text Reverser**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Random Sentence Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Story Hook Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text to Speech Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Utility Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Unit Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Age Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Percentage Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **EMI Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Tax Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **BMI Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Timezone Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Countdown Timer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Stopwatch**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Password Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Password Strength Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Online Notepad**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Clipboard Manager**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Random Picker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Dice Roller**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Date Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Tip Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Loan Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Compound Interest Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Calorie Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Currency Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Scientific Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Number to Words Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Roman Numeral Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Aspect Ratio Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Social & Viral Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Fake Chat Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Fake Tweet Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Meme Caption Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Aesthetic Font Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Emoji Combiner**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Nickname Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Pickup Line Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Roast Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Random Comment Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Fake Instagram Post Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Twitter Thread Formatter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Hashtag Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Social Media Bio Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Caption Length Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### SEO Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Meta Title Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Meta Description Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Slug Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **SERP Preview Tool**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Keyword Density Analyzer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **OpenGraph Tag Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Twitter Card Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Schema Markup Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **FAQ Schema Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Breadcrumb Schema Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **XML Sitemap Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **robots.txt Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Canonical URL Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Hreflang Tag Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **SEO Word Count Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Internal Link Suggester**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Page Speed Advisor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Anchor Text Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Image Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Image Compressor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **WebP Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **JPG to PNG Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **PNG to JPG Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image Resize**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image Crop**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image Rotate & Flip**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image Blur**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image Watermark**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Meme Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **QR Code Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Barcode Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Favicon Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Color Extractor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Color Palette Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image to Base64 Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **SVG Optimizer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image Brightness & Contrast**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image Grayscale Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Screenshot to PDF**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Image Enhancer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### PDF & File Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **PDF Merge**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **PDF Split**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Image to PDF**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **PDF to Image**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **PDF Compressor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **PDF Text Extractor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **ZIP Extractor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **CSV Viewer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **File Rename Utility**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **File Compare**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **PDF Page Rotator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **PDF Watermark**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Word to PDF Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Excel to CSV Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **JSON to Excel Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Markdown to PDF**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Resume & Career Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Resume Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **ATS Resume Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Cover Letter Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Portfolio Page Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **LinkedIn Headline Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Professional Bio Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Invoice Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Quotation Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Job Description Analyzer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Resume Summary Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Skills List Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Salary Negotiation Script**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Interview Question Prep**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Email Signature Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Exists
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Academic & Writing
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Assignment Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Thesis Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Math & Science Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Quadratic Equation Solver**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Fraction Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Matrix Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Statistics Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Prime Number Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **LCM & GCD Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Percentage Change Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Trigonometry Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Logarithm Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Permutation & Combination**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Ohm's Law Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Speed Distance Time Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Area Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Volume Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Pythagorean Theorem Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Binary Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Scientific Notation Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Probability Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Chemical Equation Balancer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Molar Mass Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Health & Fitness Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **BMR Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Ideal Weight Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Body Fat Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Water Intake Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Macro Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **One Rep Max Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Running Pace Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Sleep Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Pregnancy Due Date Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Ovulation Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Heart Rate Zone Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Steps to Calories Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Workout Rest Timer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **BMI Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Alcohol Unit Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Finance & Business Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **ROI Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Break-Even Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Profit Margin Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Markup Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **VAT Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Discount Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Savings Goal Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Mortgage Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Retirement Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Freelance Rate Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Business Name Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Startup Cost Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Cash Flow Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Net Worth Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Inflation Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Stock Return Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Budget Planner**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Invoice Tax Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Text Analysis Tools
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Character Frequency Analyzer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Sentence Counter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text Statistics**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Email Extractor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **URL Extractor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Phone Number Extractor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text Line Sorter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text to List Converter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Find & Replace Tool**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text Truncator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Whitespace Remover**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Number Extractor**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text to Columns**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Palindrome Checker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Anagram Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Text Encryption Tool**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Education & AI
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **AI Essay Outline Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Thesis Statement Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Notes Summarizer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Flashcard Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Study Planner**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Citation Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### SEO & Content
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **AI Meta Description Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Blog Title Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Keyword Intent Analyzer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI FAQ Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI YouTube Title Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Social & Viral
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **AI Caption Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Viral Hook Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Carousel Copy Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **AI Reels Script Outline**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Social Content Calendar Planner**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Engagement Benchmark Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Platform Tone Rewriter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Influencer Collab Pitch Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Finance & Calculators
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Bangladesh Tax Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Salary Pay Slip Estimator (BD)**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **VAT Inclusive Price Calculator (BD)**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Gratuity Calculator (BD)**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Remittance Fee Comparator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Fixed Deposit Maturity Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **House Rent Allowance Optimizer (BD)**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Loan EMI Comparison Table**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Health & Medicine
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Medicine Information Finder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **OTC Dosage Reference Guide**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Generic vs Brand Explainer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Hydration Needs Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Medical Term Decoder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Prescription Label Checklist**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Vaccination Schedule Planner**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Symptom Journal Template Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Market & Grocery
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Grocery Budget Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Unit Price Comparison Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Meal Prep Cost Splitter**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Bangladesh Grocery Price Sheet**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Shopping List Optimizer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Recipe Cost Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Pantry Shelf Life Tracker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Bulk Buy vs Retail Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Electronics
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Electronics Price Comparison**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Smartphone Spec Comparison**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Laptop Filter by Specs**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Monitor Resolution PPI Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Power Bank Capacity Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Warranty End Date Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Energy Usage Cost Calculator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Cable & Connector ID Guide**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### News & Media
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Live TV Directory**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Bangla Newspaper Directory**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **RSS Feed Merge Preview**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **News Source Bias Checklist**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Press Release Headline Grader**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Newsletter Outline Generator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Podcast Topic Researcher**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Fact-Check Prompt Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+### Sports & Entertainment
+
+- **Status:** Active
+- **Frontend Visibility:** Visible
+- **Tools:**
+    - **Live Sports Score Tracker**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Fantasy Points Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Tournament Bracket Builder**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Sports Stat Comparison**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Watch Party Checklist**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Player Prop Line Explainer**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Stadium Seat View Estimator**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+    - **Halftime Show Bingo Card**
+        - **Active/Inactive Status:** Active
+        - **Frontend Visibility:** Visible
+        - **Missing Template Status:** Missing
+        - **Broken Route Status:** OK
+        - **SEO Page Status:** OK
+## 2. Platform Health Analysis
+
+### Orphaned Tools (in DB but not in config)
+- None
+### Missing Tools (in config but not in DB)
+- None
+### Unused Templates
+- tools/workspaces.html, tools/index.html, tools/tool_base.html, tools/category.html, tools/embed.html, tools/generic_tool.html, tools/pdf/split.html, tools/pdf/merge.html, tools/audit/dashboard.html, tools/social/fake_tweet.html, tools/partials/tool_ui.html, tools/partials/_tool_card.html, tools/image/compressor.html, tools/image/converter.html, tools/image/resize.html, tools/image/qr_generator.html, tools/writing/word_counter.html, tools/writing/case_converter.html, tools/writing/keyword_density.html, tools/writing/humanizer.html, tools/writing/fancy_text.html, tools/developer/base64.html, tools/developer/url_encoder.html, tools/developer/uuid.html, tools/developer/xml_formatter.html, tools/developer/json_validator.html, tools/developer/markdown.html, tools/developer/lorem_ipsum.html, tools/developer/hash.html, tools/developer/json_formatter.html, tools/developer/jwt.html, tools/developer/timestamp.html, tools/student/pomodoro.html, tools/student/gpa_calculator.html, tools/utility/age_calculator.html, tools/utility/unit_converter.html, tools/utility/password_generator.html, tools/user_content/index.html, tools/seo/slug_generator.html, tools/seo/og_generator.html, tools/seo/faq_schema.html, tools/seo/meta_generator.html
+### Duplicate Slugs
+- **Duplicate Category Slugs:** None
+- **Duplicate Tool Slugs:** None
+### Duplicate Names
+- **Duplicate Category Names:** None
+- **Duplicate Tool Names:** BMI Calculator, Color Palette Generator
+### Empty Categories
+- None
+## 3. Architecture and Strategy Analysis
+
+### Root Causes of Issues
+- **Reliance on hardcoded configuration:** The `config/tool_categories.py` file is the single source of truth, but it is disconnected from the database. This leads to potential synchronization issues.
+- **Manual template creation:** Templates are created manually, and there is no automated check to ensure that a template exists for every tool.
+- **Lack of a robust data seeding process:** The `seed_tools` command is a good start, but it does not seem to handle deletions or updates gracefully, leading to orphaned tools.
+### Architecture Weaknesses
+- **Single source of truth is a Python file:** This is not ideal for a large, dynamic system. A database-first approach would be more robust.
+- **No foreign key constraint between config and reality:** The system relies on convention (matching slugs) rather than database constraints to link tools and categories.
+### Missing Systems
+- **A proper CMS for managing tools and categories:** A user-friendly interface for managing tools would be a significant improvement.
+- **Automated testing for tool health:** There are no automated tests to check for broken routes, missing templates, or other issues.
+### Recommended Fixes
+- **Migrate to a database-first approach:** Make the database the single source of truth and build a CMS to manage it.
+- **Implement a robust data synchronization mechanism:** If a config file is still desired, create a script that can intelligently sync the database with the config file (handling additions, updates, and deletions).
+- **Create a comprehensive test suite:** Implement unit and integration tests to check for the issues identified in this report.
+### Scalability Issues
+- **The hardcoded config file will become a bottleneck:** As the number of tools grows, managing this file will become increasingly difficult.
+- **The lack of a CMS makes content management difficult:** Adding and updating tools is a developer-centric task, which is not scalable.
+### Dynamic Rendering Issues
+- **The system relies on a fallback template:** While this prevents crashes, it can lead to a poor user experience when templates are missing.

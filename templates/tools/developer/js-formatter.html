@@ -82,9 +82,9 @@
 
 {% block tool_js %}
 <!-- Load Prettier for full JS formatting -->
-<script src="https://unpkg.com/prettier@3.3.3/standalone.js"></script>
-<script src="https://unpkg.com/prettier@3.3.3/plugins/babel.js"></script>
-<script src="https://unpkg.com/prettier@3.3.3/plugins/estree.js"></script>
+<script src="https://unpkg.com/prettier@3.3.3/standalone.js" onerror="this.onerror=null;this.remove();"></script>
+<script src="https://unpkg.com/prettier@3.3.3/plugins/babel.js" onerror="this.onerror=null;this.remove();"></script>
+<script src="https://unpkg.com/prettier@3.3.3/plugins/estree.js" onerror="this.onerror=null;this.remove();"></script>
 <script>
 (() => {
 // Register JS formatter tool data

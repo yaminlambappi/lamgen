@@ -58,7 +58,7 @@
 {% endblock %}
 
 {% block tool_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" onerror="this.onerror=null;this.remove();"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const input = document.getElementById('text-input');

@@ -12,7 +12,7 @@ import pytest
 from hypothesis import given, settings, strategies as st
 from hypothesis.strategies import composite
 
-from generation.services.refinement.static_analyser import StaticAnalyser
+from apps.generation.services.refinement.static_analyser import StaticAnalyser
 
 
 # ---------------------------------------------------------------------------
@@ -291,7 +291,7 @@ class TestProperty27ThresholdSkippingCorrectness:
         Verify via unittest.mock.patch that ClaudeService.call is never
         invoked when the threshold guard is applied to text scoring below 45.
         """
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         analyser = StaticAnalyser()
         score = analyser.compute_ai_suspicion_score(text)
@@ -347,7 +347,7 @@ class TestProperty28CacheHitReturnsIdenticalResult:
         exactly once (the second call is served from cache).
         """
         from django.core.cache import cache as django_cache
-        from generation.services.refinement.analysis_cache import AnalysisCache
+        from apps.generation.services.refinement.analysis_cache import AnalysisCache
 
         analysis_cache = AnalysisCache()
         key = analysis_cache._make_key(job_id, content, analysis_type)
@@ -454,7 +454,7 @@ class TestProperty31ReflectionSectionsSkipUnifiedRefinementEngine:
         Assert that UnifiedRefinementEngine.process is never called for
         reflection sections.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
 
@@ -486,7 +486,7 @@ class TestProperty31ReflectionSectionsSkipUnifiedRefinementEngine:
         For any section whose title contains 'reflection' (case-insensitive),
         the routing logic must invoke ReflectionGenerator (not skip it).
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
 
@@ -517,7 +517,7 @@ class TestProperty31ReflectionSectionsSkipUnifiedRefinementEngine:
         identify any section whose title contains 'reflection' (case-insensitive)
         as a reflection section.
         """
-        from generation.services.refinement.reflection_generator import (
+        from apps.generation.services.refinement.reflection_generator import (
             _is_reflection_section,
         )
 
@@ -537,7 +537,7 @@ class TestProperty31ReflectionSectionsSkipUnifiedRefinementEngine:
         Verify via unittest.mock.patch that UnifiedRefinementEngine.process is
         never invoked when the routing logic processes a reflection section.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
 
@@ -723,10 +723,10 @@ class TestProperty1AiSignaturePhraseElimination:
         AI-signature phrases, none of AI_SIGNATURE_PHRASES should remain
         in the output. The mock returns clean content.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         text, included_phrases = text_and_phrases
 
@@ -793,10 +793,10 @@ class TestProperty2ParagraphOpeningDiversity:
         """
         from collections import Counter
         import re
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         # Build varied-opening output: replace repeated openings with diverse ones
         diverse_openers = [
@@ -871,10 +871,10 @@ class TestProperty3ParagraphLengthStdDev:
         """
         import statistics
         import re
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         # Build varied-length output: make paragraphs of different lengths
         paragraphs = re.split(r'\n\s*\n', text)
@@ -945,10 +945,10 @@ class TestProperty4ReflectiveToneFirstPersonRate:
         len(content) // 200 first-person markers.
         """
         import re
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         # Build output with first-person markers
         required_markers = max(1, len(content) // 200)
@@ -1067,10 +1067,10 @@ class TestProperty6WordCountPreservation:
         original_word_count should be <= 0.10.
         """
         from hypothesis import assume
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         original_word_count = len(original_content.split())
 
@@ -1132,7 +1132,7 @@ class TestProperty26FragmentRewritingPreservesNonRiskyContent:
         After fragment-level rewriting, non-risky paragraphs should be
         byte-identical to the originals in the output.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             _splice_fragments, _extract_risky_fragments,
         )
 
@@ -1198,7 +1198,7 @@ class TestProperty29DiffBasedPromptContainsIssuesList:
         _build_diff_prompt() output must contain each issue from issues_list,
         the preserve instructions block, and fragment references.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
 
@@ -1241,7 +1241,7 @@ class TestProperty29DiffBasedPromptContainsIssuesList:
         _build_diff_prompt() must use constrained editing instructions
         ('Modify ONLY'), never open-ended rewriting.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
 
@@ -1268,7 +1268,7 @@ class TestProperty29DiffBasedPromptContainsIssuesList:
 
         _build_diff_prompt() must include the word count preservation constraint.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
 
@@ -1314,10 +1314,10 @@ class TestProperty32SkippedStagesLogged:
         """
         from hypothesis import assume
         import math
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         assume(not math.isnan(low_score) and not math.isinf(low_score))
         assume(0.0 <= low_score < 45.0)
@@ -1497,10 +1497,10 @@ class TestProperty17MachineConfidencePhraseElimination:
         After processing, none of MACHINE_CONFIDENCE_PHRASES should remain
         in the output. Mock returns content without machine-confidence phrases.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         text, included_phrases = text_and_phrases
 
@@ -1561,10 +1561,10 @@ class TestProperty18AnalyticalVerbRepetitionLimit:
         After processing, no single analytical verb should appear > 3 times
         in any 500-word window. Mock returns content with reduced verb repetition.
         """
-        from generation.services.refinement.unified_refinement_engine import (
+        from apps.generation.services.refinement.unified_refinement_engine import (
             UnifiedRefinementEngine,
         )
-        from generation.services.claude_service import ClaudeService
+        from apps.generation.services.claude_service import ClaudeService
 
         # Inject repeated analytical verbs into the content
         analytical_verbs = StaticAnalyser._ANALYTICAL_VERBS
@@ -1861,7 +1861,7 @@ class TestProperty8BidirectionalCitationConsistency:
         A document where every in-text citation has a matching reference entry
         must be validated as consistent (True) by _validate_reference_list().
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
         result = engine._validate_reference_list(doc["content"], doc["style"])
@@ -1880,7 +1880,7 @@ class TestProperty8BidirectionalCitationConsistency:
         A document with an in-text citation that has no matching reference
         entry must be validated as inconsistent (False).
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
 
@@ -1908,7 +1908,7 @@ class TestProperty8BidirectionalCitationConsistency:
 
         An empty document (no citations, no references) must validate as True.
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
         result = engine._validate_reference_list("", doc["style"])
@@ -1987,7 +1987,7 @@ class TestProperty9HallucinationDetectionCompleteness:
         For any reference containing a hallucination indicator,
         _detect_hallucinations() must return it in the flagged list.
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
         flagged = engine._detect_hallucinations(references)
@@ -2011,7 +2011,7 @@ class TestProperty9HallucinationDetectionCompleteness:
         A well-formed reference with a valid DOI and academic URL should
         not be flagged as a hallucination.
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
 
@@ -2037,7 +2037,7 @@ class TestProperty9HallucinationDetectionCompleteness:
 
         An empty reference list must return an empty flagged list.
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
         flagged = engine._detect_hallucinations([])
@@ -2176,7 +2176,7 @@ class TestProperty11HarvardAPAAlphabeticalReferenceList:
         After _sort_reference_list() with Harvard or APA style, reference
         entries must be in alphabetical order by the first word (surname).
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
 
@@ -2226,7 +2226,7 @@ class TestProperty11HarvardAPAAlphabeticalReferenceList:
         If references are already in alphabetical order, _sort_reference_list()
         must not change their order.
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
 
@@ -2261,7 +2261,7 @@ class TestProperty11HarvardAPAAlphabeticalReferenceList:
         For Chicago style, _sort_reference_list() must produce sequentially
         numbered footnote references [1], [2], [3], ...
         """
-        from generation.services.refinement.citation_engine import CitationEngine
+        from apps.generation.services.refinement.citation_engine import CitationEngine
 
         engine = CitationEngine()
 

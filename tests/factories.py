@@ -2,10 +2,10 @@ import factory
 from django.contrib.auth import get_user_model
 from factory.django import DjangoModelFactory
 
-from generation.models import (
+from apps.generation.models import (
     AssignmentBrief, DocumentOutline, GeneratedSection, GenerationJob, RubricProfile
 )
-from thesis.models import StatusChoices, ThesisChunk, ThesisRequest
+from apps.thesis.models import StatusChoices, ThesisChunk, ThesisRequest
 
 User = get_user_model()
 

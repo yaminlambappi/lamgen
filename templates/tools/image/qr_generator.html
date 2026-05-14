@@ -57,7 +57,7 @@
 
 {% block tool_js %}
 <!-- Using a CDN for QR Code generation (standard lightweight library) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" onerror="this.onerror=null;this.remove();"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const textIn = document.getElementById('qr-text');

@@ -1,0 +1,127 @@
+{% extends 'users/auth_base.html' %}
+
+{% block title %}Create Account — LamGen{% endblock %}
+
+{% block auth_css %}
+.pw-strength-bar {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    margin-top: 6px;
+    overflow: hidden;
+}
+.pw-strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s, background 0.3s;
+}
+.pw-strength-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 3px;
+}
+{% endblock %}
+
+{% block auth_card_style %}style="max-width: 460px;"{% endblock %}
+
+{% block auth_title %}Create Account{% endblock %}
+{% block auth_subtitle %}Join the LamGen platform{% endblock %}
+
+{% block auth_form %}
+<div class="form-group">
+    <label class="form-label-nexus" for="{{ form.username.id_for_label }}">Username</label>
+    {{ form.username }}
+    {% if form.username.errors %}
+    <div class="invalid-msg">{{ form.username.errors.0 }}</div>
+    {% endif %}
+</div>
+
+<div class="form-group">
+    <label class="form-label-nexus" for="{{ form.email.id_for_label }}">Email</label>
+    {{ form.email }}
+    {% if form.email.errors %}
+    <div class="invalid-msg">{{ form.email.errors.0 }}</div>
+    {% endif %}
+</div>
+
+<div class="form-group">
+    <label class="form-label-nexus" for="{{ form.university.id_for_label }}">University</label>
+    {{ form.university }}
+    {% if form.university.errors %}
+    <div class="invalid-msg">{{ form.university.errors.0 }}</div>
+    {% endif %}
+</div>
+
+<div class="form-group">
+    <label class="form-label-nexus" for="{{ form.bio.id_for_label }}">
+        Bio <span style="color:var(--muted);font-weight:400;">(optional)</span>
+    </label>
+    {{ form.bio }}
+    {% if form.bio.errors %}
+    <div class="invalid-msg">{{ form.bio.errors.0 }}</div>
+    {% endif %}
+</div>
+
+<div class="form-group">
+    <label class="form-label-nexus" for="{{ form.password1.id_for_label }}">Password</label>
+    {{ form.password1 }}
+    <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+    <div class="pw-strength-label" id="pwStrengthLabel"></div>
+    {% if form.password1.errors %}
+    <div class="invalid-msg">{{ form.password1.errors.0 }}</div>
+    {% endif %}
+</div>
+
+<div class="form-group">
+    <label class="form-label-nexus" for="{{ form.password2.id_for_label }}">Confirm Password</label>
+    {{ form.password2 }}
+    {% if form.password2.errors %}
+    <div class="invalid-msg">{{ form.password2.errors.0 }}</div>
+    {% endif %}
+</div>
+
+<button type="submit" class="auth-submit">
+    <i class="bi bi-person-plus"></i> Create Account
+</button>
+{% endblock %}
+
+{% block auth_extra_form %}
+<div class="auth-footer" style="margin-top: 1.25rem;">
+    Already have an account? <a href="{% url 'users:login' %}">Sign in</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password strength indicator
+const pw1 = document.getElementById('{{ form.password1.id_for_label }}') ||
+            document.querySelector('input[name="password1"]');
+const fill = document.getElementById('pwStrengthFill');
+const label = document.getElementById('pwStrengthLabel');
+
+if (pw1 && fill && label) {
+    pw1.addEventListener('input', () => {
+        const val = pw1.value;
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const levels = [
+            { pct: '0%',   color: 'transparent', text: '' },
+            { pct: '25%',  color: 'var(--danger)', text: 'Weak' },
+            { pct: '50%',  color: '#FFC107',       text: 'Fair' },
+            { pct: '75%',  color: 'var(--primary)', text: 'Good' },
+            { pct: '100%', color: 'var(--accent)',  text: 'Strong' },
+        ];
+        const lvl = levels[score] || levels[0];
+        fill.style.width = lvl.pct;
+        fill.style.background = lvl.color;
+        label.textContent = lvl.text;
+        label.style.color = lvl.color;
+    });
+}
+</script>
+{% endblock %}

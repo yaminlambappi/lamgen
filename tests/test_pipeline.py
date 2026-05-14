@@ -10,7 +10,7 @@ import pytest
 from django.utils import timezone
 
 from tests.factories import ThesisRequestFactory, UserFactory
-from thesis.models import StatusChoices, ThesisRequest
+from apps.thesis.models import StatusChoices, ThesisRequest
 
 
 class TestProcessThesisTask:
@@ -18,7 +18,7 @@ class TestProcessThesisTask:
 
     def test_pipeline_pending_to_completed(self, db, tmp_path):
         """Full pipeline: PENDING → PROCESSING → COMPLETED with all services mocked."""
-        from thesis.tasks import process_thesis_task
+        from apps.thesis.tasks import process_thesis_task
 
         user = UserFactory()
         thesis = ThesisRequestFactory(user=user, status=StatusChoices.PENDING)
@@ -33,10 +33,10 @@ class TestProcessThesisTask:
 
         mock_pdf_bytes = b'%PDF-1.4\nfake pdf content\n%%EOF'
 
-        with patch('thesis.tasks.PDFService.process', return_value=['chunk1', 'chunk2']), \
-             patch('thesis.tasks.LLMService') as mock_llm_cls, \
-             patch('thesis.tasks.ThesisPDFGenerator.render', return_value=mock_pdf_bytes), \
-             patch('thesis.tasks.set_stage'), \
+        with patch('apps.thesis.tasks.PDFService.process', return_value=['chunk1', 'chunk2']), \
+             patch('apps.thesis.tasks.LLMService') as mock_llm_cls, \
+             patch('apps.thesis.tasks.ThesisPDFGenerator.render', return_value=mock_pdf_bytes), \
+             patch('apps.thesis.tasks.set_stage'), \
              patch('os.makedirs'), \
              patch('builtins.open', MagicMock()):
             mock_llm = MagicMock()
@@ -52,7 +52,7 @@ class TestProcessThesisTask:
 
     def test_pipeline_sets_failed_on_error(self, db, tmp_path):
         """Pipeline sets FAILED status when an error occurs."""
-        from thesis.tasks import process_thesis_task
+        from apps.thesis.tasks import process_thesis_task
 
         user = UserFactory()
         thesis = ThesisRequestFactory(user=user, status=StatusChoices.PENDING)
@@ -62,8 +62,8 @@ class TestProcessThesisTask:
         thesis.input_file.name = str(fake_pdf)
         thesis.save()
 
-        with patch('thesis.tasks.PDFService.process', side_effect=Exception('PDF extraction failed')), \
-             patch('thesis.tasks.set_stage'):
+        with patch('apps.thesis.tasks.PDFService.process', side_effect=Exception('PDF extraction failed')), \
+             patch('apps.thesis.tasks.set_stage'):
             process_thesis_task(thesis.pk)
 
         thesis.refresh_from_db()
@@ -76,7 +76,7 @@ class TestCleanupOldUploads:
 
     def test_cleanup_deletes_old_input_files(self, db, tmp_path):
         """Old input files (>24h) are deleted and input_file set to None."""
-        from thesis.tasks import cleanup_old_uploads
+        from apps.thesis.tasks import cleanup_old_uploads
 
         user = UserFactory()
         thesis = ThesisRequestFactory(user=user)
@@ -101,7 +101,7 @@ class TestCleanupOldUploads:
 
     def test_cleanup_skips_recent_uploads(self, db):
         """Recent uploads (<24h) are not deleted."""
-        from thesis.tasks import cleanup_old_uploads
+        from apps.thesis.tasks import cleanup_old_uploads
 
         user = UserFactory()
         thesis = ThesisRequestFactory(user=user)

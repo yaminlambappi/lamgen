@@ -5,7 +5,7 @@ Tests cover all 15 methods using only Python standard library operations.
 Zero LLM calls from any method.
 """
 import pytest
-from generation.services.refinement.static_analyser import StaticAnalyser
+from apps.generation.services.refinement.static_analyser import StaticAnalyser
 
 
 @pytest.fixture

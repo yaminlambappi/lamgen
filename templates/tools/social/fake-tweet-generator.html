@@ -122,7 +122,7 @@ textarea.num-input { resize: vertical; min-height: 80px; }
 {% endblock %}
 
 {% block tool_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" onerror="this.onerror=null;this.remove();"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   let theme = 'dark';

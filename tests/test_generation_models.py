@@ -8,7 +8,7 @@ from hypothesis import HealthCheck, given
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 
-from generation.models import GenerationJob
+from apps.generation.models import GenerationJob
 from tests.factories import UserFactory
 
 

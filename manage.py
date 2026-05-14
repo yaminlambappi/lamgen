@@ -6,7 +6,12 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    # Explicit default for local development.
+    # In all other environments DJANGO_SETTINGS_MODULE must be set externally
+    # (e.g. via the container environment, CI config, or pytest.ini).
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
+    os.environ.setdefault("DJANGO_ENV", "local")
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -18,5 +23,5 @@ def main():
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

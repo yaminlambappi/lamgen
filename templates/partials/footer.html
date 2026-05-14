@@ -6,10 +6,10 @@
             <!-- Brand column -->
             <div class="footer-col footer-col-brand">
                 <a href="{% url 'home' %}" class="footer-brand" aria-label="LamGen Home">
-                    <img src="{% static 'img/favicon.svg' %}" alt="" width="28" height="28" aria-hidden="true">
+                    <img src="{% static 'img/favicon.svg' %}" alt="" width="28" height="28" aria-hidden="true" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgdmlld0JveD0iMCAwIDI4IDI4Ij48cmVjdCB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIGZpbGw9IiNjY2MiLz48L3N2Zz4=';">
                     <span>LamGen</span>
                 </a>
-                <p class="footer-tagline">265+ free online tools for developers, students, writers and professionals. No signup. 100% private.</p>
+                <p class="footer-tagline">{{ nav_active_tool_count|default:"300" }}+ free online tools for developers, students, writers and professionals. No signup. 100% private.</p>
                 <div class="footer-trust">
                     <i class="bi bi-shield-check" aria-hidden="true"></i>
                     <span>Your data never leaves your browser</span>

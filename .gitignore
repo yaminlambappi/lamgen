@@ -1,56 +1,109 @@
-# Environment
+# -----------------------------------------------------------------------------
+# Environment & secrets
+# -----------------------------------------------------------------------------
 .env
 .env.*
 !.env.example
 
+# -----------------------------------------------------------------------------
 # Python
+# -----------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
+*$py.class
 *.pyo
 *.pyd
 *.so
 *.egg
 *.egg-info/
+.eggs/
 dist/
 build/
-.eggs/
+*.manifest
+*.spec
 
-# Virtual environment
+# Virtual environments
 venv/
 env/
 .venv/
 
+# Type check / lint / test caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
+# -----------------------------------------------------------------------------
 # Django
+# -----------------------------------------------------------------------------
 *.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+db.sqlite3*
+local_settings.py
 media/
 staticfiles/
 celerybeat-schedule
 celerybeat.pid
 
-# Testing
-.pytest_cache/
-.hypothesis/
-htmlcov/
-.coverage
-coverage.xml
-*.cover
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
+# -----------------------------------------------------------------------------
+# Logs & local runtime
+# -----------------------------------------------------------------------------
 *.log
 logs/
 
-# Tool audit system
-reports/tool_health/*
-!reports/tool_health/.gitkeep
+# -----------------------------------------------------------------------------
+# Node (if used for front-end tooling)
+# -----------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-audit_results.txt
+# -----------------------------------------------------------------------------
+# Build & temp files
+# -----------------------------------------------------------------------------
+*.tmp
+*.cache
+*.bak
+*.swp
+*.swo
+*~
+
+# -----------------------------------------------------------------------------
+# Editors & IDEs
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
+
+# -----------------------------------------------------------------------------
+# OS
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------------------------------------------------------
+# Audits, generated reports, scratch (keep tracked app code only)
+# -----------------------------------------------------------------------------
+/audits/
+/scratch/
+/outputs/
+/tool_health/
+/reports/
+!reports/tool_health/.gitkeep
+/audit_results.txt
+*_AUDIT_REPORT.md
+*_IMPLEMENTATION_REPORT.md
+CATEGORY_COMPLETION_MATRIX.md
+
+# -----------------------------------------------------------------------------
+# Optional: local AI / editor spec trees (uncomment to exclude from clones)
+# -----------------------------------------------------------------------------
+# .kiro/
+# .codex

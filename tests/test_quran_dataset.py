@@ -1,7 +1,7 @@
 from django.template.loader import render_to_string
 
-from tools.services.islamic_panel import PrayerTimesService, IslamicContentService
-from tools.services.quran import QuranDatasetService
+from apps.tools.services.islamic_panel import PrayerTimesService, IslamicContentService
+from apps.tools.services.quran import QuranDatasetService
 
 
 def test_quran_dataset_is_verified_and_consistent():

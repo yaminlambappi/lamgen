@@ -7,9 +7,9 @@
         <span class="badge-featured" style="background: var(--surface); color: var(--text); border: 1px solid var(--border);">New</span>
     {% endif %}
     
-    <div class="tool-icon-wrapper" style="{% tool_icon_bg tool.category %}">
-        <i class="{{ tool.icon }}" style="color: {{ tool.category.color_from }}"></i>
-    </div>
+<div class="tool-icon-wrapper" style="{% if tool.category %}{% tool_icon_bg tool.category %}{% endif %}">
+    <i class="{{ tool.icon }}" style="color: {% if tool.category %}{{ tool.category.color_from }}{% else %}#888{% endif %};"></i>
+</div>
     
     <div class="tool-card-content">
         <h3>{{ tool.name }}</h3>

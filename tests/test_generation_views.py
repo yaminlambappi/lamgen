@@ -15,8 +15,8 @@ from hypothesis import HealthCheck, given
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 
-from generation.models import GenerationJob
-from generation.views import ALLOWED_MIME_TYPES, MAX_FILE_SIZE
+from apps.generation.models import GenerationJob
+from apps.generation.views import ALLOWED_MIME_TYPES, MAX_FILE_SIZE
 from tests.factories import UserFactory
 
 # ---------------------------------------------------------------------------

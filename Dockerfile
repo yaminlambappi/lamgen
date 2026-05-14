@@ -21,10 +21,17 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /media/uploads /media/outputs
+RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin -c "Docker image user" appuser
+RUN mkdir -p /media/uploads /media/outputs && chown -R appuser:appuser /app /media
+
+USER appuser
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+# Must be overridden at runtime — this is a safe default for the build stage only.
+# The actual value is injected via docker-compose env_file or container environment.
+ENV DJANGO_SETTINGS_MODULE=config.settings.production
+ENV DJANGO_ENV=production
 
 RUN chmod +x /app/entrypoint.sh
 
