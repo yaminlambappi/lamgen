@@ -271,9 +271,7 @@ def tool_view(request, category_slug, tool_slug):
         from django.conf import settings
 
         if not settings.DEBUG:
-            from .tasks import update_tool_seo_content
-
-            update_tool_seo_content.delay(tool.pk)
+            pass
         else:
             Tool.objects.filter(pk=tool.pk).update(
                 seo_intro=tool.seo_intro,
