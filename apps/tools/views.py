@@ -253,6 +253,7 @@ def tool_view(request, category_slug, tool_slug):
     )
 
     # Get related tools
+    all_category_tools = list(Tool.objects.filter(category=category, is_active=True).exclude(id=tool.id).order_by("order", "name"))
     related_tools = get_related_tools(tool, all_category_tools)
     # Get enhanced internal links with safe fallback
     try:
