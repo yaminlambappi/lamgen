@@ -20,9 +20,9 @@ class Command(BaseSeedCommand):
         if dry_run:
             for c in registry:
                 tools = c.get("tools") or []
-                self.stdout.write(f"[DRY RUN] Category: {c.get("name")} ({len(tools)} tools)")
+                self.stdout.write(f"[DRY RUN] Category: {c.get('name')} ({len(tools)} tools)")
                 for t in tools:
-                    self.stdout.write(f"  - {t.get("name")} ({t.get("slug")})")
+                    self.stdout.write(f"  - {t.get('name')} ({t.get('slug')})")
             return
 
         cat_created = cat_updated = tool_created = tool_updated = 0

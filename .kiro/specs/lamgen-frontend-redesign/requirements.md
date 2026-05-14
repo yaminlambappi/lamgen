@@ -14,7 +14,7 @@ After deep exploration of the codebase, the following architectural facts and is
 - Django 4.2 with Bootstrap 5.3.2 + Bootstrap Icons + vanilla JS
 - Two CSS files: `main.css` (2122 lines, primary design system) and `design-system.css` (secondary utility layer)
 - Base template: `templates/base.html` — global header, footer, command palette, mobile menu
-- Tool pages: `templates/tools/tool_base.html` (856 lines of inline `<style>`) — all 265+ tools share this
+- Tool pages: `templates/tools/tool_base.html` (856 lines of inline `<style>`) — all 300+ Tools share this
 - Homepage: `templates/home.html` — two separate hero sections with conflicting styles in the same file
 - Tools index: `templates/tools/index.html` — bento grid layout with inline styles
 - Dashboard: `dashboard/templates/dashboard/dashboard.html` — uses old `var(--surface)`, `var(--border)`, `var(--text)` aliases instead of new `--lg-*` tokens
@@ -124,7 +124,7 @@ After deep exploration of the codebase, the following architectural facts and is
 
 ### Requirement 5: Tool Page System
 
-**User Story:** As a user, I want every tool page to feel consistent, fast, and focused, so that I can use any of the 265+ tools without relearning the interface.
+**User Story:** As a user, I want every tool page to feel consistent, fast, and focused, so that I can use any of the 300+ Tools without relearning the interface.
 
 #### Acceptance Criteria
 

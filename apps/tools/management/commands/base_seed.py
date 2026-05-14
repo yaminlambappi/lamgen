@@ -18,15 +18,15 @@ class BaseSeedCommand(BaseCommand):
         n_cat, n_tool = registry_stats(registry)
 
         self.stdout.write(self.style.SUCCESS("=== Registry (before DB insert) ==="))
-        self.stdout.write(f"Total categories loaded: {n_cat}")
-        self.stdout.write(f"Total tools loaded: {n_tool}")
+        self.stdout.write(f'Total categories loaded: {n_cat}')
+        self.stdout.write(f'Total tools loaded: {n_tool}')
         self.stdout.write("Category names (sorted by order, name):")
         for c in sorted(registry, key=lambda x: (x.get("order", 0), x.get("name") or "")):
-            self.stdout.write(f"  - {c.get("name")} [{c.get("slug")}]")
+            self.stdout.write(f"  - {c.get('name')} [{c.get('slug')}]")
         eco = ecosystem_tool_names(registry)
-        self.stdout.write(f"Ecosystem / new-vertical tool names ({len(eco)}):")
+        self.stdout.write(f'Ecosystem / new-vertical tool names ({len(eco)}):')
         for name in eco:
-            self.stdout.write(f"  - {name}")
+            self.stdout.write(f'  - {name}')
 
         for w in warnings:
             self.stdout.write(self.style.WARNING(f"Validation warning: {w}"))

@@ -323,7 +323,7 @@
     <input type="text"
            id="launcherSearch"
            class="launcher-search"
-           placeholder="Search 256 tools by name, category or keyword…"
+           placeholder="Search {{ approx_tools }}+ tools by name, category or keyword…"
            autocomplete="off"
            spellcheck="false"
            aria-label="Search tools">
@@ -407,9 +407,9 @@
 
 </div>
 
-{# Embed all tool data as JSON for instant client-side filtering #}
-<script id="toolData" type="application/json">
-[{% for cat in categories %}{% for tool in cat.tools.all %}{"slug":"{{ tool.slug }}","name":"{{ tool.name|escapejs }}","desc":"{{ tool.short_desc|truncatechars:60|escapejs }}","icon":"{{ tool.icon }}","url":"{{ tool.get_absolute_url }}","cat":"{{ cat.slug }}","catName":"{{ cat.name|escapejs }}","catColor":"{{ cat.color_from }}","isNew":{% if tool.is_new %}true{% else %}false{% endif %},"isFeatured":{% if tool.is_featured %}true{% else %}false{% endif %},"views":{{ tool.view_count }}}{% if not forloop.last %},{% endif %}{% endfor %}{% if not forloop.last %},{% endif %}{% endfor %}]
+{# Embed all tool data as raw text to safely parse without trailing/double comma issues #}
+<script id="toolDataRaw" type="text/plain">
+{% for cat in categories %}{% for tool in cat.tools.all %}{"slug":"{{ tool.slug }}","name":"{{ tool.name|escapejs }}","desc":"{{ tool.short_desc|truncatechars:60|escapejs }}","icon":"{{ tool.icon }}","url":"{{ tool.get_absolute_url }}","cat":"{{ cat.slug }}","catName":"{{ cat.name|escapejs }}","catColor":"{{ cat.color_from }}","isNew":{% if tool.is_new %}true{% else %}false{% endif %},"isFeatured":{% if tool.is_featured %}true{% else %}false{% endif %},"views":{{ tool.view_count }}},{% endfor %}{% endfor %}
 </script>
 {% endblock %}
 
@@ -417,7 +417,9 @@
 <script>
 (function() {
   // ── Data ──────────────────────────────────────────────────────────────────
-  const ALL_TOOLS = JSON.parse(document.getElementById('toolData').textContent);
+  let rawData = document.getElementById('toolDataRaw').textContent.trim();
+  if (rawData.endsWith(',')) rawData = rawData.slice(0, -1);
+  const ALL_TOOLS = JSON.parse('[' + rawData + ']');
   const RECENT_SLUGS = {{ request.session.recent_tools|default:"[]"|safe }};
 
   // ── State ─────────────────────────────────────────────────────────────────

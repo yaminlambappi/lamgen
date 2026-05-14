@@ -1,5 +1,5 @@
 """
-LamGen Metadata Engine — Programmatic SEO generation for 265+ tools.
+LamGen Metadata Engine — Programmatic SEO generation for 300+ Tools.
 
 Generates unique, keyword-rich metadata for every tool page:
 - SEO titles, meta descriptions, H1 variants
@@ -329,7 +329,7 @@ def build_website_schema(request) -> dict:
         "@type": "WebSite",
         "name": "LamGen",
         "url": base_url,
-        "description": "Free online tools for developers, students, writers and professionals. 265+ tools, no signup required.",
+        "description": "Free online tools for developers, students, writers and professionals. 300+ Tools, no signup required.",
         "potentialAction": {
             "@type": "SearchAction",
             "target": {
@@ -349,7 +349,7 @@ def build_organization_schema(request) -> dict:
         "@type": "Organization",
         "name": "LamGen",
         "url": base_url,
-        "description": "LamGen is a free AI-powered utility ecosystem with 265+ tools for developers, students, writers and professionals.",
+        "description": "LamGen is a free AI-powered utility ecosystem with 300+ Tools for developers, students, writers and professionals.",
         "sameAs": [],
     }
 

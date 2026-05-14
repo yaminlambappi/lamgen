@@ -30,6 +30,7 @@ def index(request):
     featured_tools = Tool.objects.filter(is_active=True, is_featured=True).select_related("category")[:8]
     new_tools = Tool.objects.filter(is_active=True, is_new=True).select_related("category")[:6]
     trending = Tool.objects.filter(is_active=True).order_by("-view_count").select_related("category")[:8]
+    most_used = Tool.objects.filter(is_active=True).order_by("-usage_count").select_related("category")[:8]
 
     recent_slugs = request.session.get("recent_tools", [])
     recent_tools = list(Tool.objects.filter(slug__in=recent_slugs, is_active=True).select_related("category"))
@@ -59,6 +60,7 @@ def index(request):
             "featured_tools": featured_tools,
             "new_tools": new_tools,
             "trending": trending,
+            "most_used": most_used,
             "recent_tools": recent_tools[:5],
             "bookmarked_slugs": bookmarked_slugs,
             "page_title": f"LamGen — {approx_tools}+ Free Online Tools for Developers, Students & Writers",
