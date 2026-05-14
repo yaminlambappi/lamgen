@@ -236,7 +236,7 @@ def tool_view(request, category_slug, tool_slug):
     try:
         get_template(actual_template)
     except TemplateDoesNotExist:
-        actual_template = "tools/tool_fallback.html"
+        actual_template = "tools/generic_tool.html"
 
     # ── Full metadata engine ──
     import json as _json
@@ -367,9 +367,17 @@ def longtail_view(request, category_slug, tool_slug, variant_slug):
     # SELF-REFERENTIAL CANONICAL: Each longtail page indexes independently
     canonical = request.build_absolute_uri(variant.get_absolute_url())
 
+    from django.template.loader import get_template, TemplateDoesNotExist
+
+    actual_template = tool.template_name
+    try:
+        get_template(actual_template)
+    except TemplateDoesNotExist:
+        actual_template = "tools/generic_tool.html"
+
     return render(
         request,
-        tool.template_name,
+        actual_template,
         {
             "tool": tool,
             "category": category,
