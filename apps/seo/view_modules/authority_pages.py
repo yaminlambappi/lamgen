@@ -19,10 +19,10 @@ def guide_view(request, guide_slug=None):
     """View for guide pages"""
     if not guide_slug:
         # Index listing of all available guides
-        return render(request, 'seo/guide_index.html', {
+        return render(request, 'seo/index.html', {
             'page_title': 'Guides — LamGen',
             'meta_description': 'Step-by-step guides for developers, students, and writers. Learn how to use free online tools effectively.',
-            'canonical_url': request.build_absolute_uri(),
+            'canonical_url': request.build_absolute_uri('/content/guides/'),
         })
     cache_key = f"guide_{guide_slug}"
     cached_content = cache.get(cache_key)
@@ -43,7 +43,7 @@ def guide_view(request, guide_slug=None):
         'itemListElement': [
             {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
             {'@type': 'ListItem', 'position': 2, 'name': 'Guides', 'item': f'{base_url}content/guides/'},
-            {'@type': 'ListItem', 'position': 3, 'name': guide_data['title'], 'item': request.build_absolute_uri()},
+            {'@type': 'ListItem', 'position': 3, 'name': guide_data['title'], 'item': request.build_absolute_uri('/content/guides/' + guide_slug + '/')},
         ]
     })
 
@@ -67,10 +67,10 @@ def guide_view(request, guide_slug=None):
 def compare_view(request, compare_slug=None):
     """View for comparison pages"""
     if not compare_slug:
-        return render(request, 'seo/compare_index.html', {
+        return render(request, 'seo/index.html', {
             'page_title': 'Tool Comparisons — LamGen',
             'meta_description': 'Compare popular tools, formats, and technologies. Find the right tool for your use case.',
-            'canonical_url': request.build_absolute_uri(),
+            'canonical_url': request.build_absolute_uri('/content/compare/'),
         })
     cache_key = f"compare_{compare_slug}"
     cached_content = cache.get(cache_key)
@@ -91,7 +91,7 @@ def compare_view(request, compare_slug=None):
         'itemListElement': [
             {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
             {'@type': 'ListItem', 'position': 2, 'name': 'Compare', 'item': f'{base_url}content/compare/'},
-            {'@type': 'ListItem', 'position': 3, 'name': compare_data['title'], 'item': request.build_absolute_uri()},
+            {'@type': 'ListItem', 'position': 3, 'name': compare_data['title'], 'item': request.build_absolute_uri('/content/compare/' + compare_slug + '/')},
         ]
     })
 
@@ -115,10 +115,10 @@ def compare_view(request, compare_slug=None):
 def learn_view(request, topic_slug=None):
     """View for learning pages"""
     if not topic_slug:
-        return render(request, 'seo/learn_index.html', {
+        return render(request, 'seo/index.html', {
             'page_title': 'Learn — LamGen',
             'meta_description': 'Tutorials and learning resources for developers, students, and writers.',
-            'canonical_url': request.build_absolute_uri(),
+            'canonical_url': request.build_absolute_uri('/content/learn/'),
         })
     cache_key = f"learn_{topic_slug}"
     cached_content = cache.get(cache_key)
@@ -139,7 +139,7 @@ def learn_view(request, topic_slug=None):
         'itemListElement': [
             {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
             {'@type': 'ListItem', 'position': 2, 'name': 'Learn', 'item': f'{base_url}content/learn/'},
-            {'@type': 'ListItem', 'position': 3, 'name': learn_data['title'], 'item': request.build_absolute_uri()},
+            {'@type': 'ListItem', 'position': 3, 'name': learn_data['title'], 'item': request.build_absolute_uri('/content/learn/' + topic_slug + '/')},
         ]
     })
 
@@ -163,10 +163,10 @@ def learn_view(request, topic_slug=None):
 def best_tools_view(request, category_slug=None):
     """View for best tools pages"""
     if not category_slug:
-        return render(request, 'seo/best_tools_index.html', {
+        return render(request, 'seo/index.html', {
             'page_title': 'Best Tools by Category — LamGen',
             'meta_description': 'Expert-curated lists of the best free online tools by category.',
-            'canonical_url': request.build_absolute_uri(),
+            'canonical_url': request.build_absolute_uri('/content/best-tools/'),
         })
     cache_key = f"best_tools_{category_slug}"
     cached_content = cache.get(cache_key)
@@ -187,7 +187,7 @@ def best_tools_view(request, category_slug=None):
         'itemListElement': [
             {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
             {'@type': 'ListItem', 'position': 2, 'name': 'Best Tools', 'item': f'{base_url}content/best-tools/'},
-            {'@type': 'ListItem', 'position': 3, 'name': best_tools_data['title'], 'item': request.build_absolute_uri()},
+            {'@type': 'ListItem', 'position': 3, 'name': best_tools_data['title'], 'item': request.build_absolute_uri('/content/best-tools/' + category_slug + '/')},
         ]
     })
 
@@ -211,10 +211,10 @@ def best_tools_view(request, category_slug=None):
 def workflow_view(request, workflow_slug=None):
     """View for workflow pages"""
     if not workflow_slug:
-        return render(request, 'seo/workflow_index.html', {
+        return render(request, 'seo/index.html', {
             'page_title': 'Tool Workflows — LamGen',
             'meta_description': 'Multi-step tool workflows for common tasks. Chain tools together for maximum productivity.',
-            'canonical_url': request.build_absolute_uri(),
+            'canonical_url': request.build_absolute_uri('/content/workflows/'),
         })
     cache_key = f"workflow_{workflow_slug}"
     cached_content = cache.get(cache_key)
@@ -235,7 +235,7 @@ def workflow_view(request, workflow_slug=None):
         'itemListElement': [
             {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': base_url},
             {'@type': 'ListItem', 'position': 2, 'name': 'Workflows', 'item': f'{base_url}content/workflows/'},
-            {'@type': 'ListItem', 'position': 3, 'name': workflow_data['title'], 'item': request.build_absolute_uri()},
+            {'@type': 'ListItem', 'position': 3, 'name': workflow_data['title'], 'item': request.build_absolute_uri('/content/workflows/' + workflow_slug + '/')},
         ]
     })
 
@@ -692,155 +692,66 @@ def generate_learn_content(topic_slug):
 
 
 def generate_best_tools_content(category_slug):
-    """Generate best tools content based on category"""
-    categories = {
+    """Generate best tools content based on category (lazy DB access, crash-safe)."""
+    # Static metadata per supported category slug
+    _category_meta = {
         'pdf': {
             'title': 'Best PDF Tools 2024',
             'meta_description': 'Discover the best PDF tools online. Compare top PDF editors, mergers, compressors, and converters with expert reviews.',
-            'category': get_object_or_404(ToolCategory, slug='pdf'),
-            'tools': Tool.objects.filter(category__slug='pdf', is_active=True).order_by('-usage_count', '-view_count')[:10],
             'selection_criteria': [
-                {
-                    'name': 'Privacy & Security',
-                    'description': 'Client-side processing with no data collection',
-                    'weight': 25
-                },
-                {
-                    'name': 'Performance',
-                    'description': 'Fast processing speed and efficiency',
-                    'weight': 20
-                },
-                {
-                    'name': 'Features',
-                    'description': 'Comprehensive functionality and advanced options',
-                    'weight': 20
-                },
-                {
-                    'name': 'User Experience',
-                    'description': 'Intuitive interface and ease of use',
-                    'weight': 15
-                },
-                {
-                    'name': 'Value',
-                    'description': 'Free features and pricing',
-                    'weight': 20
-                }
+                {'name': 'Privacy & Security', 'description': 'Client-side processing with no data collection', 'weight': 25},
+                {'name': 'Performance',        'description': 'Fast processing speed and efficiency',         'weight': 20},
+                {'name': 'Features',           'description': 'Comprehensive functionality and advanced options', 'weight': 20},
+                {'name': 'User Experience',    'description': 'Intuitive interface and ease of use',          'weight': 15},
+                {'name': 'Value',              'description': 'Free features and pricing',                    'weight': 20},
             ],
             'schema_json': json.dumps({
                 '@context': 'https://schema.org',
                 '@type': 'CollectionPage',
                 'name': 'Best PDF Tools 2024',
                 'description': 'Curated list of the best PDF tools and services',
-                'mainEntity': {
-                    '@type': 'ItemList',
-                    'itemListElement': [
-                        {
-                            '@type': 'ListItem',
-                            'name': 'PDF Tools'
-                        }
-                    ]
-                }
+                'mainEntity': {'@type': 'ItemList', 'itemListElement': [{'@type': 'ListItem', 'name': 'PDF Tools'}]},
             }),
-            'breadcrumb_schema': json.dumps({
-                '@context': 'https://schema.org',
-                '@type': 'BreadcrumbList',
-                'itemListElement': [
-                    {
-                        '@type': 'ListItem',
-                        'position': 1,
-                        'name': 'Home',
-                        'item': 'https://lamgen.lamlab.me/'
-                    },
-                    {
-                        '@type': 'ListItem',
-                        'position': 2,
-                        'name': 'Best Tools',
-                        'item': 'https://lamgen.lamlab.me/best-tools/'
-                    },
-                    {
-                        '@type': 'ListItem',
-                        'position': 3,
-                        'name': 'PDF Tools',
-                        'item': 'https://lamgen.lamlab.me/best-tools/pdf'
-                    }
-                ]
-            })
         },
         'developer': {
             'title': 'Best Developer Tools 2024',
             'meta_description': 'Find the best developer tools for coding, debugging, and productivity. Compare top JSON formatters, code validators, and development utilities.',
-            'category': get_object_or_404(ToolCategory, slug='developer'),
-            'tools': Tool.objects.filter(category__slug='developer', is_active=True).order_by('-usage_count', '-view_count')[:10],
             'selection_criteria': [
-                {
-                    'name': 'Accuracy',
-                    'description': 'Precise output and error detection',
-                    'weight': 25
-                },
-                {
-                    'name': 'Performance',
-                    'description': 'Fast processing and low resource usage',
-                    'weight': 20
-                },
-                {
-                    'name': 'Features',
-                    'description': 'Comprehensive functionality and advanced options',
-                    'weight': 20
-                },
-                {
-                    'name': 'Integration',
-                    'description': 'Easy integration with development workflows',
-                    'weight': 15
-                },
-                {
-                    'name': 'Free Usage',
-                    'description': 'Generous free tier and pricing',
-                    'weight': 20
-                }
+                {'name': 'Accuracy',     'description': 'Precise output and error detection',              'weight': 25},
+                {'name': 'Performance',  'description': 'Fast processing and low resource usage',           'weight': 20},
+                {'name': 'Features',     'description': 'Comprehensive functionality and advanced options', 'weight': 20},
+                {'name': 'Integration',  'description': 'Easy integration with development workflows',     'weight': 15},
+                {'name': 'Free Usage',   'description': 'Generous free tier and pricing',                  'weight': 20},
             ],
             'schema_json': json.dumps({
                 '@context': 'https://schema.org',
                 '@type': 'CollectionPage',
                 'name': 'Best Developer Tools 2024',
                 'description': 'Curated list of the best developer tools and utilities',
-                'mainEntity': {
-                    '@type': 'ItemList',
-                    'itemListElement': [
-                        {
-                            '@type': 'ListItem',
-                            'name': 'Developer Tools'
-                        }
-                    ]
-                }
+                'mainEntity': {'@type': 'ItemList', 'itemListElement': [{'@type': 'ListItem', 'name': 'Developer Tools'}]},
             }),
-            'breadcrumb_schema': json.dumps({
-                '@context': 'https://schema.org',
-                '@type': 'BreadcrumbList',
-                'itemListElement': [
-                    {
-                        '@type': 'ListItem',
-                        'position': 1,
-                        'name': 'Home',
-                        'item': 'https://lamgen.lamlab.me/'
-                    },
-                    {
-                        '@type': 'ListItem',
-                        'position': 2,
-                        'name': 'Best Tools',
-                        'item': 'https://lamgen.lamlab.me/best-tools/'
-                    },
-                    {
-                        '@type': 'ListItem',
-                        'position': 3,
-                        'name': 'Developer Tools',
-                        'item': 'https://lamgen.lamlab.me/best-tools/developer'
-                    }
-                ]
-            })
-        }
+        },
     }
-    
-    return categories.get(category_slug)
+
+    meta = _category_meta.get(category_slug)
+    if not meta:
+        return None
+
+    # Lazy DB resolution — only for the requested category
+    try:
+        category_obj = ToolCategory.objects.get(slug=category_slug, is_active=True)
+    except ToolCategory.DoesNotExist:
+        return None  # Gracefully return None so view renders 404
+
+    tools_qs = Tool.objects.filter(
+        category=category_obj, is_active=True
+    ).order_by('-usage_count', '-view_count')[:10]
+
+    return {
+        **meta,
+        'category': category_obj,
+        'tools': tools_qs,
+    }
 
 
 def generate_workflow_content(workflow_slug):

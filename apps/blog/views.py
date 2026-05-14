@@ -49,16 +49,25 @@ def blog_type_index(request, content_type):
 
 @cache_control(public=True, max_age=3600)
 def article_view(request, content_type, slug):
+    import re as _re
     article = get_object_or_404(ContentArticle, slug=slug, content_type=content_type, is_published=True)
     related_articles = ContentArticle.objects.filter(
         is_published=True, content_type=content_type
     ).exclude(pk=article.pk)[:4]
     schema = json.dumps(build_article_schema(article, request))
+
+    # Improved meta_description fallback: derive from cleaned body text if field is blank
+    meta_desc = article.meta_description
+    if not meta_desc and article.body:
+        plain = _re.sub(r'[#*`_\[\]()<>~\-!]', '', article.body).strip()
+        plain = _re.sub(r'\s+', ' ', plain)
+        meta_desc = (plain[:157] + '...') if len(plain) > 160 else plain
+
     return render(request, "blog/article.html", {
         "article": article,
         "related_articles": related_articles,
         "page_title": article.meta_title or article.title,
-        "meta_description": article.meta_description,
+        "meta_description": meta_desc,
         "canonical_url": request.build_absolute_uri(article.get_absolute_url()),
         "schema_json": schema,
     })

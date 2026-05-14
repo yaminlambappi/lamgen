@@ -18,7 +18,7 @@ from apps.generation.views import serve_protected_media
 
 # Import new sitemap engine if available, fallback to old
 try:
-    from apps.seo.engine.sitemap import get_sitemaps as get_new_sitemaps, rebuild_all_sitemaps, ping_search_engines
+    from apps.seo.engine.sitemap import get_sitemap_sections as get_new_sitemaps, rebuild_all_sitemaps, ping_search_engines
     USE_NEW_SITEMAP = True
 except ImportError:
     USE_NEW_SITEMAP = False
@@ -26,6 +26,9 @@ except ImportError:
 
 
 def robots_txt(request):
+    # NOTE: Wildcard path rules (*.json, /*?*) are NOT valid Googlebot directives
+    # and can cause unintended blocking. Keep rules simple and explicit.
+    site_url = settings.SITE_URL.rstrip("/")
     lines = [
         "User-agent: *",
         "Allow: /",
@@ -33,12 +36,11 @@ def robots_txt(request):
         "Disallow: /users/",
         "Disallow: /api/",
         "Disallow: /media/og/",
-        "",
         # Embed pages are intentionally iframed — noindex is set in the view,
         # but we also disallow crawling to save crawl budget.
         "Disallow: /tools/*/embed/",
         "",
-        f"Sitemap: {settings.SITE_URL}/sitemap.xml",
+        f"Sitemap: {site_url}/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
 

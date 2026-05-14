@@ -241,6 +241,10 @@ def get_sitemap_sections():
     }
 
 
+# Backwards-compatibility alias
+get_sitemaps = get_sitemap_sections
+
+
 def ping_search_engines():
     """Ping search engines after sitemap update."""
     import requests
