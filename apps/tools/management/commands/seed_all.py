@@ -58,7 +58,7 @@ class Command(BaseSeedCommand):
                     failed.append((tool_row.get("slug"), str(exc)))
                     skipped_tools += 1
                     self.stderr.write(
-                        self.style.ERROR(f"    Failed tool {tool_row.get("slug")!r}: {exc}")
+                        self.style.ERROR(f"    Failed tool {tool_row.get('slug')!r}: {exc}")    
                     )
                     continue
                 if t_created:

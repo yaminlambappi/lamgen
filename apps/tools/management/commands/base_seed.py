@@ -22,7 +22,7 @@ class BaseSeedCommand(BaseCommand):
         self.stdout.write(f"Total tools loaded: {n_tool}")
         self.stdout.write("Category names (sorted by order, name):")
         for c in sorted(registry, key=lambda x: (x.get("order", 0), x.get("name") or "")):
-            self.stdout.write(f"  - {c.get("name")} [{c.get("slug")}]")
+            self.stdout.write(f"  - {c.get('name')} [{c.get('slug')}]")
         eco = ecosystem_tool_names(registry)
         self.stdout.write(f"Ecosystem / new-vertical tool names ({len(eco)}):")
         for name in eco:
