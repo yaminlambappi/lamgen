@@ -1,7 +1,7 @@
 """
 Tool Health Audit — Playwright-based checks for all LamGen tools.
 
-Designed for 256+ tools: batched async navigation, semaphore-limited parallelism,
+Designed for 300+ tools: batched async navigation, semaphore-limited parallelism,
 retries, structured JSON + HTML reports, and actionable fix hints.
 """
 
