@@ -309,9 +309,11 @@ function renderRelatedTools(tools, hasMore = false) {
 }
 
 function loadMoreRelatedTools() {
-    // This will be called when user clicks "Load More Tools"
-    // The actual tool ID should be passed from the parent component
-    console.log('Load more related tools clicked');
+    const currentToolElement = document.querySelector('[data-tool-id]');
+    if (currentToolElement) {
+        const toolId = currentToolElement.getAttribute('data-tool-id');
+        loadRelatedTools(toolId);
+    }
 }
 
 // Initialize related tools when page loads

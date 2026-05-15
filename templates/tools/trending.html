@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block canonical %}{{ canonical_url }}{% endblock %}
+
+{% block content %}
+<main class="lg-container" style="padding-top: var(--lg-space-4xl);">
+    <header class="lg-mb-2xl text-center">
+        <h1 class="lg-text-4xl lg-font-bold lg-mb-sm">Trending Tools</h1>
+        <p class="lg-text-muted">Most popular free online tools on LamGen.</p>
+    </header>
+
+    <div class="lg-grid lg-grid-cols-4 lg-gap-lg">
+        {% for tool in tools %}
+            <a href="{{ tool.get_absolute_url }}" class="tool-card lg-fade-in" style="--tool-color: {{ tool.category.color_from|default:'#6366f1' }}; animation-delay: {{ forloop.counter0 }}0ms;">
+                <div class="tool-icon">
+                    <i class="{{ tool.icon }}"></i>
+                </div>
+                <div class="tool-info">
+                    <h3 class="tool-name">{{ tool.name }}</h3>
+                    <p class="tool-desc">{{ tool.short_desc|truncatechars:60 }}</p>
+                </div>
+            </a>
+        {% empty %}
+            <p class="lg-text-muted lg-col-span-4 text-center">No trending tools found.</p>
+        {% endfor %}
+    </div>
+</main>
+{% endblock %}

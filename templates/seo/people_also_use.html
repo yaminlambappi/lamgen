@@ -279,7 +279,10 @@ function renderPeopleAlsoUse(tools, hasMore = false) {
 }
 
 function loadMorePeopleAlsoUse() {
-    // This will be called when user clicks "Load More" button
-    console.log('Load more people also use tools');
+    const currentToolElement = document.querySelector('[data-tool-id]');
+    if (currentToolElement) {
+        const toolId = currentToolElement.getAttribute('data-tool-id');
+        loadPeopleAlsoUse(toolId);
+    }
 }
 </script>

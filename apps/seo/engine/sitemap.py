@@ -87,7 +87,6 @@ class ToolSitemap(SmartPriorityMixin, ChunkedSitemapMixin, Sitemap):
         return list(
             Tool.objects.filter(is_active=True)
             .select_related('category')
-            .only('id', 'slug', 'updated_at', 'is_featured', 'view_count')
             .order_by('-updated_at')
         )
     
