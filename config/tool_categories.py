@@ -310,7 +310,8 @@ _TOOL_CATEGORIES_BASE = [
         'order': 9,
         'short_desc': 'Build resumes, cover letters and professional documents.',
         'tools': [
-            {'slug': 'ai-resume-builder', 'name': 'AI Resume Builder', 'short_desc': 'Build a professional resume with AI.', 'icon': 'bi-file-person', 'template_name': 'tools/ai_tools/resume-builder.html', 'tags': 'resume,cv,build,career,ai', 'order': 1, 'is_active': True, 'is_ai_powered': True},
+            {'slug': 'ai-resume-builder', 'name': 'AI Resume Builder', 'short_desc': 'Build a professional resume with AI.', 'icon': 'bi-file-person', 'template_name': 'ai_tools/resume-builder.html', 'tags': 'resume,cv,build,career,ai', 'order': 1, 'is_active': True, 'is_ai_powered': True},
+
             {'slug': 'ai-ats-resume-checker', 'name': 'AI ATS Resume Checker', 'short_desc': 'Check if your resume is ATS-friendly with AI.', 'icon': 'bi-check-circle', 'template_name': 'tools/ai_tools/ats-resume-checker.html', 'tags': 'ats,resume,check,career,ai', 'order': 2, 'is_active': False, 'is_ai_powered': True},
             {'slug': 'ai-cover-letter-generator', 'name': 'AI Cover Letter Generator', 'short_desc': 'Generate a cover letter with AI.', 'icon': 'bi-envelope-paper', 'template_name': 'tools/ai_tools/cover-letter-generator.html', 'tags': 'cover,letter,build,career,ai', 'order': 3, 'is_active': False, 'is_ai_powered': True},
             {'slug': 'ai-linkedin-headline-generator', 'name': 'AI LinkedIn Headline Generator', 'short_desc': 'Generate a LinkedIn headline with AI.', 'icon': 'bi-linkedin', 'template_name': 'tools/ai_tools/linkedin-headline-generator.html', 'tags': 'linkedin,headline,generate,career,ai', 'order': 4, 'is_active': False, 'is_ai_powered': True},

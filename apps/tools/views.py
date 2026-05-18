@@ -374,16 +374,15 @@ def tool_view(request, category_slug, tool_slug):
     # All active tools in category (for related tool engine)
     all_category_tools = list(Tool.objects.filter(category=category, is_active=True).exclude(id=tool.id).order_by("order", "name"))
 
-    # Handle missing templates gracefully
+    # Validate template exists — show fallback for tools not yet implemented
     from django.template.loader import get_template, TemplateDoesNotExist
 
     actual_template = tool.template_name
-    # try:
-    #     get_template(actual_template)
-    # except TemplateDoesNotExist:
-    #     # tool_fallback.html is the proper "coming soon" page.
-    #     # tool_redirect.html shows "being upgraded" which is misleading.
-    #     actual_template = "tools/tool_fallback.html"
+    try:
+        get_template(actual_template)
+    except TemplateDoesNotExist:
+        # tool_fallback.html is the proper "coming soon" page for unimplemented tools
+        actual_template = "tools/tool_fallback.html"
 
     # ── Full metadata engine ──
     import json as _json
@@ -810,6 +809,38 @@ def games_data_api(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+# --- Unified Tool Counts API ---
+@cache_control(public=True, max_age=300)
+@require_GET
+def tool_counts_api(request):
+    """Unified tool counts \u2014 derived from DB which mirrors registry state.
+    Returns total, ai_tools, utility_tools, and per-category breakdown.
+    """
+    from django.db.models import Count, Q
+
+    cats = (
+        ToolCategory.objects.filter(is_active=True)
+        .annotate(
+            total=Count('tools', filter=Q(tools__is_active=True)),
+            ai_count=Count('tools', filter=Q(tools__is_active=True, tools__is_ai_powered=True)),
+        )
+        .values('slug', 'name', 'icon', 'total', 'ai_count')
+        .order_by('order', 'name')
+    )
+
+    categories = list(cats)
+    total_tools = sum(c['total'] for c in categories)
+    total_ai = sum(c['ai_count'] for c in categories)
+    total_utility = total_tools - total_ai
+
+    return JsonResponse({
+        'total': total_tools,
+        'ai_tools': total_ai,
+        'utility_tools': total_utility,
+        'categories': categories,
+    })
+
+
 # --- New Dynamic Routing Views ---
 from django.shortcuts import redirect
 from apps.ai_tools.registry import get_tool, get_all_tools
@@ -855,11 +886,12 @@ def dynamic_tool_view(request, category_slug, tool_slug):
             "meta_description": ai_tool.get("system_prompt", "")[:150],
         })
 
-    # 2. Fallback to DB Tool — match by slug only, category_slug is advisory
-    tool = (
-        Tool.objects.filter(slug=tool_slug, is_active=True).select_related('category').first()
-        or Tool.objects.filter(slug=tool_slug, category__slug=category_slug, is_active=True).select_related('category').first()
-    )
+    # 2. Fallback to DB Tool — match by slug only (category_slug is advisory / may be None)
+    tool = Tool.objects.filter(slug=tool_slug, is_active=True).select_related('category').first()
+    if not tool and category_slug:
+        tool = Tool.objects.filter(
+            slug=tool_slug, category__slug=category_slug, is_active=True
+        ).select_related('category').first()
     if not tool:
         return render(request, 'tools/tool_fallback.html', {'slug': tool_slug}, status=404)
     return tool_view(request, tool.category.slug, tool_slug)
@@ -869,8 +901,8 @@ def category_or_tool_dispatcher(request, category_slug=None, tool_slug=None):
     slug = category_slug or tool_slug
     if ToolCategory.objects.filter(slug=slug, is_active=True).exists():
         return category_view(request, slug)
-    # Pass the slug as tool_slug; dynamic_tool_view resolves the real category
-    return dynamic_tool_view(request, slug, slug)
+    # It's a tool slug — resolve via dynamic_tool_view with no assumed category
+    return dynamic_tool_view(request, None, slug)
 
 def tool_redirect_view(request, category_slug, tool_slug):
     """Redirect old /category/tool/ paths to /tool/ OR render the new dynamic AI view."""

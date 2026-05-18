@@ -36,6 +36,7 @@ urlpatterns = [
     # Existing endpoints
     path('search/', views.search_view, name='search'),
     path('trending/', views.trending_view, name='trending'),
+    path('api/tool-counts/', views.tool_counts_api, name='tool_counts_api'),
     path('bookmark/toggle/', views.toggle_bookmark, name='bookmark'),
     path('bookmark/save/', views.toggle_bookmark_auth, name='bookmark_auth'),
     path('usage/record/', views.record_usage, name='record_usage'),
