@@ -38,7 +38,19 @@ def _normalize_tool(tool: Dict[str, Any], order_hint: int) -> Dict[str, Any]:
     t.setdefault("is_trending", False)
     t.setdefault("tags", "")
     t.setdefault("icon", "bi-wrench")
+    # Ensure template_name always resolves to a file that exists on disk.
+    # Tools without a specific template use the universal generic_tool.html.
+    tmpl = t.get("template_name") or ""
+    if tmpl:
+        try:
+            from django.template.loader import get_template, TemplateDoesNotExist
+            get_template(tmpl)
+        except Exception:
+            t["template_name"] = "tools/generic_tool.html"
+    else:
+        t["template_name"] = "tools/generic_tool.html"
     return t
+
 
 
 def _normalize_category(category: Dict[str, Any]) -> Dict[str, Any]:
