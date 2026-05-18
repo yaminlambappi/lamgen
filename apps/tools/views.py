@@ -378,12 +378,12 @@ def tool_view(request, category_slug, tool_slug):
     from django.template.loader import get_template, TemplateDoesNotExist
 
     actual_template = tool.template_name
-    try:
-        get_template(actual_template)
-    except TemplateDoesNotExist:
-        # tool_fallback.html is the proper "coming soon" page.
-        # tool_redirect.html shows "being upgraded" which is misleading.
-        actual_template = "tools/tool_fallback.html"
+    # try:
+    #     get_template(actual_template)
+    # except TemplateDoesNotExist:
+    #     # tool_fallback.html is the proper "coming soon" page.
+    #     # tool_redirect.html shows "being upgraded" which is misleading.
+    #     actual_template = "tools/tool_fallback.html"
 
     # ── Full metadata engine ──
     import json as _json
