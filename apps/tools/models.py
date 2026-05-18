@@ -112,6 +112,7 @@ class Tool(models.Model):
     is_trending = models.BooleanField(default=False)
     search_priority = models.IntegerField(default=0)
     cache_strategy = models.CharField(max_length=20, default='default')
+    registry_version = models.CharField(max_length=20, default='1.0', help_text="Registry version string; auto-updated by seed_tools.")
     view_count = models.BigIntegerField(default=0)
     usage_count = models.BigIntegerField(default=0)
     tags = models.CharField(max_length=500, blank=True, help_text="Comma-separated tags")
