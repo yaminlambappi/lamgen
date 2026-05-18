@@ -1230,7 +1230,7 @@ body { overflow-x: hidden !important; width: 100% !important; margin: 0; padding
     border: 1px solid rgba(139,127,255,0.09);
     border-radius: 50px;
     padding: 4px;
-    max-width: 380px;
+    max-width: 480px;
 }
 .nav-link {
     position: relative;
