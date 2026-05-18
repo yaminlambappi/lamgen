@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% url 'og_image' category.slug tool.slug %}{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% if category and category.slug %}{% url 'og_image' category.slug tool.slug %}{% else %}/static/img/og-default.png{% endif %}{% endblock %}
+
 
 {% block perf_prefetch %}
 <link rel="prefetch" href="{{ category.get_absolute_url }}">
@@ -654,7 +655,8 @@
         <section class="tool-seo-section" aria-labelledby="what-is-heading">
             <h2 id="what-is-heading"><i class="bi bi-info-circle"></i> What is {{ tool.name }}?</h2>
             <p>{% if seo_intro %}{{ seo_intro }}{% else %}{{ tool.name }} is a free online tool that lets you {{ tool.short_desc|lower }}. It runs entirely in your browser — no server uploads, no account required, and no data ever leaves your device.{% endif %}</p>
-            <p>Part of the <a href="{% url 'tools:category' category.slug %}" style="color:var(--lg-violet);text-decoration:none;font-weight:600;">{{ category.name }}</a> suite on LamGen — 300+ Tools for developers, students, writers and professionals.</p>
+            <p>Part of the {% if category and category.slug %}<a href="{% url 'tools:category' category.slug %}" style="color:var(--lg-violet);text-decoration:none;font-weight:600;">{{ category.name }}</a>{% else %}<span style="color:var(--lg-violet);font-weight:600;">LamGen Tools</span>{% endif %} suite on LamGen — 300+ Tools for developers, students, writers and professionals.</p>
+
         </section>
 
         <!-- How to use -->

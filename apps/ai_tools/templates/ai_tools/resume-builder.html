@@ -1,37 +1,226 @@
-{% extends 'base.html' %}
+{% extends "tools/tool_base.html" %}
+{% block tool_css %}
+<style>
+.dev-tool-wrap{display:flex;flex-direction:column;gap:1.25rem}
+.tool-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--lg-text-muted);margin-bottom:.4rem;display:block}
+.tool-code{width:100%;padding:14px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--lg-text);font-family:'Inter',sans-serif;font-size:.88rem;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;box-sizing:border-box}
+.tool-code:focus{border-color:var(--lg-violet);box-shadow:0 0 0 3px rgba(123,111,255,.12)}
+.tool-code::placeholder{color:rgba(255,255,255,.2)}
+.act-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn-go{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;background:linear-gradient(135deg,#7B6FFF,#3EECD8);color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(123,111,255,.3)}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(123,111,255,.45)}
+.btn-go:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:rgba(255,255,255,.05);color:var(--lg-text);border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.8rem;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
+.btn-sm:hover{background:rgba(255,255,255,.1)}
+.status{display:none;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:.82rem;font-weight:600}
+.status.ok{display:flex;background:rgba(62,236,216,.08);color:var(--lg-cyan);border:1px solid rgba(62,236,216,.2)}
+.status.err{display:flex;background:rgba(255,92,122,.1);color:#FF5C7A;border:1px solid rgba(255,92,122,.25)}
+.status.loading{display:flex;color:var(--lg-text-muted);border:1px solid rgba(255,255,255,.08)}
+.result-section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.25rem;display:flex;flex-direction:column;gap:.75rem}
+.result-section h3{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin:0;color:var(--lg-text);display:flex;align-items:center;gap:.5rem}
+.result-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.25rem}
+.tab-btn{padding:5px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:50px;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--lg-text-muted);transition:all .18s;font-family:'Inter',sans-serif}
+.tab-btn.active{background:rgba(123,111,255,.18);border-color:rgba(123,111,255,.35);color:#fff}
+.resume-output{white-space:pre-wrap;font-size:.87rem;line-height:1.75;color:var(--lg-text);font-family:'Inter',sans-serif;background:rgba(0,0,0,.25);border-radius:10px;padding:1rem;max-height:480px;overflow-y:auto}
+.skills-grid{display:flex;flex-wrap:wrap;gap:6px}
+.skill-chip{padding:4px 12px;background:rgba(123,111,255,.1);border:1px solid rgba(123,111,255,.2);border-radius:50px;font-size:.78rem;color:#B8B0FF}
+.exp-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.9rem 1rem;margin-bottom:.5rem}
+.exp-card h4{font-size:.9rem;font-weight:700;color:var(--lg-text);margin:0 0 2px}
+.exp-card .exp-meta{font-size:.78rem;color:var(--lg-text-muted);margin-bottom:.5rem}
+.exp-card p{font-size:.85rem;color:var(--lg-text-muted);margin:0;line-height:1.6}
+.score-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:50px;font-size:.78rem;font-weight:700}
+.score-badge.high{background:rgba(62,236,216,.12);color:var(--lg-cyan);border:1px solid rgba(62,236,216,.25)}
+.score-badge.mid{background:rgba(255,179,71,.1);color:#FFB347;border:1px solid rgba(255,179,71,.25)}
+.score-badge.low{background:rgba(255,92,122,.1);color:#FF5C7A;border:1px solid rgba(255,92,122,.25)}
+</style>
+{% endblock %}
 
-{% block title %}AI Resume Builder{% endblock %}
+{% block tool_content %}
+<div class="dev-tool-wrap">
+  <!-- Input -->
+  <div>
+    <span class="tool-label">Your background — job title, experience, skills, education</span>
+    <textarea class="tool-code" id="prompt" rows="9"
+      placeholder="Example:&#10;Software Engineer with 5 years of experience in Python, Django and React.&#10;Worked at TechCorp (2020-2024) building fintech APIs.&#10;BSc Computer Science, BUET.&#10;Skills: Python, Django, React, PostgreSQL, Docker, AWS.&#10;Looking for a senior backend role."></textarea>
+  </div>
 
-{% block content %}
-<div class="container">
-    <h1>AI Resume Builder</h1>
-    <form id="resume-builder-form">
-        <div class="form-group">
-            <label for="prompt">Enter your details:</label>
-            <textarea class="form-control" id="prompt" rows="10"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Generate Resume</button>
-    </form>
-    <div id="output" class="mt-4">
-        <h2>Generated Resume:</h2>
-        <pre id="resume-output"></pre>
+  <div class="act-row">
+    <button class="btn-go" id="btnGenerate" onclick="generateResume()">
+      <i class="bi bi-stars"></i> Generate Resume
+    </button>
+    <button class="btn-sm" onclick="clearAll()"><i class="bi bi-arrow-counterclockwise"></i> Clear</button>
+    <div class="status" id="st"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" style="display:none;flex-direction:column;gap:1rem">
+
+    <!-- Summary -->
+    <div class="result-section">
+      <h3><i class="bi bi-person-badge" style="color:var(--lg-cyan)"></i> Professional Summary</h3>
+      <p id="summaryOut" style="font-size:.88rem;color:var(--lg-text-muted);line-height:1.7;margin:0"></p>
     </div>
-</div>
 
+    <!-- Experience -->
+    <div class="result-section">
+      <h3><i class="bi bi-briefcase" style="color:#FFB347"></i> Experience</h3>
+      <div id="experienceOut"></div>
+    </div>
+
+    <!-- Skills -->
+    <div class="result-section">
+      <h3><i class="bi bi-tools" style="color:var(--lg-violet)"></i> Skills</h3>
+      <div class="skills-grid" id="skillsOut"></div>
+    </div>
+
+    <!-- Education -->
+    <div class="result-section" id="educationSection">
+      <h3><i class="bi bi-mortarboard" style="color:#A78BFA"></i> Education</h3>
+      <div id="educationOut"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="act-row">
+      <button class="btn-sm" onclick="copyResume()"><i class="bi bi-clipboard"></i> Copy as Text</button>
+      <button class="btn-sm" onclick="downloadResume()"><i class="bi bi-download"></i> Download .txt</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block tool_js %}
 <script>
-    document.getElementById('resume-builder-form').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        const prompt = document.getElementById('prompt').value;
-        const response = await fetch('/api/ai-tools/resume-builder/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ prompt: prompt })
-        });
-        const data = await response.json();
-        document.getElementById('resume-output').textContent = data.output;
+const API_URL = '/api/tools/ai-resume-builder/';
+let lastResult = null;
+
+async function generateResume() {
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) { showErr('st', 'Please enter your background details.'); return; }
+
+  const btn = document.getElementById('btnGenerate');
+  btn.disabled = true;
+  showLoading('st', 'Generating your resume with AI…');
+  document.getElementById('results').style.display = 'none';
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrf()
+      },
+      body: JSON.stringify({ prompt })
     });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      showErr('st', data.message || 'AI generation failed. Please try again.');
+      return;
+    }
+
+    const result = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+    lastResult = result;
+    renderResume(result);
+    showOk('st', 'Resume generated successfully!');
+    document.getElementById('results').style.display = 'flex';
+
+  } catch (e) {
+    showErr('st', 'Network error. Please check your connection and retry.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderResume(r) {
+  // Summary
+  document.getElementById('summaryOut').textContent = r.summary || '—';
+
+  // Experience
+  const expEl = document.getElementById('experienceOut');
+  if (r.experience && r.experience.length) {
+    expEl.innerHTML = r.experience.map(e => `
+      <div class="exp-card">
+        <h4>${esc(e.title || '')} <span style="font-weight:400;color:var(--lg-text-muted)">@ ${esc(e.company || '')}</span></h4>
+        <div class="exp-meta">${esc(e.start_date || '')}${e.end_date ? ' – ' + esc(e.end_date) : ''}</div>
+        <p>${esc(e.description || '')}</p>
+      </div>`).join('');
+  } else {
+    expEl.innerHTML = '<p style="color:var(--lg-text-muted);font-size:.85rem">No experience entries returned.</p>';
+  }
+
+  // Skills
+  const skillsEl = document.getElementById('skillsOut');
+  if (r.skills && r.skills.length) {
+    skillsEl.innerHTML = r.skills.map(s => `<span class="skill-chip">${esc(s)}</span>`).join('');
+  } else {
+    skillsEl.innerHTML = '<span style="color:var(--lg-text-muted);font-size:.85rem">No skills returned.</span>';
+  }
+
+  // Education
+  const eduEl = document.getElementById('educationOut');
+  if (r.education && r.education.length) {
+    eduEl.innerHTML = r.education.map(e => `
+      <div class="exp-card">
+        <h4>${esc(e.degree || '')}</h4>
+        <div class="exp-meta">${esc(e.institution || '')}${e.year ? ' · ' + esc(e.year) : ''}</div>
+      </div>`).join('');
+    document.getElementById('educationSection').style.display = '';
+  } else {
+    document.getElementById('educationSection').style.display = 'none';
+  }
+}
+
+function copyResume() {
+  if (!lastResult) return;
+  const text = buildText(lastResult);
+  navigator.clipboard.writeText(text).then(() => showOk('st', 'Copied to clipboard!'));
+}
+
+function downloadResume() {
+  if (!lastResult) return;
+  const text = buildText(lastResult);
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'resume.txt'; a.click();
+}
+
+function buildText(r) {
+  const lines = [];
+  if (r.summary) lines.push('PROFESSIONAL SUMMARY\n' + r.summary + '\n');
+  if (r.experience?.length) {
+    lines.push('EXPERIENCE');
+    r.experience.forEach(e => {
+      lines.push(`${e.title} @ ${e.company} (${e.start_date}–${e.end_date || 'Present'})`);
+      lines.push(e.description + '\n');
+    });
+  }
+  if (r.skills?.length) lines.push('SKILLS\n' + r.skills.join(', ') + '\n');
+  if (r.education?.length) {
+    lines.push('EDUCATION');
+    r.education.forEach(e => lines.push(`${e.degree}, ${e.institution} (${e.year})`));
+  }
+  return lines.join('\n');
+}
+
+function clearAll() {
+  document.getElementById('prompt').value = '';
+  document.getElementById('results').style.display = 'none';
+  hideStatus('st');
+  lastResult = null;
+}
+
+function getCsrf() {
+  return document.cookie.split(';').map(c => c.trim())
+    .find(c => c.startsWith('csrftoken='))?.split('=')[1] || '';
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showErr(id, msg) { const el=document.getElementById(id); el.className='status err'; el.innerHTML=`<i class="bi bi-exclamation-triangle-fill"></i> ${msg}`; }
+function showOk(id, msg) { const el=document.getElementById(id); el.className='status ok'; el.innerHTML=`<i class="bi bi-check-circle-fill"></i> ${msg}`; }
+function showLoading(id, msg) { const el=document.getElementById(id); el.className='status loading'; el.innerHTML=`<span class="spinner-border spinner-border-sm me-1" style="width:14px;height:14px;border-width:2px"></span> ${msg}`; }
+function hideStatus(id) { document.getElementById(id).className='status'; }
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); generateResume(); }
+});
 </script>
 {% endblock %}

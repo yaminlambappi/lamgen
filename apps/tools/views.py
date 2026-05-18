@@ -859,9 +859,19 @@ def dynamic_tool_view(request, category_slug, tool_slug):
         if db_tool:
             return tool_view(request, db_tool.category.slug, tool_slug)
 
-        # No DB record yet — build a lightweight mock so the template renders
-        reg_cat_slug = ai_tool.get("category", category_slug)
-        category = ToolCategory.objects.filter(slug=reg_cat_slug, is_active=True).first()
+        # No DB record yet — build a lightweight mock so the template renders.
+        # Resolve category with 3-level fallback to guarantee a non-None value.
+        reg_cat_slug = ai_tool.get("category", None)
+        category = None
+        # 1. Try AI registry category slug (e.g. "writing" → DB slug "writing-tools")
+        if reg_cat_slug:
+            category = ToolCategory.objects.filter(slug=reg_cat_slug, is_active=True).first()
+        # 2. Try URL-provided category_slug (e.g. "writing-tools" from the URL)
+        if not category and category_slug:
+            category = ToolCategory.objects.filter(slug=category_slug, is_active=True).first()
+        # 3. Last resort: first active category in DB
+        if not category:
+            category = ToolCategory.objects.filter(is_active=True).order_by('order').first()
 
         class MockTool:
             def __init__(self, data, cat):
