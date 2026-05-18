@@ -9,6 +9,7 @@ Usage:
     python manage.py seed_tools --dry-run    # preview without writing anything
 """
 from django.core.cache import cache
+from django.db import connection
 
 from apps.tools.models import Tool, ToolCategory
 from apps.tools.management.commands.base_seed import BaseSeedCommand
@@ -16,6 +17,18 @@ from config.tool_registry import filter_model_fields
 
 # Bump this whenever the registry schema changes shape.
 REGISTRY_VERSION = "1.1"
+
+
+def _version_column_exists() -> bool:
+    """Return True only if registry_version column exists in the DB.
+    Lets seed_tools run safely on a server before migration 0009 is applied."""
+    try:
+        cols = connection.introspection.get_table_description(
+            connection.cursor(), "tools_tool"
+        )
+        return any(c.name == "registry_version" for c in cols)
+    except Exception:
+        return False
 
 
 class Command(BaseSeedCommand):
@@ -48,6 +61,16 @@ class Command(BaseSeedCommand):
         if dry_run:
             self._dry_run_preview(registry, strict_sync)
             return
+
+        # Detect whether registry_version column is available yet.
+        has_version_col = _version_column_exists()
+        if not has_version_col:
+            self.stdout.write(
+                self.style.WARNING(
+                    "  [warn] registry_version column missing — run 'python manage.py migrate' "
+                    "to enable version tracking. Seeding continues without it."
+                )
+            )
 
         cat_created = cat_updated = tool_created = tool_updated = 0
         version_bumped = skipped = 0
@@ -83,14 +106,17 @@ class Command(BaseSeedCommand):
                 tool_slug = tool_row["slug"]
                 registry_tool_slugs.add(tool_slug)
 
+                base_data = {
+                    **tool_row,
+                    "category": category,
+                    "description": tool_row.get("description") or tool_row.get("short_desc") or "",
+                }
+                if has_version_col:
+                    base_data["registry_version"] = REGISTRY_VERSION
+
                 tool_defaults = filter_model_fields(
                     Tool,
-                    {
-                        **tool_row,
-                        "category": category,
-                        "description": tool_row.get("description") or tool_row.get("short_desc") or "",
-                        "registry_version": REGISTRY_VERSION,
-                    },
+                    base_data,
                     exclude={"slug"},
                 )
 
@@ -107,8 +133,10 @@ class Command(BaseSeedCommand):
 
                 if t_created:
                     tool_created += 1
-                elif tool.registry_version != REGISTRY_VERSION:
-                    version_bumped += 1
+                else:
+                    tool_updated += 1
+                    if has_version_col and tool.registry_version != REGISTRY_VERSION:
+                        version_bumped += 1
 
         # ------------------------------------------------------------------
         # STRICT SYNC: remove orphans
