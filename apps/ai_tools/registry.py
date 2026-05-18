@@ -98,7 +98,70 @@ TOOL_REGISTRY: List[Dict[str, Any]] = [
         "response_format": "text",
         "cache_ttl": 0,
     },
+    # ── Career ai- prefix aliases (match DB slugs) ────────────────────────────
+    {
+        "slug": "ai-ats-resume-checker",
+        "name": "AI ATS Resume Checker",
+        "category": "career",
+        "input_fields": [
+            {"name": "prompt", "label": "Paste your resume text", "required": True, "max_length": 5000},
+        ],
+        "system_prompt": (
+            "You are an ATS (Applicant Tracking System) expert. Analyse the provided resume and return JSON with keys: "
+            "score (0-100 integer), issues (array of strings), suggestions (array of strings), "
+            "keyword_density (object). Return only valid JSON."
+        ),
+        "user_prompt_template": "Resume:\n{input}",
+        "response_format": "json",
+        "cache_ttl": 0,
+    },
+    {
+        "slug": "ai-cover-letter-generator",
+        "name": "AI Cover Letter Generator",
+        "category": "career",
+        "input_fields": [
+            {"name": "prompt", "label": "Job description + your background", "required": True, "max_length": 3000},
+        ],
+        "system_prompt": (
+            "You are a professional cover letter writer. Write a compelling, tailored cover letter based on the "
+            "provided job description and candidate background. Return only the letter text."
+        ),
+        "user_prompt_template": "{input}",
+        "response_format": "text",
+        "cache_ttl": 0,
+    },
+    {
+        "slug": "ai-linkedin-headline-generator",
+        "name": "AI LinkedIn Headline Generator",
+        "category": "career",
+        "input_fields": [
+            {"name": "prompt", "label": "Your role, skills, and value proposition", "required": True, "max_length": 1000},
+        ],
+        "system_prompt": (
+            "You are a LinkedIn profile optimisation expert. Generate 5 compelling LinkedIn headline options "
+            "(max 220 chars each). Return JSON: {\"headlines\": [\"...\", ...]}"
+        ),
+        "user_prompt_template": "{input}",
+        "response_format": "json",
+        "cache_ttl": 3600,
+    },
+    {
+        "slug": "ai-linkedin-post-generator",
+        "name": "AI LinkedIn Post Generator",
+        "category": "career",
+        "input_fields": [
+            {"name": "prompt", "label": "Topic or key message for your post", "required": True, "max_length": 1000},
+        ],
+        "system_prompt": (
+            "You are a LinkedIn content strategist. Write a professional, engaging LinkedIn post optimised for reach. "
+            "Use hooks, storytelling, and a clear CTA. Return only the post text."
+        ),
+        "user_prompt_template": "Topic: {input}",
+        "response_format": "text",
+        "cache_ttl": 0,
+    },
     # ── Writing ──────────────────────────────────────────────────────────────
+
     {
         "slug": "ai-humanizer",
         "name": "AI Humanizer",

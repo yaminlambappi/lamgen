@@ -281,6 +281,12 @@
     color: var(--lg-cyan);
     border: 1px solid rgba(62,236,216,0.28);
 }
+.ct-badge-ai {
+    background: linear-gradient(135deg, rgba(123,111,255,0.18) 0%, rgba(62,236,216,0.14) 100%);
+    color: var(--lg-cyan);
+    border: 1px solid rgba(62,236,216,0.30);
+    box-shadow: 0 0 6px rgba(62,236,216,0.10);
+}
 
 /* ── Group header ── */
 .ct-group-header {
@@ -434,10 +440,12 @@
                     <div class="ct-card-body">
                         <div class="ct-card-name">{{ tool.name }}</div>
                         <div class="ct-card-desc">{{ tool.short_desc|truncatechars:60 }}</div>
-                        {% if tool.is_new %}
-                            <span class="ct-badge ct-badge-new">New</span>
-                        {% endif %}
                     </div>
+                    {% if tool.is_ai_powered %}
+                        <span class="ct-badge ct-badge-ai" title="Uses AI"><i class="bi bi-stars" style="font-size:0.55rem;"></i> AI</span>
+                    {% elif tool.is_new %}
+                        <span class="ct-badge ct-badge-new">New</span>
+                    {% endif %}
                 </a>
             {% endfor %}
         {% else %}
@@ -490,7 +498,7 @@
 
 {# Embed tool data #}
 <script id="catToolData" type="application/json">
-[{% for tool in tools %}{"slug":"{{ tool.slug }}","name":"{{ tool.name|escapejs }}","desc":"{{ tool.short_desc|truncatechars:60|escapejs }}","icon":"{{ tool.icon }}","url":"{{ tool.get_absolute_url }}","isNew":{% if tool.is_new %}true{% else %}false{% endif %},"views":{{ tool.view_count }}}{% if not forloop.last %},{% endif %}{% endfor %}]
+[{% for tool in tools %}{"slug":"{{ tool.slug }}","name":"{{ tool.name|escapejs }}","desc":"{{ tool.short_desc|truncatechars:60|escapejs }}","icon":"{{ tool.icon }}","url":"{{ tool.get_absolute_url }}","isNew":{% if tool.is_new %}true{% else %}false{% endif %},"isAi":{% if tool.is_ai_powered %}true{% else %}false{% endif %},"views":{{ tool.view_count }}}{% if not forloop.last %},{% endif %}{% endfor %}]
 </script>
 
 <script id="catGroupData" type="application/json">
@@ -560,7 +568,9 @@
                 lastGroup = g;
             }
 
-            const badge = t.isNew ? '<span class="ct-badge ct-badge-new">New</span>' : '';
+            const badge = t.isAi
+                ? '<span class="ct-badge ct-badge-ai" title="Uses AI"><i class="bi bi-stars" style="font-size:0.55rem;"></i> AI</span>'
+                : t.isNew ? '<span class="ct-badge ct-badge-new">New</span>' : '';
             html += `<a href="${escHtml(t.url)}"
                         class="ct-card"
                         role="listitem"

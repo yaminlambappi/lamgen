@@ -2,14 +2,14 @@
 
 HERO_CHIPS = [
     'Resume AI',
-    'ATS Checker',
-    'Cover Letter Generator',
+    'AI ATS Checker',
+    'AI Cover Letter',
     'AI Humanizer',
-    'Essay Writer',
+    'AI Essay Writer',
     'SQL Generator',
     'Regex Generator',
     'SEO Writer',
-    'LinkedIn Tools',
+    'LinkedIn AI Tools',
     'Image Prompt Generator',
 ]
 
@@ -18,53 +18,54 @@ AI_TOOLS = [
         'name': 'Career AI',
         'tools': [
             {'name': 'AI Resume Builder', 'description': 'Build a job-winning resume with AI.', 'route': '/tools/resume-career-tools/ai-resume-builder/', 'icon': 'briefcase'},
-            {'name': 'ATS Checker', 'description': 'Optimize your resume for ATS scanners.', 'route': '/tools/resume-career-tools/ats-checker/', 'icon': 'check-circle'},
-            {'name': 'Cover Letter Generator', 'description': 'Create tailored cover letters in seconds.', 'route': '/tools/career/cover-letter-generator/', 'icon': 'envelope-paper'},
-            {'name': 'LinkedIn Headline Generator', 'description': 'Craft a standout LinkedIn headline.', 'route': '/tools/resume-career-tools/linkedin-headline-generator/', 'icon': 'linkedin'},
-            {'name': 'LinkedIn Post Generator', 'description': 'Generate engaging posts for LinkedIn.', 'route': '/tools/career/linkedin-post-generator/', 'icon': 'linkedin'},
+            {'name': 'AI ATS Resume Checker', 'description': 'Check if your resume beats ATS scanners.', 'route': '/tools/resume-career-tools/ai-ats-resume-checker/', 'icon': 'check-circle'},
+            {'name': 'AI Cover Letter Generator', 'description': 'Create tailored cover letters in seconds.', 'route': '/tools/resume-career-tools/ai-cover-letter-generator/', 'icon': 'envelope-paper'},
+            {'name': 'AI LinkedIn Headline Generator', 'description': 'Craft a standout LinkedIn headline with AI.', 'route': '/tools/resume-career-tools/ai-linkedin-headline-generator/', 'icon': 'linkedin'},
+            {'name': 'AI LinkedIn Post Generator', 'description': 'Generate engaging LinkedIn posts with AI.', 'route': '/tools/resume-career-tools/ai-linkedin-post-generator/', 'icon': 'linkedin'},
         ]
     },
     {
         'name': 'Writing & Student AI',
         'tools': [
-            {'name': 'AI Humanizer', 'description': 'Humanize AI-generated text.', 'route': '/tools/writing-tools/ai-humanizer/', 'icon': 'person-hearts'},
-            {'name': 'Essay Writer', 'description': 'Write high-quality essays with AI.', 'route': '/tools/student-tools/essay-writer/', 'icon': 'journal-text'},
-            {'name': 'Paraphrasing Tool', 'description': 'Rephrase text to avoid plagiarism.', 'route': '/tools/writing-tools/paraphrasing-tool/', 'icon': 'arrow-repeat'},
-            {'name': 'Grammar Checker', 'description': 'Correct grammar and spelling mistakes.', 'route': '/tools/writing-tools/grammar-checker/', 'icon': 'spellcheck'},
-            {'name': 'Email Writer', 'description': 'Compose professional emails instantly.', 'route': '/tools/writing-tools/email-writer/', 'icon': 'envelope-at'},
-            {'name': 'Cold Email Generator', 'description': 'Generate personalized cold emails.', 'route': '/tools/writing-tools/cold-email-generator/', 'icon': 'send'},
-            {'name': 'Notes Generator', 'description': 'Summarize your notes with AI.', 'route': '/tools/student-tools/notes-generator/', 'icon': 'journal-bookmark'},
-            {'name': 'Quiz Generator', 'description': 'Create quizzes on any topic.', 'route': '/tools/student-tools/quiz-generator/', 'icon': 'patch-question'},
-            {'name': 'Flashcard Generator', 'description': 'Generate flashcards for effective learning.', 'route': '/tools/student-tools/flashcard-generator/', 'icon': 'card-list'},
+            {'name': 'AI Humanizer', 'description': 'Humanize AI-generated text instantly.', 'route': '/tools/writing-tools/ai-humanizer/', 'icon': 'person-hearts'},
+            {'name': 'AI Essay Writer', 'description': 'Write high-quality essays with AI.', 'route': '/tools/writing-tools/essay-writer/', 'icon': 'journal-text'},
+            {'name': 'AI Paraphrasing Tool', 'description': 'Rephrase text to avoid plagiarism.', 'route': '/tools/writing-tools/paraphrasing-tool/', 'icon': 'arrow-repeat'},
+            {'name': 'AI Grammar Checker', 'description': 'Correct grammar and spelling with AI.', 'route': '/tools/writing-tools/grammar-checker/', 'icon': 'check2-all'},
+            {'name': 'AI Email Writer', 'description': 'Compose professional emails instantly.', 'route': '/tools/writing-tools/email-writer/', 'icon': 'envelope-open'},
+            {'name': 'Cold Email Generator', 'description': 'Generate personalized cold emails.', 'route': '/tools/writing-tools/cold-email-generator/', 'icon': 'envelope-plus'},
+            {'name': 'AI Notes Generator', 'description': 'Summarize your notes with AI.', 'route': '/tools/student-tools/notes-generator/', 'icon': 'journal-plus'},
+            {'name': 'AI Quiz Generator', 'description': 'Create quizzes on any topic with AI.', 'route': '/tools/student-tools/quiz-generator/', 'icon': 'patch-question'},
         ]
     },
     {
         'name': 'SEO & Content AI',
         'tools': [
-            {'name': 'Blog Writer', 'description': 'Generate complete blog posts with AI.', 'route': '/tools/seo-content/blog-writer/', 'icon': 'newspaper'},
-            {'name': 'SEO Article Generator', 'description': 'Write SEO-optimized articles.', 'route': '/tools/seo-content/seo-article-generator/', 'icon': 'bar-chart-line'},
-            {'name': 'Meta Description Generator', 'description': 'Create compelling meta descriptions.', 'route': '/tools/seo-tools/meta-description-generator/', 'icon': 'search'},
-            {'name': 'Keyword Cluster Generator', 'description': 'Group keywords into semantic clusters.', 'route': '/tools/seo-content/keyword-cluster-generator/', 'icon': 'tags'},
-            {'name': 'YouTube Script Generator', 'description': 'Write engaging scripts for YouTube videos.', 'route': '/tools/seo-content/youtube-script-generator/', 'icon': 'camera-video'},
-            {'name': 'YouTube Title Generator', 'description': 'Generate catchy titles for YouTube.', 'route': '/tools/seo-content/ai-youtube-title-generator/', 'icon': 'youtube'},
-            {'name': 'Thumbnail Prompt Generator', 'description': 'Get ideas for eye-catching thumbnails.', 'route': '/tools/seo-content/thumbnail-prompt-generator/', 'icon': 'card-image'},
-            {'name': 'Instagram Caption Generator', 'description': 'Generate creative Instagram captions.', 'route': '/tools/social-viral/instagram-caption-generator/', 'icon': 'instagram'},
+            {'name': 'AI Blog Writer', 'description': 'Generate complete blog posts with AI.', 'route': '/tools/seo-tools/blog-writer/', 'icon': 'newspaper'},
+            {'name': 'SEO Article Generator', 'description': 'Write SEO-optimized articles with AI.', 'route': '/tools/seo-tools/seo-article-generator/', 'icon': 'file-earmark-richtext'},
+            {'name': 'AI Meta Description Generator', 'description': 'Create compelling meta descriptions.', 'route': '/tools/seo-tools/meta-description-generator/', 'icon': 'search'},
+            {'name': 'Keyword Cluster Generator', 'description': 'Group keywords into semantic clusters.', 'route': '/tools/seo-tools/keyword-cluster-generator/', 'icon': 'diagram-3'},
+            {'name': 'AI YouTube Title Generator', 'description': 'Generate catchy titles for YouTube.', 'route': '/tools/social-viral-tools/ai-youtube-title-generator/', 'icon': 'youtube'},
+            {'name': 'Thumbnail Prompt Generator', 'description': 'Get AI prompts for eye-catching thumbnails.', 'route': '/tools/social-viral-tools/thumbnail-prompt-generator/', 'icon': 'card-image'},
+            {'name': 'Instagram Caption Generator', 'description': 'Generate creative Instagram captions.', 'route': '/tools/social-viral-tools/instagram-caption-generator/', 'icon': 'instagram'},
         ]
     },
     {
         'name': 'Developer AI',
         'tools': [
-            {'name': 'SQL Generator', 'description': 'Generate SQL queries from plain text.', 'route': '/tools/developer-tools/sql-generator/', 'icon': 'database'},
-            {'name': 'Regex Generator', 'description': 'Create regular expressions with ease.', 'route': '/tools/developer-tools/regex-generator/', 'icon': 'regex'},
-            {'name': 'Code Debugger', 'description': 'Debug your code with the help of AI.', 'route': '/tools/developer-tools/code-debugger/', 'icon': 'bug'},
+            {'name': 'AI SQL Generator', 'description': 'Generate SQL queries from plain text.', 'route': '/tools/developer-tools/sql-generator/', 'icon': 'database-gear'},
+            {'name': 'AI Regex Generator', 'description': 'Create regular expressions with ease.', 'route': '/tools/developer-tools/regex-generator/', 'icon': 'search'},
+            {'name': 'AI Code Debugger', 'description': 'Debug your code with the help of AI.', 'route': '/tools/developer-tools/code-debugger/', 'icon': 'bug'},
+            {'name': 'SQL Query Generator', 'description': 'Generate complex SQL from plain descriptions.', 'route': '/tools/developer-tools/sql-query-generator/', 'icon': 'database'},
         ]
     },
     {
-        'name': 'Creator AI',
+        'name': 'Creator & Business AI',
         'tools': [
-            {'name': 'YouTube Script Generator', 'description': 'Write engaging scripts for YouTube videos.', 'route': '/tools/social-viral/youtube-script-generator/', 'icon': 'camera-video'},
-            {'name': 'Instagram Caption Generator', 'description': 'Generate creative Instagram captions.', 'route': '/tools/social-viral/instagram-caption-generator/', 'icon': 'instagram'},
-            {'name': 'Meme Generator', 'description': 'Create memes with custom text on any image.', 'route': '/tools/image-tools/meme-generator/', 'icon': 'emoji-laughing'},
+            {'name': 'YouTube Script Generator', 'description': 'Write engaging scripts for YouTube videos.', 'route': '/tools/social-viral-tools/youtube-script-generator/', 'icon': 'camera-video'},
+            {'name': 'AI Tweet Generator', 'description': 'Generate tweets and X posts with AI.', 'route': '/tools/social-viral-tools/tweet-generator/', 'icon': 'twitter-x'},
+            {'name': 'AI Startup Name Generator', 'description': 'Generate creative startup names with AI.', 'route': '/tools/finance-business-tools/startup-name-generator/', 'icon': 'stars'},
+            {'name': 'AI Business Plan Generator', 'description': 'Generate a business plan outline with AI.', 'route': '/tools/finance-business-tools/business-plan-generator/', 'icon': 'briefcase'},
+            {'name': 'Image Prompt Generator', 'description': 'Generate creative AI image prompts.', 'route': '/tools/finance-business-tools/image-prompt-generator/', 'icon': 'image-alt'},
         ]
     },
 ]
@@ -89,7 +90,6 @@ BROWSER_UTILITIES = [
             {'name': 'JS Formatter', 'route': '/tools/developer-tools/js-formatter/'},
             {'name': 'SQL Beautifier', 'route': '/tools/developer-tools/sql-beautifier/'},
             {'name': 'CSS Minifier', 'route': '/tools/developer-tools/css-minifier/'},
-            {'name': 'HTML Minifier', 'route': '/tools/developer-tools/html-minifier/'},
             {'name': 'JS Minifier', 'route': '/tools/developer-tools/js-minifier/'},
         ]
     },
@@ -108,19 +108,19 @@ CATEGORIES = [
     {'name': 'Career AI', 'icon': 'briefcase', 'tool_count': 5, 'description': 'Supercharge your job search.', 'route': '/tools/resume-career-tools/'},
     {'name': 'Writing AI', 'icon': 'pencil-square', 'tool_count': 9, 'description': 'Elevate your writing.', 'route': '/tools/writing-tools/'},
     {'name': 'Student AI', 'icon': 'journal-bookmark', 'tool_count': 9, 'description': 'Ace your studies with AI.', 'route': '/tools/student-tools/'},
-    {'name': 'SEO AI', 'icon': 'bar-chart-line', 'tool_count': 7, 'description': 'Boost your search rankings.', 'route': '/tools/seo-content/'},
-    {'name': 'Creator AI', 'icon': 'youtube', 'tool_count': 4, 'description': 'Fuel your creative process.', 'route': '/tools/social-viral/'},
-    {'name': 'Startup AI', 'icon': 'lightbulb', 'tool_count': 4, 'description': 'Launch your venture faster.', 'route': '/tools/startup-tools/'},
-    {'name': 'Developer AI', 'icon': 'code-slash', 'tool_count': 3, 'description': 'Code smarter, not harder.', 'route': '/tools/developer-tools/'},
+    {'name': 'SEO AI', 'icon': 'bar-chart-line', 'tool_count': 7, 'description': 'Boost your search rankings.', 'route': '/tools/seo-tools/'},
+    {'name': 'Creator AI', 'icon': 'youtube', 'tool_count': 5, 'description': 'Fuel your creative process.', 'route': '/tools/social-viral-tools/'},
+    {'name': 'Business AI', 'icon': 'lightbulb', 'tool_count': 4, 'description': 'Launch your venture faster.', 'route': '/tools/finance-business-tools/'},
+    {'name': 'Developer AI', 'icon': 'code-slash', 'tool_count': 4, 'description': 'Code smarter, not harder.', 'route': '/tools/developer-tools/'},
     {'name': 'Utility Tools', 'icon': 'tools', 'tool_count': 18, 'description': 'Handy tools for everyday tasks.', 'route': '/tools/utility-tools/'},
 ]
 
 TRENDING_TOOLS = [
     {'name': 'AI Resume Builder', 'category': 'Career AI', 'route': '/tools/resume-career-tools/ai-resume-builder/'},
-    {'name': 'ATS Checker', 'category': 'Career AI', 'route': '/tools/resume-career-tools/ats-checker/'},
+    {'name': 'AI ATS Resume Checker', 'category': 'Career AI', 'route': '/tools/resume-career-tools/ai-ats-resume-checker/'},
     {'name': 'AI Humanizer', 'category': 'Writing AI', 'route': '/tools/writing-tools/ai-humanizer/'},
-    {'name': 'SQL Generator', 'category': 'Developer AI', 'route': '/tools/developer-tools/sql-generator/'},
-    {'name': 'Image Prompt Generator', 'category': 'Creator AI', 'route': '/tools/social-viral/image-prompt-generator/'},
+    {'name': 'AI SQL Generator', 'category': 'Developer AI', 'route': '/tools/developer-tools/sql-generator/'},
+    {'name': 'Image Prompt Generator', 'category': 'Business AI', 'route': '/tools/finance-business-tools/image-prompt-generator/'},
 ]
 
 FAQS = [
@@ -134,11 +134,11 @@ FAQS = [
     },
     {
         'question': 'What AI tools are available?',
-        'answer': 'We offer a variety of AI tools, including an AI Resume Builder, ATS Resume Checker, Cover Letter Generator, AI Humanizer, Essay Writer, SQL Generator, and many more. Explore our tool categories to see the full list.'
+        'answer': 'We offer a variety of AI tools, including an AI Resume Builder, AI ATS Resume Checker, AI Cover Letter Generator, AI Humanizer, AI Essay Writer, AI SQL Generator, and many more. Explore our tool categories to see the full list.'
     },
     {
-        'question': 'How does the ATS checker work?',
-        'answer': 'Our ATS (Applicant Tracking System) checker analyzes your resume and provides feedback on how well it is optimized for ATS software. It checks for keywords, formatting, and other factors that can affect your resume\'s chances of being seen by a recruiter.'
+        'question': 'How does the AI ATS checker work?',
+        'answer': 'Our AI ATS (Applicant Tracking System) checker analyzes your resume using AI and provides feedback on how well it is optimized for ATS software. It checks for keywords, formatting, and other factors that can affect your resume\'s chances of being seen by a recruiter.'
     },
     {
         'question': 'Can I generate resumes with AI?',
@@ -146,15 +146,15 @@ FAQS = [
     },
     {
         'question': 'Is LamGen useful for developers?',
-        'answer': 'Absolutely. We have a dedicated set of developer tools, including a SQL Query Generator, Regex Generator, Code Debugger, and various formatters and minifiers to streamline your development workflow.'
+        'answer': 'Absolutely. We have a dedicated set of developer AI tools, including an AI SQL Generator, AI Regex Generator, AI Code Debugger, and various formatters and minifiers to streamline your development workflow.'
     },
     {
         'question': 'Does LamGen support content creators?',
-        'answer': 'Yes, we have a suite of tools for content creators, including a Blog Writer, SEO Article Generator, YouTube Script Generator, and more. These tools can help you generate ideas, create content, and optimize it for search engines and social media.'
+        'answer': 'Yes, we have a suite of AI tools for content creators, including an AI Blog Writer, SEO Article Generator, YouTube Script Generator, AI Tweet Generator, and more.'
     },
     {
         'question': 'Which SEO tools are included?',
-        'answer': 'Our SEO tools include a Meta Description Generator, Keyword Cluster Generator, and SEO Article Generator, among others. These tools are designed to help you improve your website\'s ranking in search results.'
+        'answer': 'Our AI SEO tools include an AI Meta Description Generator, Keyword Cluster Generator, AI Blog Writer, and SEO Article Generator, among others. These tools are designed to help you improve your website\'s ranking in search results.'
     },
 ]
 
@@ -163,9 +163,10 @@ FOOTER_DATA = {
         'name': 'AI Tools',
         'links': [
             {'name': 'AI Resume Builder', 'route': '/tools/resume-career-tools/ai-resume-builder/'},
-            {'name': 'ATS Checker', 'route': '/tools/resume-career-tools/ats-checker/'},
+            {'name': 'AI ATS Resume Checker', 'route': '/tools/resume-career-tools/ai-ats-resume-checker/'},
             {'name': 'AI Humanizer', 'route': '/tools/writing-tools/ai-humanizer/'},
-            {'name': 'SEO Article Generator', 'route': '/tools/seo-content/seo-article-generator/'},
+            {'name': 'AI Blog Writer', 'route': '/tools/seo-tools/blog-writer/'},
+            {'name': 'AI SQL Generator', 'route': '/tools/developer-tools/sql-generator/'},
         ]
     },
     'utilities': {
@@ -182,8 +183,8 @@ FOOTER_DATA = {
         'links': [
             {'name': 'Career AI', 'route': '/tools/resume-career-tools/'},
             {'name': 'Writing AI', 'route': '/tools/writing-tools/'},
-            {'name': 'Developer AI', 'route': '/tools/developer-tools/'},
-            {'name': 'SEO AI', 'route': '/tools/seo-content/'},
+            {'name': 'Developer Tools', 'route': '/tools/developer-tools/'},
+            {'name': 'SEO Tools', 'route': '/tools/seo-tools/'},
         ]
     },
     'resources': {

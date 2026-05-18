@@ -445,6 +445,23 @@ def tool_view(request, category_slug, tool_slug):
     meta_title = tool.meta_title or generate_meta_title(tool.name, category.name)
     meta_desc = tool.meta_description or generate_meta_description(tool.name, tool.short_desc, category.name)
 
+    # ── AI Tool enrichment ──
+    # DB Tool objects don't carry input_fields — fetch them from the AI registry
+    # so that ai_tools/detail.html can render the form correctly.
+    if tool.is_ai_powered:
+        try:
+            from apps.ai_tools.registry import get_tool as _get_ai_tool
+            _ai_reg = _get_ai_tool(tool.slug)
+            if _ai_reg:
+                tool.input_fields = _ai_reg.get('input_fields', [])
+                tool.response_format = _ai_reg.get('response_format', 'text')
+            else:
+                tool.input_fields = getattr(tool, 'input_fields', [])
+                tool.response_format = getattr(tool, 'response_format', 'text')
+        except Exception:
+            tool.input_fields = []
+            tool.response_format = 'text'
+
     return render(
         request,
         actual_template,
