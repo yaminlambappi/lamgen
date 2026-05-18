@@ -52,6 +52,66 @@ def _normalize_category(category: Dict[str, Any]) -> Dict[str, Any]:
 
 def prepare_registry(categories: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
     src = categories if categories is not None else copy_registry()
+    
+    # Merge AI tools into the registry dynamically
+    try:
+        from apps.ai_tools.registry import TOOL_REGISTRY as AI_TOOLS
+        
+        # Track existing slugs to avoid duplicates
+        existing_slugs = set()
+        for c in src:
+            for t in c.get('tools', []):
+                existing_slugs.add(t.get('slug'))
+
+        ai_cats = {}
+        for tool in AI_TOOLS:
+            slug = tool.get('slug')
+            if slug in existing_slugs:
+                # Update existing tool's properties to mark it as AI-powered
+                for c in src:
+                    for t in c.get('tools', []):
+                        if t.get('slug') == slug:
+                            t['is_ai_powered'] = True
+                            if not t.get('template_name'):
+                                t['template_name'] = 'ai_tools/detail.html'
+                continue  # Skip if already exists in the main registry
+            
+            cat_slug = tool.get('category', 'ai-other')
+            if cat_slug not in ai_cats:
+                ai_cats[cat_slug] = []
+            
+            # Map AI tool to the standard format
+            mapped_tool = {
+                'slug': slug,
+                'name': tool.get('name'),
+                'short_desc': tool.get('description') or f"AI-powered {tool.get('name')} tool.",
+                'icon': tool.get('icon', 'bi-robot'),
+                'is_ai_powered': True,
+                # Force dynamic template from tool_base instead of defaulting to tools/index.html
+                'template_name': 'ai_tools/detail.html'
+            }
+            ai_cats[cat_slug].append(mapped_tool)
+            existing_slugs.add(slug)
+            
+        # Append to existing categories or create new ones
+        existing_cat_slugs = {c.get('slug'): c for c in src}
+        for cat_slug, tools in ai_cats.items():
+            if cat_slug in existing_cat_slugs:
+                if 'tools' not in existing_cat_slugs[cat_slug]:
+                    existing_cat_slugs[cat_slug]['tools'] = []
+                existing_cat_slugs[cat_slug]['tools'].extend(tools)
+            else:
+                src.append({
+                    'name': cat_slug.replace('-', ' ').title(),
+                    'slug': cat_slug,
+                    'short_desc': f'{cat_slug.replace("-", " ").title()} AI Tools',
+                    'icon': 'bi-robot',
+                    'order': 99,
+                    'tools': tools
+                })
+    except ImportError:
+        pass
+
     return [_normalize_category(c) for c in src]
 
 
