@@ -462,6 +462,14 @@ def tool_view(request, category_slug, tool_slug):
             tool.input_fields = []
             tool.response_format = 'text'
 
+    # ── Journey context ──
+    journey_contexts = []
+    try:
+        from config.journeys import get_journeys_for_tool
+        journey_contexts = get_journeys_for_tool(tool.slug)
+    except Exception:
+        journey_contexts = []
+
     return render(
         request,
         actual_template,
@@ -485,6 +493,9 @@ def tool_view(request, category_slug, tool_slug):
             "seo_use_cases": seo_use_cases,
             "seo_faq_items": seo_faq_items,
             "tool_template": tool.template_name,
+            # Journey context
+            "journey_contexts": journey_contexts,
+            "primary_journey": journey_contexts[0] if journey_contexts else None,
         },
     )
 

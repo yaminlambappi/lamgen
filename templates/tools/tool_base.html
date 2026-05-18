@@ -750,6 +750,30 @@
         {% include "seo/internal_links.html" with internal_links=internal_links section_title="Related Tools" columns=4 %}
     {% endif %}
 
+    <!-- Journey Context Widget -->
+    {% if primary_journey %}
+    {% with jctx=primary_journey j=primary_journey.journey step=primary_journey.step %}
+    <section style="margin-bottom:1.5rem;padding:1.25rem 1.5rem;background:linear-gradient(135deg,rgba(123,111,255,0.08),rgba(62,236,216,0.05));border:1px solid rgba(123,111,255,0.24);border-radius:18px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:radial-gradient(circle,{{ j.color_from }},transparent 70%);opacity:0.07;pointer-events:none;"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.75rem;flex-wrap:wrap;">
+            <span style="font-size:1.3rem;">{{ j.emoji }}</span>
+            <div>
+                <div style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:{{ j.color_from }};margin-bottom:1px;">Part of a Journey</div>
+                <div style="font-family:var(--lg-font-display,'Syne',sans-serif);font-size:0.90rem;font-weight:800;color:var(--lg-text);">{{ j.name }}</div>
+            </div>
+            <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:50px;background:rgba(123,111,255,0.16);border:1px solid rgba(123,111,255,0.30);font-size:0.68rem;font-weight:800;color:#9d93ff;">Step {{ step.step }} of {{ jctx.total_steps }}</span>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:4px;margin-bottom:0.85rem;overflow:hidden;"><div style="height:100%;width:{% widthratio step.step jctx.total_steps 100 %}%;background:linear-gradient(90deg,{{ j.color_from }},{{ j.color_to }});border-radius:4px;"></div></div>
+        <div style="font-size:0.78rem;color:var(--lg-text-muted);margin-bottom:0.75rem;line-height:1.5;"><strong style="color:var(--lg-text);">{{ step.title }}:</strong> {{ step.desc }}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            {% if jctx.prev_step %}<a href="{% url 'tools:journey_detail' j.slug %}#step-{{ jctx.prev_step.step }}" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:50px;background:rgba(120,110,255,0.10);border:1px solid rgba(120,110,255,0.18);font-size:0.72rem;font-weight:600;color:var(--lg-text-muted);text-decoration:none;"><i class="bi bi-arrow-left"></i> {{ jctx.prev_step.title|truncatechars:20 }}</a>{% endif %}
+            {% if jctx.next_step %}<a href="{% url 'tools:journey_detail' j.slug %}#step-{{ jctx.next_step.step }}" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:50px;background:rgba(123,111,255,0.18);border:1px solid rgba(123,111,255,0.34);font-size:0.72rem;font-weight:700;color:#9d93ff;text-decoration:none;">Next: {{ jctx.next_step.title|truncatechars:20 }} <i class="bi bi-arrow-right"></i></a>{% endif %}
+            <a href="{% url 'tools:journey_detail' j.slug %}" style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:0.70rem;color:var(--lg-text-helper);text-decoration:none;"><i class="bi bi-map"></i> View Full Journey</a>
+        </div>
+    </section>
+    {% endwith %}
+    {% endif %}
+
     <!-- ── Related Tools ── -->
     {% block related_tools %}
     {% if related_tools %}

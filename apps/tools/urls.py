@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .journey_views import journey_list_view, journey_detail_view
 from .view_modules import ecosystem
 from .api.json_formatter import JSONFormatterAPI
 from .api.base64_encoder import Base64EncoderAPI
@@ -11,6 +12,10 @@ app_name = 'tools'
 
 urlpatterns = [
     path('', views.tools_index_view, name='index'),
+
+    # ── Journeys ──────────────────────────────────────────────────────────
+    path('journeys/', journey_list_view, name='journey_list'),
+    path('journeys/<slug:journey_slug>/', journey_detail_view, name='journey_detail'),
 
     # Minimal test endpoint
     path('api/minimal/json-test/', minimal_json_test, name='minimal_json_test'),
@@ -40,12 +45,12 @@ urlpatterns = [
     path('bookmark/toggle/', views.toggle_bookmark, name='bookmark'),
     path('bookmark/save/', views.toggle_bookmark_auth, name='bookmark_auth'),
     path('usage/record/', views.record_usage, name='record_usage'),
-    
+
     # Old routing redirect (SEO fallback)
     path('<slug:category_slug>/<slug:tool_slug>/embed/', views.embed_view, name='embed'),
     path('<slug:category_slug>/<slug:tool_slug>/<slug:variant_slug>/', views.longtail_redirect_view, name='longtail'),
     path('<slug:category_slug>/<slug:tool_slug>/', views.tool_redirect_view, name='tool_redirect_old'),
-    
+
     # New Dynamic Routing & Dispatcher
     path('<slug:category_slug>/', views.category_or_tool_dispatcher, name='category'),
     path('<slug:tool_slug>/', views.category_or_tool_dispatcher, name='tool'),

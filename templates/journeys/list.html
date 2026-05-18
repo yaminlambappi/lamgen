@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Shell ── */
+.journeys-shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 6rem;
+}
+
+/* ── Hero ── */
+.journeys-hero {
+    text-align: center;
+    padding: 3rem 1rem 2.5rem;
+    position: relative;
+}
+.journeys-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: linear-gradient(135deg, rgba(123,111,255,0.16) 0%, rgba(62,236,216,0.12) 100%);
+    border: 1px solid rgba(62,236,216,0.28);
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--lg-cyan);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+}
+.journeys-hero h1 {
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin: 0 0 1rem;
+    background: linear-gradient(135deg, #fff 0%, rgba(200,195,255,0.85) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.journeys-hero p {
+    font-size: 1.05rem;
+    color: var(--lg-text-muted);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.65;
+}
+
+/* ── Continue Banner ── */
+.continue-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(123,111,255,0.12) 0%, rgba(62,236,216,0.08) 100%);
+    border: 1px solid rgba(123,111,255,0.28);
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    text-decoration: none;
+    color: var(--lg-text);
+    transition: all 0.2s;
+}
+.continue-banner:hover {
+    background: linear-gradient(135deg, rgba(123,111,255,0.18) 0%, rgba(62,236,216,0.12) 100%);
+    border-color: rgba(123,111,255,0.42);
+    transform: translateY(-1px);
+    text-decoration: none;
+    color: var(--lg-text);
+}
+.continue-banner-icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(123,111,255,0.22), rgba(62,236,216,0.14));
+    border: 1px solid rgba(123,111,255,0.30);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+.continue-banner-text { flex: 1; }
+.continue-banner-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--lg-cyan);
+    margin-bottom: 2px;
+}
+.continue-banner-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--lg-text);
+}
+.continue-banner-arrow {
+    color: var(--lg-text-muted);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+/* ── Section header ── */
+.journeys-section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+}
+.journeys-section-title {
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--lg-text);
+    margin: 0;
+}
+.journeys-section-count {
+    font-size: 0.70rem;
+    color: var(--lg-text-helper);
+    font-weight: 500;
+}
+
+/* ── Journey Grid ── */
+.journey-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+@media (max-width: 1024px) { .journey-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .journey-grid { grid-template-columns: 1fr; } }
+
+/* ── Journey Card ── */
+.journey-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 20px;
+    text-decoration: none;
+    color: var(--lg-text);
+    transition: all 0.25s cubic-bezier(0.22,1,0.36,1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--lg-card-shadow);
+}
+.journey-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--jc-from), var(--jc-to));
+    opacity: 0.8;
+}
+.journey-card::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, var(--jc-from), transparent 70%);
+    opacity: 0.05;
+    pointer-events: none;
+    transition: opacity 0.25s;
+}
+.journey-card:hover {
+    border-color: color-mix(in srgb, var(--jc-from) 40%, transparent);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.30), 0 4px 16px rgba(0,0,0,0.20);
+    text-decoration: none;
+    color: var(--lg-text);
+}
+.journey-card:hover::after { opacity: 0.10; }
+
+.journey-card-emoji {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+.journey-card-name {
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--lg-text);
+    margin-bottom: 0.35rem;
+    line-height: 1.2;
+}
+.journey-card-tagline {
+    font-size: 0.80rem;
+    color: var(--lg-text-muted);
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    flex: 1;
+}
+.journey-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+}
+.journey-card-steps {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.70rem;
+    color: var(--lg-text-helper);
+    font-weight: 600;
+}
+.journey-step-dots {
+    display: flex;
+    gap: 3px;
+}
+.journey-step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--jc-from);
+    opacity: 0.35;
+}
+.journey-step-dot.active { opacity: 1; }
+.journey-card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--jc-from) 20%, transparent), color-mix(in srgb, var(--jc-to) 14%, transparent));
+    border: 1px solid color-mix(in srgb, var(--jc-from) 35%, transparent);
+    color: var(--jc-from);
+    letter-spacing: 0.3px;
+    transition: all 0.18s;
+}
+.journey-card:hover .journey-card-cta {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--jc-from) 30%, transparent), color-mix(in srgb, var(--jc-to) 20%, transparent));
+    border-color: color-mix(in srgb, var(--jc-from) 50%, transparent);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="journeys-shell">
+
+    <!-- ── Hero ── -->
+    <div class="journeys-hero">
+        <div class="journeys-hero-eyebrow">
+            <i class="bi bi-map"></i> Guided Journeys
+        </div>
+        <h1>Choose Your Path</h1>
+        <p>Don't browse tools — achieve goals. Pick a journey and we'll guide you step by step to your outcome.</p>
+    </div>
+
+    <!-- ── Continue Banner (if user has a last journey) ── -->
+    {% if last_journey %}
+    <a href="{% url 'tools:journey_detail' last_journey.slug %}" class="continue-banner" style="--jc-from: {{ last_journey.color_from }}; --jc-to: {{ last_journey.color_to }};">
+        <div class="continue-banner-icon">{{ last_journey.emoji }}</div>
+        <div class="continue-banner-text">
+            <div class="continue-banner-label">↩ Continue where you left off</div>
+            <div class="continue-banner-name">{{ last_journey.name }}</div>
+        </div>
+        <i class="bi bi-arrow-right continue-banner-arrow"></i>
+    </a>
+    {% endif %}
+
+    <!-- ── Journey Grid ── -->
+    <div class="journeys-section-header">
+        <h2 class="journeys-section-title">All Journeys</h2>
+        <span class="journeys-section-count">{{ journeys|length }} paths</span>
+    </div>
+
+    <div class="journey-grid">
+        {% for journey in journeys %}
+        <a href="{% url 'tools:journey_detail' journey.slug %}"
+           class="journey-card"
+           style="--jc-from: {{ journey.color_from }}; --jc-to: {{ journey.color_to }};">
+            <div class="journey-card-emoji">{{ journey.emoji }}</div>
+            <div class="journey-card-name">{{ journey.name }}</div>
+            <div class="journey-card-tagline">{{ journey.tagline }}</div>
+            <div class="journey-card-footer">
+                <div class="journey-card-steps">
+                    <div class="journey-step-dots">
+                        {% for step in journey.steps %}
+                        <div class="journey-step-dot {% if forloop.first %}active{% endif %}"></div>
+                        {% endfor %}
+                    </div>
+                    {{ journey.steps|length }} steps
+                </div>
+                <span class="journey-card-cta">Start <i class="bi bi-arrow-right"></i></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

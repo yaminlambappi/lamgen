@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --jc-from: {{ journey.color_from }};
+    --jc-to: {{ journey.color_to }};
+}
+
+/* ── Shell ── */
+.journey-shell {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
+}
+
+/* ── Journey Hero ── */
+.journey-hero {
+    padding: 2.5rem 0 2rem;
+    position: relative;
+}
+.journey-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--lg-text-muted);
+    text-decoration: none;
+    padding: 5px 12px;
+    background: rgba(120,110,255,0.10);
+    border: 1px solid rgba(120,110,255,0.16);
+    border-radius: 50px;
+    margin-bottom: 1.5rem;
+    transition: all 0.15s;
+}
+.journey-back:hover { background: rgba(120,110,255,0.16); color: var(--lg-text); text-decoration: none; }
+.journey-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--jc-from) 18%, transparent), color-mix(in srgb, var(--jc-to) 12%, transparent));
+    border: 1px solid color-mix(in srgb, var(--jc-from) 36%, transparent);
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--jc-from);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+.journey-title {
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    margin: 0 0 0.75rem;
+    background: linear-gradient(135deg, var(--jc-from) 0%, var(--jc-to) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+}
+.journey-emoji-big {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* ── Problem / Outcome Cards ── */
+.journey-framing {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+@media (max-width: 640px) { .journey-framing { grid-template-columns: 1fr; } }
+.framing-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: 16px;
+    border: 1px solid;
+}
+.framing-card-problem {
+    background: rgba(255,92,122,0.06);
+    border-color: rgba(255,92,122,0.18);
+}
+.framing-card-outcome {
+    background: rgba(46,232,184,0.06);
+    border-color: rgba(46,232,184,0.18);
+}
+.framing-card-label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.framing-card-problem .framing-card-label { color: var(--lg-danger); }
+.framing-card-outcome .framing-card-label { color: var(--lg-success); }
+.framing-card p {
+    font-size: 0.86rem;
+    color: var(--lg-text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ── Progress Track ── */
+.journey-progress-track {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 2.5rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.journey-progress-track::-webkit-scrollbar { display: none; }
+.track-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+.track-step:hover { transform: translateY(-2px); text-decoration: none; }
+.track-step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 800;
+    background: color-mix(in srgb, var(--jc-from) 16%, transparent);
+    border: 2px solid color-mix(in srgb, var(--jc-from) 36%, transparent);
+    color: var(--jc-from);
+    transition: all 0.18s;
+}
+.track-step:hover .track-step-num {
+    background: var(--jc-from);
+    color: #fff;
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--jc-from) 40%, transparent);
+}
+.track-step-label {
+    font-size: 0.62rem;
+    color: var(--lg-text-helper);
+    max-width: 64px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+.track-connector {
+    flex: 1;
+    height: 2px;
+    min-width: 20px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--jc-from) 40%, transparent), color-mix(in srgb, var(--jc-to) 40%, transparent));
+    margin-bottom: 18px;
+    flex-shrink: 0;
+    max-width: 60px;
+}
+
+/* ── Steps ── */
+.journey-steps-label {
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--lg-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+}
+.journey-steps { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2.5rem; }
+
+/* ── Step Card ── */
+.step-card {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 20px;
+    transition: all 0.22s cubic-bezier(0.22,1,0.36,1);
+    position: relative;
+    overflow: hidden;
+}
+.step-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--jc-from), var(--jc-to));
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+.step-card:hover {
+    border-color: color-mix(in srgb, var(--jc-from) 30%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+}
+.step-card:hover::before { opacity: 1; }
+
+/* Step number column */
+.step-num-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.step-num-badge {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: 1rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--jc-from) 22%, transparent), color-mix(in srgb, var(--jc-to) 14%, transparent));
+    border: 2px solid color-mix(in srgb, var(--jc-from) 40%, transparent);
+    color: var(--jc-from);
+    flex-shrink: 0;
+}
+.step-connector-line {
+    flex: 1;
+    width: 2px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--jc-from) 30%, transparent), transparent);
+    border-radius: 2px;
+    min-height: 20px;
+}
+
+/* Step content */
+.step-content { display: flex; flex-direction: column; gap: 0.75rem; }
+.step-content-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.step-title {
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--lg-text);
+    margin: 0;
+    line-height: 1.3;
+}
+.step-desc {
+    font-size: 0.84rem;
+    color: var(--lg-text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Why block */
+.step-why {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--jc-from) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--jc-from) 16%, transparent);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    color: var(--lg-text-muted);
+    line-height: 1.5;
+}
+.step-why-icon { color: var(--jc-from); flex-shrink: 0; margin-top: 1px; }
+
+/* IO row */
+.step-io {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.step-io-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+.step-io-chip.input {
+    background: rgba(120,110,255,0.10);
+    border: 1px solid rgba(120,110,255,0.18);
+    color: var(--lg-text-muted);
+}
+.step-io-chip.output {
+    background: rgba(46,232,184,0.10);
+    border: 1px solid rgba(46,232,184,0.22);
+    color: var(--lg-success);
+}
+
+/* CTA */
+.step-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--jc-from) 0%, var(--jc-to) 100%);
+    color: #fff !important;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--jc-from) 35%, transparent);
+    align-self: flex-start;
+    margin-top: 4px;
+}
+.step-cta:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--jc-from) 45%, transparent);
+    color: #fff !important;
+    text-decoration: none;
+}
+.step-cta.unavailable {
+    background: rgba(120,110,255,0.12);
+    color: var(--lg-text-muted) !important;
+    box-shadow: none;
+    cursor: default;
+    pointer-events: none;
+    border: 1px solid rgba(120,110,255,0.18);
+}
+
+/* ── Outcome banner ── */
+.journey-outcome {
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(46,232,184,0.08), rgba(62,236,216,0.05));
+    border: 1px solid rgba(46,232,184,0.22);
+    border-radius: 20px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+.journey-outcome-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+.journey-outcome-title {
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--lg-success);
+    margin: 0 0 0.5rem;
+}
+.journey-outcome-text {
+    font-size: 0.88rem;
+    color: var(--lg-text-muted);
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* ── Next Journey ── */
+.next-journey-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 1.25rem 1.5rem;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: 16px;
+    text-decoration: none;
+    color: var(--lg-text);
+    transition: all 0.2s;
+}
+.next-journey-card:hover {
+    border-color: rgba(123,111,255,0.30);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+    text-decoration: none;
+    color: var(--lg-text);
+}
+.next-journey-emoji { font-size: 1.8rem; flex-shrink: 0; }
+.next-journey-meta { flex: 1; }
+.next-journey-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--lg-text-helper);
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+.next-journey-name {
+    font-family: var(--lg-font-display, 'Syne', sans-serif);
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--lg-text);
+}
+.next-journey-tagline { font-size: 0.78rem; color: var(--lg-text-muted); margin-top: 1px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="journey-shell">
+
+    <!-- Back -->
+    <div class="journey-hero">
+        <a href="{% url 'tools:journey_list' %}" class="journey-back">
+            <i class="bi bi-arrow-left"></i> All Journeys
+        </a>
+
+        <div class="journey-hero-eyebrow">
+            <i class="bi bi-map"></i> Guided Journey
+        </div>
+        <span class="journey-emoji-big">{{ journey.emoji }}</span>
+        <h1 class="journey-title">{{ journey.name }}</h1>
+        <p style="font-size: 1rem; color: var(--lg-text-muted); line-height: 1.65; max-width: 560px; margin: 0;">
+            {{ journey.tagline }}
+        </p>
+    </div>
+
+    <!-- ── Problem / Outcome ── -->
+    <div class="journey-framing">
+        <div class="framing-card framing-card-problem">
+            <div class="framing-card-label"><i class="bi bi-exclamation-circle-fill"></i> The Problem</div>
+            <p>{{ journey.problem }}</p>
+        </div>
+        <div class="framing-card framing-card-outcome">
+            <div class="framing-card-label"><i class="bi bi-check-circle-fill"></i> Your Outcome</div>
+            <p>{{ journey.outcome }}</p>
+        </div>
+    </div>
+
+    <!-- ── Progress Track ── -->
+    <div class="journey-progress-track">
+        {% for step in steps %}
+        <a href="{% if step.tool %}{{ step.tool.get_absolute_url }}{% else %}#step-{{ step.step }}{% endif %}"
+           class="track-step" title="{{ step.title }}">
+            <div class="track-step-num">{{ step.step }}</div>
+            <div class="track-step-label">{{ step.title|truncatechars:12 }}</div>
+        </a>
+        {% if not forloop.last %}
+        <div class="track-connector"></div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- ── Story Steps ── -->
+    <div class="journey-steps-label"><i class="bi bi-list-ol"></i> Your Journey Steps</div>
+    <div class="journey-steps">
+        {% for step in steps %}
+        <div class="step-card" id="step-{{ step.step }}">
+            <div class="step-num-col">
+                <div class="step-num-badge">{{ step.step }}</div>
+                {% if not forloop.last %}<div class="step-connector-line"></div>{% endif %}
+            </div>
+            <div class="step-content">
+                <div class="step-content-top">
+                    <h2 class="step-title">{{ step.title }}</h2>
+                </div>
+                <p class="step-desc">{{ step.desc }}</p>
+                <div class="step-why">
+                    <i class="bi bi-lightbulb-fill step-why-icon"></i>
+                    <span>{{ step.why }}</span>
+                </div>
+                <div class="step-io">
+                    <span class="step-io-chip input"><i class="bi bi-arrow-right"></i> You provide: {{ step.input_hint }}</span>
+                    <span class="step-io-chip output"><i class="bi bi-arrow-left"></i> You get: {{ step.output }}</span>
+                </div>
+                {% if step.tool %}
+                <a href="{{ step.tool.get_absolute_url }}" class="step-cta">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Use {{ step.tool_name }}
+                </a>
+                {% else %}
+                <span class="step-cta unavailable">
+                    <i class="bi bi-clock"></i> Coming Soon
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ── Outcome ── -->
+    <div class="journey-outcome">
+        <div class="journey-outcome-icon">🏆</div>
+        <div class="journey-outcome-title">Journey Complete</div>
+        <p class="journey-outcome-text">{{ journey.outcome }}</p>
+    </div>
+
+    <!-- ── Next Journey ── -->
+    <div style="margin-bottom: 1rem; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--lg-text-helper);">
+        <i class="bi bi-arrow-right-circle"></i> Up Next
+    </div>
+    <a href="{% url 'tools:journey_detail' next_journey.slug %}" class="next-journey-card"
+       style="--nj-from: {{ next_journey.color_from }}">
+        <div class="next-journey-emoji">{{ next_journey.emoji }}</div>
+        <div class="next-journey-meta">
+            <div class="next-journey-label">Recommended next journey</div>
+            <div class="next-journey-name">{{ next_journey.name }}</div>
+            <div class="next-journey-tagline">{{ next_journey.tagline }}</div>
+        </div>
+        <i class="bi bi-arrow-right" style="color: var(--lg-text-muted); flex-shrink: 0;"></i>
+    </a>
+
+</div>
+{% endblock %}

@@ -14,8 +14,12 @@
         {# ── Navigation links (always center) ── #}
         <nav class="nav-menu" role="navigation" aria-label="Main navigation">
             <a href="{% url 'tools:index' %}"
-               class="nav-link {% if request.resolver_match.namespace == 'tools' %}active{% endif %}">
+               class="nav-link {% if request.resolver_match.namespace == 'tools' and request.resolver_match.url_name != 'journey_list' and request.resolver_match.url_name != 'journey_detail' %}active{% endif %}">
                 Tools
+            </a>
+            <a href="{% url 'tools:journey_list' %}"
+               class="nav-link nav-link-journeys {% if request.resolver_match.url_name == 'journey_list' or request.resolver_match.url_name == 'journey_detail' %}active{% endif %}">
+                Journeys
             </a>
             <a href="{% url 'seo:index' %}"
                class="nav-link {% if request.resolver_match.namespace == 'seo' %}active{% endif %}">
@@ -167,8 +171,12 @@
         <div class="nav-mobile-divider" aria-hidden="true"></div>
 
         <a href="{% url 'tools:index' %}"
-           class="nav-mobile-link {% if request.resolver_match.namespace == 'tools' %}active{% endif %}">
+           class="nav-mobile-link {% if request.resolver_match.namespace == 'tools' and request.resolver_match.url_name != 'journey_list' and request.resolver_match.url_name != 'journey_detail' %}active{% endif %}">
             <i class="bi bi-tools" aria-hidden="true"></i> Tools
+        </a>
+        <a href="{% url 'tools:journey_list' %}"
+           class="nav-mobile-link {% if request.resolver_match.url_name == 'journey_list' or request.resolver_match.url_name == 'journey_detail' %}active{% endif %}">
+            <i class="bi bi-map" aria-hidden="true"></i> Journeys
         </a>
         <a href="{% url 'seo:index' %}"
            class="nav-mobile-link {% if request.resolver_match.namespace == 'seo' %}active{% endif %}">
