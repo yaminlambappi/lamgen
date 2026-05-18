@@ -621,31 +621,31 @@ def generate_learn_content(topic_slug):
                 {
                     'title': 'Introduction to Regex',
                     'content': 'Learn what regular expressions are, why they\'re useful, and basic syntax concepts.',
-                    'examples': ['/hello/', '/\d+/', '/[A-Z]/'],
+                    'examples': [r'/hello/', r'/\d+/', r'/[A-Z]/'],
                     'difficulty': 'Beginner'
                 },
                 {
                     'title': 'Character Classes and Quantifiers',
                     'content': 'Master character classes, quantifiers, and how to match specific patterns.',
-                    'examples': ['/[a-z]/', '/\d{2,4}/', '/[A-Za-z0-9]+/'],
+                    'examples': [r'/[a-z]/', r'/\d{2,4}/', r'/[A-Za-z0-9]+/'],
                     'difficulty': 'Beginner'
                 },
                 {
                     'title': 'Groups and Capturing',
                     'content': 'Learn how to create groups, capture groups, and use backreferences in regex.',
-                    'examples': ['/(group)/', '/(\d{3})-(\d{2})-(\d{4})/', '/(?:non-capturing)/'],
+                    'examples': [r'/(group)/', r'/(\d{3})-(\d{2})-(\d{4})/', r'/(?:non-capturing)/'],
                     'difficulty': 'Intermediate'
                 },
                 {
                     'title': 'Advanced Patterns',
                     'content': 'Explore advanced regex patterns including lookaheads, lookbehinds, and conditional statements.',
-                    'examples': ['/(?=pattern)/', '/(?!negative)/', '/(?<=lookbehind)/'],
+                    'examples': [r'/(?=pattern)/', r'/(?!negative)/', r'/(?<=lookbehind)/'],
                     'difficulty': 'Advanced'
                 },
                 {
                     'title': 'Practical Applications',
                     'content': 'Real-world regex examples for email validation, URL parsing, and data extraction.',
-                    'examples': ['/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', '/https?:\/\/[^\s/$]/'],
+                    'examples': [r'/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', r'/https?:\/\/[^\s/$]/'],
                     'difficulty': 'Intermediate'
                 }
             ],

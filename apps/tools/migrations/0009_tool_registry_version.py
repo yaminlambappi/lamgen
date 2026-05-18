@@ -7,7 +7,7 @@ Uses RunSQL with ADD COLUMN IF NOT EXISTS so it is safe to apply:
 
 Depends on 0007 (the last migration present on all environments).
 """
-from django.db import migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -20,14 +20,29 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            sql="""
-                ALTER TABLE tools_tool
-                ADD COLUMN IF NOT EXISTS registry_version VARCHAR(20) NOT NULL DEFAULT '1.0';
-            """,
-            reverse_sql="""
-                ALTER TABLE tools_tool
-                DROP COLUMN IF EXISTS registry_version;
-            """,
-        ),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AddField(
+                    model_name="tool",
+                    name="registry_version",
+                    field=models.CharField(
+                        default="1.0",
+                        help_text="Registry version string; auto-updated by seed_tools.",
+                        max_length=20,
+                    ),
+                ),
+            ],
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                        ALTER TABLE tools_tool
+                        ADD COLUMN IF NOT EXISTS registry_version VARCHAR(20) NOT NULL DEFAULT '1.0';
+                    """,
+                    reverse_sql="""
+                        ALTER TABLE tools_tool
+                        DROP COLUMN IF EXISTS registry_version;
+                    """,
+                ),
+            ]
+        )
     ]
