@@ -1,17 +1,492 @@
 {% extends "tools/tool_base.html" %}
 
 {% block tool_content %}
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1.5rem;text-align:center;gap:1.25rem;">
-    <div style="width:64px;height:64px;background:{{ category.color_from }}18;border:1px solid {{ category.color_from }}38;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;box-shadow:0 8px 24px {{ category.color_from }}18;">
-        <i class="{{ tool.icon }}" style="color:{{ category.color_from }};"></i>
-    </div>
+<style>
+.ai-tool-wrap { display: flex; flex-direction: column; gap: 1rem; }
+
+.ai-input-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: var(--lg-text-muted);
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.ai-char-count { font-weight: 400; font-size: 0.68rem; opacity: 0.7; }
+
+.ai-act-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.ai-act-row .spacer { flex: 1; }
+
+.ai-spinner {
+    display: none;
+    width: 18px; height: 18px;
+    border: 2px solid rgba(123,111,255,0.25);
+    border-top-color: var(--lg-violet, #7B6FFF);
+    border-radius: 50%;
+    animation: ai-spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+
+.ai-result-card {
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid rgba(62,236,216,0.22);
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(8,6,22,0.45);
+}
+.ai-result-card.visible { display: flex; }
+.ai-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+    background: rgba(62,236,216,0.07);
+    border-bottom: 1px solid rgba(62,236,216,0.14);
+    gap: 8px;
+}
+.ai-result-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: var(--lg-cyan, #3EECD8);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ai-result-actions { display: flex; gap: 6px; }
+.ai-result-body {
+    padding: 1rem 1.1rem;
+    font-size: 0.88rem;
+    color: var(--lg-text, #e2e8f0);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 520px;
+    overflow-y: auto;
+    font-family: 'Inter', sans-serif;
+}
+.ai-result-body.is-json { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.82rem; }
+
+.json-cards { display: flex; flex-direction: column; gap: 0.6rem; }
+.json-card {
+    background: rgba(100,90,255,0.07);
+    border: 1px solid rgba(130,120,255,0.14);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+.json-card-key {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--lg-cyan, #3EECD8);
+    margin-bottom: 0.3rem;
+}
+.json-card-val {
+    font-size: 0.86rem;
+    color: var(--lg-text, #e2e8f0);
+    line-height: 1.6;
+}
+.json-card-val ul { padding-left: 1.1rem; margin: 0; }
+.json-card-val li { margin-bottom: 0.2rem; }
+.json-tag {
+    display: inline-block;
+    padding: 2px 9px;
+    background: rgba(100,90,255,0.12);
+    border: 1px solid rgba(130,120,255,0.18);
+    border-radius: 50px;
+    font-size: 0.75rem;
+    margin: 2px 3px 2px 0;
+    color: var(--lg-text-muted, #94a3b8);
+}
+
+.ai-error-banner {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: rgba(255,92,122,0.10);
+    border: 1px solid rgba(255,92,122,0.24);
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: #ff5c7a;
+    font-weight: 500;
+}
+.ai-error-banner.visible { display: flex; }
+.ai-error-banner i { flex-shrink: 0; }
+
+.ai-skeleton {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid rgba(130,120,255,0.10);
+    border-radius: 14px;
+    background: rgba(8,6,22,0.30);
+}
+.ai-skeleton.visible { display: flex; }
+.skel-line {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(100,90,255,0.10) 25%, rgba(100,90,255,0.20) 50%, rgba(100,90,255,0.10) 75%);
+    background-size: 200% 100%;
+    animation: ai-shimmer 1.4s infinite;
+}
+@keyframes ai-shimmer { to { background-position: -200% 0; } }
+
+.copy-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: rgba(62,236,216,0.15);
+    border: 1px solid rgba(62,236,216,0.35);
+    color: var(--lg-cyan, #3EECD8);
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 0.80rem;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 9999;
+    backdrop-filter: blur(12px);
+}
+.copy-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+
+<div class="ai-tool-wrap" id="ai-tool-{{ tool.slug }}">
+
+    <!-- Input -->
     <div>
-        <h2 style="font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:700;margin-bottom:.5rem;color:var(--lg-text);">{{ tool.name }}</h2>
-        <p style="color:var(--lg-text-muted);max-width:440px;line-height:1.6;font-size:.88rem;">{{ tool.description|default:tool.short_desc }}</p>
+        <div class="ai-input-label">
+            <span><i class="bi bi-pencil-square" style="color:var(--lg-cyan);margin-right:5px;"></i>Your Input</span>
+            <span class="ai-char-count" id="char-count-{{ tool.slug }}">0 / 5000</span>
+        </div>
+        <textarea
+            id="ai-input-{{ tool.slug }}"
+            class="tool-input"
+            rows="7"
+            maxlength="5000"
+            placeholder="{{ tool.short_desc }}"
+            aria-label="Input for {{ tool.name }}"
+            style="min-height:160px;"
+        ></textarea>
     </div>
-    <div style="background:rgba(62,236,216,0.06);border:1px solid rgba(62,236,216,0.18);border-radius:12px;padding:.85rem 1.25rem;font-size:.82rem;color:var(--lg-text-muted);max-width:380px;display:flex;align-items:center;gap:8px;">
-        <i class="bi bi-clock-history" style="color:var(--lg-cyan);flex-shrink:0;"></i>
-        Full interactive interface coming soon. Check back shortly.
+
+    <!-- Action row -->
+    <div class="ai-act-row">
+        <button
+            id="ai-btn-{{ tool.slug }}"
+            class="btn-go"
+            onclick="runAITool('{{ tool.slug }}')"
+            aria-label="Generate with {{ tool.name }}"
+        >
+            <i class="bi bi-stars"></i> Generate
+            <span class="ai-spinner" id="spinner-{{ tool.slug }}"></span>
+        </button>
+        <button class="btn-sm" onclick="clearAITool('{{ tool.slug }}')" aria-label="Clear input">
+            <i class="bi bi-x-circle"></i> Clear
+        </button>
+        <span class="spacer"></span>
+        <span style="font-size:0.72rem;color:var(--lg-text-helper,#64748b);display:flex;align-items:center;gap:4px;">
+            <i class="bi bi-cpu" style="color:var(--lg-violet,#7B6FFF);"></i> Powered by Gemini AI
+        </span>
     </div>
+
+    <!-- Error banner -->
+    <div class="ai-error-banner" id="ai-error-{{ tool.slug }}" role="alert" aria-live="polite">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span id="ai-error-msg-{{ tool.slug }}">Something went wrong. Please try again.</span>
+    </div>
+
+    <!-- Skeleton loader -->
+    <div class="ai-skeleton" id="ai-skeleton-{{ tool.slug }}" aria-hidden="true">
+        <div class="skel-line" style="width:85%;"></div>
+        <div class="skel-line" style="width:70%;"></div>
+        <div class="skel-line" style="width:90%;"></div>
+        <div class="skel-line" style="width:60%;"></div>
+        <div class="skel-line" style="width:78%;"></div>
+    </div>
+
+    <!-- Result card -->
+    <div class="ai-result-card" id="ai-result-{{ tool.slug }}" aria-live="polite">
+        <div class="ai-result-header">
+            <span class="ai-result-label">
+                <i class="bi bi-check-circle-fill"></i> Result
+            </span>
+            <div class="ai-result-actions">
+                <button class="btn-sm" onclick="copyAIResult('{{ tool.slug }}')" title="Copy to clipboard">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+                <button class="btn-sm" onclick="downloadAIResult('{{ tool.slug }}', '{{ tool.name|slugify }}')" title="Download as text file">
+                    <i class="bi bi-download"></i> Download
+                </button>
+            </div>
+        </div>
+        <div class="ai-result-body" id="ai-result-body-{{ tool.slug }}"></div>
+    </div>
+
 </div>
+
+<div class="copy-toast" id="copy-toast-{{ tool.slug }}">Copied to clipboard</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var SLUG = '{{ tool.slug }}';
+    var API_URL = '/api/tools/' + SLUG + '/';
+    var CSRF = '{{ csrf_token }}';
+    var _rawResult = '';
+
+    var inputEl = document.getElementById('ai-input-' + SLUG);
+    var charCountEl = document.getElementById('char-count-' + SLUG);
+
+    // Char counter + Ctrl+Enter shortcut
+    if (inputEl && charCountEl) {
+        inputEl.addEventListener('input', function () {
+            charCountEl.textContent = this.value.length + ' / ' + this.maxLength;
+        });
+        inputEl.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runAITool(SLUG);
+            }
+        });
+    }
+
+    // ── Render helpers ────────────────────────────────────────────────────
+
+    function escHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function renderText(text) {
+        return escHtml(text)
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/^#{1,3} (.+)$/gm, '<strong style="font-size:0.95rem;color:var(--lg-text);">$1</strong>')
+            .replace(/\n/g, '<br>');
+    }
+
+    function renderList(arr) {
+        if (!arr.length) return '<em style="opacity:0.5;">No items</em>';
+        if (typeof arr[0] === 'string') {
+            return arr.map(function (s) {
+                return '<span class="json-tag">' + escHtml(s) + '</span>';
+            }).join('');
+        }
+        var html = '<div class="json-cards">';
+        arr.forEach(function (item) {
+            html += '<div class="json-card">';
+            Object.keys(item).forEach(function (k) {
+                html += '<div class="json-card-key">' + escHtml(k.replace(/_/g, ' ')) + '</div>';
+                var v = item[k];
+                if (Array.isArray(v)) {
+                    html += '<div class="json-card-val">' + renderList(v) + '</div>';
+                } else {
+                    html += '<div class="json-card-val">' + escHtml(String(v)) + '</div>';
+                }
+            });
+            html += '</div>';
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function renderJSON(data) {
+        if (Array.isArray(data)) return renderList(data);
+        var html = '<div class="json-cards">';
+        Object.keys(data).forEach(function (key) {
+            var val = data[key];
+            var label = key.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+            html += '<div class="json-card"><div class="json-card-key">' + escHtml(label) + '</div><div class="json-card-val">';
+            if (Array.isArray(val)) {
+                html += renderList(val);
+            } else if (val !== null && typeof val === 'object') {
+                html += '<pre style="margin:0;font-size:0.80rem;white-space:pre-wrap;">' + escHtml(JSON.stringify(val, null, 2)) + '</pre>';
+            } else {
+                html += escHtml(String(val));
+            }
+            html += '</div></div>';
+        });
+        html += '</div>';
+        return html;
+    }
+
+    // ── UI helpers ────────────────────────────────────────────────────────
+
+    function setLoading(on) {
+        var btn = document.getElementById('ai-btn-' + SLUG);
+        var spinner = document.getElementById('spinner-' + SLUG);
+        var skeleton = document.getElementById('ai-skeleton-' + SLUG);
+        if (btn) btn.disabled = on;
+        if (spinner) spinner.style.display = on ? 'inline-block' : 'none';
+        if (skeleton) skeleton.classList.toggle('visible', on);
+    }
+
+    function showError(msg) {
+        var el = document.getElementById('ai-error-' + SLUG);
+        var msgEl = document.getElementById('ai-error-msg-' + SLUG);
+        if (!el || !msgEl) return;
+        msgEl.textContent = msg || 'Something went wrong. Please try again.';
+        el.classList.add('visible');
+        setTimeout(function () { el.classList.remove('visible'); }, 7000);
+    }
+
+    function hideError() {
+        var el = document.getElementById('ai-error-' + SLUG);
+        if (el) el.classList.remove('visible');
+    }
+
+    function showResult(html, isJson) {
+        var card = document.getElementById('ai-result-' + SLUG);
+        var body = document.getElementById('ai-result-body-' + SLUG);
+        if (!card || !body) return;
+        body.innerHTML = html;
+        body.classList.toggle('is-json', !!isJson);
+        card.classList.add('visible');
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // ── Public API ────────────────────────────────────────────────────────
+
+    window.runAITool = function (slug) {
+        if (slug !== SLUG) return;
+        var input = inputEl ? inputEl.value.trim() : '';
+        if (!input) {
+            showError('Please enter some input before generating.');
+            if (inputEl) inputEl.focus();
+            return;
+        }
+        hideError();
+        setLoading(true);
+        _rawResult = '';
+        var card = document.getElementById('ai-result-' + SLUG);
+        if (card) card.classList.remove('visible');
+
+        var controller = new AbortController();
+        var timeout = setTimeout(function () { controller.abort(); }, 30000);
+
+        fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify({ prompt: input }),
+            signal: controller.signal
+        })
+        .then(function (res) {
+            clearTimeout(timeout);
+            return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+        })
+        .then(function (payload) {
+            setLoading(false);
+            var data = payload.data;
+            if (!payload.ok || data.ok === false) {
+                showError(data.message || 'Generation failed. Please try again.');
+                return;
+            }
+            var result = data.result;
+            var format = data.format || 'text';
+            if (format === 'json' && result !== null && typeof result === 'object') {
+                _rawResult = JSON.stringify(result, null, 2);
+                showResult(renderJSON(result), true);
+            } else if (format === 'json' && typeof result === 'string') {
+                try {
+                    var parsed = JSON.parse(result);
+                    _rawResult = JSON.stringify(parsed, null, 2);
+                    showResult(renderJSON(parsed), true);
+                } catch (e) {
+                    _rawResult = result;
+                    showResult(renderText(result), false);
+                }
+            } else {
+                _rawResult = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+                showResult(renderText(_rawResult), false);
+            }
+        })
+        .catch(function (err) {
+            clearTimeout(timeout);
+            setLoading(false);
+            if (err.name === 'AbortError') {
+                showError('Request timed out. The AI is busy — please try again in a moment.');
+            } else {
+                showError('Network error. Check your connection and try again.');
+            }
+        });
+    };
+
+    window.clearAITool = function (slug) {
+        if (slug !== SLUG) return;
+        if (inputEl) {
+            inputEl.value = '';
+            if (charCountEl) charCountEl.textContent = '0 / ' + inputEl.maxLength;
+        }
+        var card = document.getElementById('ai-result-' + SLUG);
+        if (card) card.classList.remove('visible');
+        hideError();
+        _rawResult = '';
+    };
+
+    window.copyAIResult = function (slug) {
+        if (slug !== SLUG || !_rawResult) return;
+        var showToast = function () {
+            var toast = document.getElementById('copy-toast-' + SLUG);
+            if (toast) {
+                toast.classList.add('show');
+                setTimeout(function () { toast.classList.remove('show'); }, 2200);
+            }
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(_rawResult).then(showToast).catch(function () {
+                fallbackCopy(_rawResult);
+                showToast();
+            });
+        } else {
+            fallbackCopy(_rawResult);
+            showToast();
+        }
+    };
+
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+    }
+
+    window.downloadAIResult = function (slug, filename) {
+        if (slug !== SLUG || !_rawResult) return;
+        var blob = new Blob([_rawResult], { type: 'text/plain;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = (filename || slug) + '-result.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+}());
+</script>
 {% endblock %}

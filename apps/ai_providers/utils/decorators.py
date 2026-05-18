@@ -1,6 +1,7 @@
 from functools import wraps
 from tenacity import retry, stop_after_attempt, wait_fixed
 
+
 def with_retry(attempts=3, wait_time=2):
     def decorator(func):
         @wraps(func)

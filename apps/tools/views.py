@@ -203,24 +203,44 @@ def index(request):
 def tools_index_view(request):
     """All tools ecosystem explorer — dense launcher grid."""
     from django.db.models import Prefetch
+    from django.template.loader import get_template, TemplateDoesNotExist
+
+    # Build the set of template names that actually exist on disk so we can
+    # exclude placeholder tools from the hub grid (they'd just show the
+    # fallback screen when clicked, which is a dead end for users).
+    all_active = Tool.objects.filter(is_active=True).values_list('template_name', flat=True).distinct()
+    live_templates = set()
+    for tmpl in all_active:
+        try:
+            get_template(tmpl)
+            live_templates.add(tmpl)
+        except TemplateDoesNotExist:
+            pass
+
+    live_tools_qs = Tool.objects.filter(
+        is_active=True, template_name__in=live_templates
+    ).select_related('category')
 
     categories = (
         ToolCategory.objects.filter(is_active=True)
-        .prefetch_related(Prefetch("tools", queryset=Tool.objects.filter(is_active=True)))
+        .prefetch_related(Prefetch("tools", queryset=live_tools_qs))
         .order_by("order", "name")
     )
 
     # Recent tools from session
     recent_slugs = request.session.get("recent_tools", [])
-    recent_tools = list(Tool.objects.filter(slug__in=recent_slugs, is_active=True).select_related("category"))
+    recent_tools = list(Tool.objects.filter(slug__in=recent_slugs, is_active=True,
+                                            template_name__in=live_templates).select_related("category"))
     slug_order = {s: i for i, s in enumerate(recent_slugs)}
     recent_tools.sort(key=lambda t: slug_order.get(t.slug, 999))
 
-    trending = Tool.objects.filter(is_active=True).order_by("-created_at").select_related("category")[:8]
-    new_tools = Tool.objects.filter(is_active=True, is_new=True).select_related("category")[:6]
+    trending = (Tool.objects.filter(is_active=True, template_name__in=live_templates)
+                .order_by("-view_count", "-created_at").select_related("category")[:8])
+    new_tools = (Tool.objects.filter(is_active=True, is_new=True, template_name__in=live_templates)
+                 .select_related("category")[:6])
 
-    active_tool_count = Tool.objects.filter(is_active=True).count()
-    approx_tools = max(active_tool_count, 1)
+    live_tool_count = live_tools_qs.count()
+    approx_tools = max(live_tool_count, 1)
 
     return render(
         request,
@@ -231,7 +251,8 @@ def tools_index_view(request):
             "trending": trending,
             "new_tools": new_tools,
             "page_title": "All Tools — LamGen",
-            "meta_description": (f"Browse {approx_tools}+ free online tools. Developer tools, writing tools, image tools, " "SEO tools and more."),
+            "meta_description": (f"Browse {approx_tools}+ free online tools. Developer tools, writing tools, image tools, "
+                                  "SEO tools and more."),
             "canonical_url": request.build_absolute_uri("/tools/"),
         },
     )
@@ -360,7 +381,9 @@ def tool_view(request, category_slug, tool_slug):
     try:
         get_template(actual_template)
     except TemplateDoesNotExist:
-        actual_template = "tools/tool_redirect.html"
+        # tool_fallback.html is the proper "coming soon" page.
+        # tool_redirect.html shows "being upgraded" which is misleading.
+        actual_template = "tools/tool_fallback.html"
 
     # ── Full metadata engine ──
     import json as _json
@@ -789,29 +812,71 @@ def games_data_api(request):
 
 # --- New Dynamic Routing Views ---
 from django.shortcuts import redirect
+from apps.ai_tools.registry import get_tool, get_all_tools
 
 @cache_control(public=True, max_age=60)
-def dynamic_tool_view(request, tool_slug):
+def dynamic_tool_view(request, category_slug, tool_slug):
     """Dynamic tool view relying on registry and db fallback."""
-    tool = Tool.objects.filter(slug=tool_slug, is_active=True).select_related('category').first()
+    # 1. Check AI Tool Registry — category_slug is ignored so single-slug
+    #    URLs (/tools/<slug>/) always resolve correctly regardless of the
+    #    category stored in the registry vs the DB.
+    ai_tool = get_tool(tool_slug)
+    if ai_tool:
+        # Prefer the DB record so we get the real ToolCategory object
+        # (needed for tool_base.html colour variables, etc.)
+        db_tool = Tool.objects.filter(slug=tool_slug, is_active=True).select_related('category').first()
+        if db_tool:
+            return tool_view(request, db_tool.category.slug, tool_slug)
+
+        # No DB record yet — build a lightweight mock so the template renders
+        reg_cat_slug = ai_tool.get("category", category_slug)
+        category = ToolCategory.objects.filter(slug=reg_cat_slug, is_active=True).first()
+
+        class MockTool:
+            def __init__(self, data, cat):
+                self.name = data["name"]
+                self.slug = data["slug"]
+                self.icon = data.get("icon", "bi-stars")
+                self.short_desc = data.get("description", "AI Powered Tool")
+                self.description = self.short_desc
+                self.is_ai_powered = True
+                self.category = cat
+                self.input_fields = data.get("input_fields", [])
+                self.response_format = data.get("response_format", "text")
+            def get_absolute_url(self):
+                return f"/tools/{self.slug}/"
+
+        mock_tool = MockTool(ai_tool, category)
+        return render(request, "ai_tools/detail.html", {
+            "tool": mock_tool,
+            "category": category,
+            "raw_tool": ai_tool,
+            "page_title": f"{ai_tool['name']} - LamGen",
+            "meta_description": ai_tool.get("system_prompt", "")[:150],
+        })
+
+    # 2. Fallback to DB Tool — match by slug only, category_slug is advisory
+    tool = (
+        Tool.objects.filter(slug=tool_slug, is_active=True).select_related('category').first()
+        or Tool.objects.filter(slug=tool_slug, category__slug=category_slug, is_active=True).select_related('category').first()
+    )
     if not tool:
-        # Suggest related tools in the fallback view if needed
-        # Or just render the fallback template
         return render(request, 'tools/tool_fallback.html', {'slug': tool_slug}, status=404)
-    return tool_view(request, tool.category.slug, tool.slug)
+    return tool_view(request, tool.category.slug, tool_slug)
 
 def category_or_tool_dispatcher(request, category_slug=None, tool_slug=None):
     """Dispatcher to handle overlapping category and tool slugs."""
     slug = category_slug or tool_slug
     if ToolCategory.objects.filter(slug=slug, is_active=True).exists():
         return category_view(request, slug)
-    return dynamic_tool_view(request, slug)
+    # Pass the slug as tool_slug; dynamic_tool_view resolves the real category
+    return dynamic_tool_view(request, slug, slug)
 
 def tool_redirect_view(request, category_slug, tool_slug):
-    """Redirect old /category/tool/ paths to /tool/."""
-    return redirect('tools:tool', tool_slug=tool_slug, permanent=True)
+    """Redirect old /category/tool/ paths to /tool/ OR render the new dynamic AI view."""
+    # We now serve AI tools at /tools/<category>/<slug>/ directly!
+    return dynamic_tool_view(request, category_slug, tool_slug)
 
 def longtail_redirect_view(request, category_slug, tool_slug, variant_slug):
     """Redirect old longtail paths."""
-    # Could map this to a new longtail route if needed, for now just redirect to the tool
     return redirect('tools:tool', tool_slug=tool_slug, permanent=True)

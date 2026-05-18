@@ -19,35 +19,35 @@ AI_TOOLS = [
         'tools': [
             {'name': 'AI Resume Builder', 'description': 'Build a job-winning resume with AI.', 'route': '/tools/resume-career-tools/ai-resume-builder/', 'icon': 'briefcase'},
             {'name': 'ATS Checker', 'description': 'Optimize your resume for ATS scanners.', 'route': '/tools/resume-career-tools/ats-checker/', 'icon': 'check-circle'},
-            {'name': 'Cover Letter Generator', 'description': 'Create tailored cover letters in seconds.', 'route': '/tools/resume-career-tools/ai-cover-letter-generator/', 'icon': 'envelope'},
+            {'name': 'Cover Letter Generator', 'description': 'Create tailored cover letters in seconds.', 'route': '/tools/career/cover-letter-generator/', 'icon': 'envelope-paper'},
             {'name': 'LinkedIn Headline Generator', 'description': 'Craft a standout LinkedIn headline.', 'route': '/tools/resume-career-tools/linkedin-headline-generator/', 'icon': 'linkedin'},
-            {'name': 'LinkedIn Post Generator', 'description': 'Generate engaging posts for LinkedIn.', 'route': '/tools/resume-career-tools/ai-linkedin-post-generator/', 'icon': 'linkedin'},
+            {'name': 'LinkedIn Post Generator', 'description': 'Generate engaging posts for LinkedIn.', 'route': '/tools/career/linkedin-post-generator/', 'icon': 'linkedin'},
         ]
     },
     {
         'name': 'Writing & Student AI',
         'tools': [
-            {'name': 'AI Humanizer', 'description': 'Humanize AI-generated text.', 'route': '/tools/writing-tools/ai-humanizer/', 'icon': 'user'},
-            {'name': 'Essay Writer', 'description': 'Write high-quality essays with AI.', 'route': '/tools/student-tools/essay-writer/', 'icon': 'edit-3'},
-            {'name': 'Paraphrasing Tool', 'description': 'Rephrase text to avoid plagiarism.', 'route': '/tools/writing-tools/paraphrasing-tool/', 'icon': 'repeat'},
-            {'name': 'Grammar Checker', 'description': 'Correct grammar and spelling mistakes.', 'route': '/tools/writing-tools/grammar-checker/', 'icon': 'check-square'},
-            {'name': 'Email Writer', 'description': 'Compose professional emails instantly.', 'route': '/tools/writing-tools/email-writer/', 'icon': 'mail'},
+            {'name': 'AI Humanizer', 'description': 'Humanize AI-generated text.', 'route': '/tools/writing-tools/ai-humanizer/', 'icon': 'person-hearts'},
+            {'name': 'Essay Writer', 'description': 'Write high-quality essays with AI.', 'route': '/tools/student-tools/essay-writer/', 'icon': 'journal-text'},
+            {'name': 'Paraphrasing Tool', 'description': 'Rephrase text to avoid plagiarism.', 'route': '/tools/writing-tools/paraphrasing-tool/', 'icon': 'arrow-repeat'},
+            {'name': 'Grammar Checker', 'description': 'Correct grammar and spelling mistakes.', 'route': '/tools/writing-tools/grammar-checker/', 'icon': 'spellcheck'},
+            {'name': 'Email Writer', 'description': 'Compose professional emails instantly.', 'route': '/tools/writing-tools/email-writer/', 'icon': 'envelope-at'},
             {'name': 'Cold Email Generator', 'description': 'Generate personalized cold emails.', 'route': '/tools/writing-tools/cold-email-generator/', 'icon': 'send'},
-            {'name': 'Notes Generator', 'description': 'Summarize your notes with AI.', 'route': '/tools/student-tools/notes-generator/', 'icon': 'book'},
-            {'name': 'Quiz Generator', 'description': 'Create quizzes on any topic.', 'route': '/tools/student-tools/quiz-generator/', 'icon': 'help-circle'},
-            {'name': 'Flashcard Generator', 'description': 'Generate flashcards for effective learning.', 'route': '/tools/student-tools/flashcard-generator/', 'icon': 'layers'},
+            {'name': 'Notes Generator', 'description': 'Summarize your notes with AI.', 'route': '/tools/student-tools/notes-generator/', 'icon': 'journal-bookmark'},
+            {'name': 'Quiz Generator', 'description': 'Create quizzes on any topic.', 'route': '/tools/student-tools/quiz-generator/', 'icon': 'patch-question'},
+            {'name': 'Flashcard Generator', 'description': 'Generate flashcards for effective learning.', 'route': '/tools/student-tools/flashcard-generator/', 'icon': 'card-list'},
         ]
     },
     {
         'name': 'SEO & Content AI',
         'tools': [
-            {'name': 'Blog Writer', 'description': 'Generate complete blog posts with AI.', 'route': '/tools/seo-content/blog-writer/', 'icon': 'file-text'},
-            {'name': 'SEO Article Generator', 'description': 'Write SEO-optimized articles.', 'route': '/tools/seo-content/seo-article-generator/', 'icon': 'bar-chart-2'},
+            {'name': 'Blog Writer', 'description': 'Generate complete blog posts with AI.', 'route': '/tools/seo-content/blog-writer/', 'icon': 'newspaper'},
+            {'name': 'SEO Article Generator', 'description': 'Write SEO-optimized articles.', 'route': '/tools/seo-content/seo-article-generator/', 'icon': 'bar-chart-line'},
             {'name': 'Meta Description Generator', 'description': 'Create compelling meta descriptions.', 'route': '/tools/seo-tools/meta-description-generator/', 'icon': 'search'},
-            {'name': 'Keyword Cluster Generator', 'description': 'Group keywords into semantic clusters.', 'route': '/tools/seo-content/keyword-cluster-generator/', 'icon': 'folder'},
-            {'name': 'YouTube Script Generator', 'description': 'Write engaging scripts for YouTube videos.', 'route': '/tools/seo-content/youtube-script-generator/', 'icon': 'youtube'},
+            {'name': 'Keyword Cluster Generator', 'description': 'Group keywords into semantic clusters.', 'route': '/tools/seo-content/keyword-cluster-generator/', 'icon': 'tags'},
+            {'name': 'YouTube Script Generator', 'description': 'Write engaging scripts for YouTube videos.', 'route': '/tools/seo-content/youtube-script-generator/', 'icon': 'camera-video'},
             {'name': 'YouTube Title Generator', 'description': 'Generate catchy titles for YouTube.', 'route': '/tools/seo-content/ai-youtube-title-generator/', 'icon': 'youtube'},
-            {'name': 'Thumbnail Prompt Generator', 'description': 'Get ideas for eye-catching thumbnails.', 'route': '/tools/seo-content/thumbnail-prompt-generator/', 'icon': 'image'},
+            {'name': 'Thumbnail Prompt Generator', 'description': 'Get ideas for eye-catching thumbnails.', 'route': '/tools/seo-content/thumbnail-prompt-generator/', 'icon': 'card-image'},
             {'name': 'Instagram Caption Generator', 'description': 'Generate creative Instagram captions.', 'route': '/tools/social-viral/instagram-caption-generator/', 'icon': 'instagram'},
         ]
     },
@@ -55,14 +55,14 @@ AI_TOOLS = [
         'name': 'Developer AI',
         'tools': [
             {'name': 'SQL Generator', 'description': 'Generate SQL queries from plain text.', 'route': '/tools/developer-tools/sql-generator/', 'icon': 'database'},
-            {'name': 'Regex Generator', 'description': 'Create regular expressions with ease.', 'route': '/tools/developer-tools/regex-generator/', 'icon': 'code'},
+            {'name': 'Regex Generator', 'description': 'Create regular expressions with ease.', 'route': '/tools/developer-tools/regex-generator/', 'icon': 'regex'},
             {'name': 'Code Debugger', 'description': 'Debug your code with the help of AI.', 'route': '/tools/developer-tools/code-debugger/', 'icon': 'bug'},
         ]
     },
     {
         'name': 'Creator AI',
         'tools': [
-            {'name': 'YouTube Script Generator', 'description': 'Write engaging scripts for YouTube videos.', 'route': '/tools/social-viral/youtube-script-generator/', 'icon': 'youtube'},
+            {'name': 'YouTube Script Generator', 'description': 'Write engaging scripts for YouTube videos.', 'route': '/tools/social-viral/youtube-script-generator/', 'icon': 'camera-video'},
             {'name': 'Instagram Caption Generator', 'description': 'Generate creative Instagram captions.', 'route': '/tools/social-viral/instagram-caption-generator/', 'icon': 'instagram'},
             {'name': 'Meme Generator', 'description': 'Create memes with custom text on any image.', 'route': '/tools/image-tools/meme-generator/', 'icon': 'emoji-laughing'},
         ]
@@ -106,13 +106,13 @@ BROWSER_UTILITIES = [
 
 CATEGORIES = [
     {'name': 'Career AI', 'icon': 'briefcase', 'tool_count': 5, 'description': 'Supercharge your job search.', 'route': '/tools/resume-career-tools/'},
-    {'name': 'Writing AI', 'icon': 'edit-3', 'tool_count': 9, 'description': 'Elevate your writing.', 'route': '/tools/writing-tools/'},
-    {'name': 'Student AI', 'icon': 'book-open', 'tool_count': 9, 'description': 'Ace your studies with AI.', 'route': '/tools/student-tools/'},
-    {'name': 'SEO AI', 'icon': 'bar-chart-2', 'tool_count': 7, 'description': 'Boost your search rankings.', 'route': '/tools/seo-content/'},
+    {'name': 'Writing AI', 'icon': 'pencil-square', 'tool_count': 9, 'description': 'Elevate your writing.', 'route': '/tools/writing-tools/'},
+    {'name': 'Student AI', 'icon': 'journal-bookmark', 'tool_count': 9, 'description': 'Ace your studies with AI.', 'route': '/tools/student-tools/'},
+    {'name': 'SEO AI', 'icon': 'bar-chart-line', 'tool_count': 7, 'description': 'Boost your search rankings.', 'route': '/tools/seo-content/'},
     {'name': 'Creator AI', 'icon': 'youtube', 'tool_count': 4, 'description': 'Fuel your creative process.', 'route': '/tools/social-viral/'},
     {'name': 'Startup AI', 'icon': 'lightbulb', 'tool_count': 4, 'description': 'Launch your venture faster.', 'route': '/tools/startup-tools/'},
-    {'name': 'Developer AI', 'icon': 'code', 'tool_count': 3, 'description': 'Code smarter, not harder.', 'route': '/tools/developer-tools/'},
-    {'name': 'Utility Tools', 'icon': 'tool', 'tool_count': 18, 'description': 'Handy tools for everyday tasks.', 'route': '/tools/utility-tools/'},
+    {'name': 'Developer AI', 'icon': 'code-slash', 'tool_count': 3, 'description': 'Code smarter, not harder.', 'route': '/tools/developer-tools/'},
+    {'name': 'Utility Tools', 'icon': 'tools', 'tool_count': 18, 'description': 'Handy tools for everyday tasks.', 'route': '/tools/utility-tools/'},
 ]
 
 TRENDING_TOOLS = [

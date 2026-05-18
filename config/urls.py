@@ -65,7 +65,8 @@ if settings.DEBUG:
 urlpatterns = _urlpatterns_prefix + [
     path("admin/system-health/", admin.site.admin_view(tool_system_health_view), name="admin_tool_system_health"),
     path("admin/", admin.site.urls),
-    path("api/ai-tools/", include("apps.ai_tools.api.urls")),
+    path("api/tools/", include("apps.ai_tools.api.urls")),        # unified: /api/tools/<slug>/
+    path("api/ai-tools/", include("apps.ai_tools.api.urls")),   # legacy alias (backward compat)
     path("favicon.ico", RedirectView.as_view(url=settings.STATIC_URL + "img/favicon.svg", permanent=False)),
     path("robots.txt", robots_txt, name="robots_txt"),
     path("og-image/<slug:category_slug>/<slug:tool_slug>.png", og_image_view, name="og_image"),

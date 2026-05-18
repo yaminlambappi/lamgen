@@ -1,0 +1,202 @@
+{% extends "tools/tool_base.html" %}
+
+{% block tool_content %}
+<!-- AI Tool Form -->
+<form id="ai-tool-form" class="ai-tool-form">
+    {% for field in tool.input_fields %}
+    <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label for="{{ field.name }}" class="input-label" style="display:block; margin-bottom: 0.5rem; font-weight: 600;">
+            {{ field.label }} {% if field.required %}<span style="color:var(--lg-danger);">*</span>{% endif %}
+        </label>
+        {% if field.max_length and field.max_length > 100 %}
+            <textarea 
+                id="{{ field.name }}" 
+                name="{{ field.name }}" 
+                class="tool-input" 
+                placeholder="Enter {{ field.label|lower }} here..." 
+                {% if field.required %}required{% endif %}
+                maxlength="{{ field.max_length }}"
+            ></textarea>
+        {% else %}
+            <input 
+                type="text" 
+                id="{{ field.name }}" 
+                name="{{ field.name }}" 
+                class="tool-input" 
+                placeholder="Enter {{ field.label|lower }} here..." 
+                {% if field.required %}required{% endif %}
+                {% if field.max_length %}maxlength="{{ field.max_length }}"{% endif %}
+            >
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <!-- Status & Action Row -->
+    <div class="act-row" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem;">
+        <div id="form-status" class="status" style="display:none;"></div>
+        <button type="submit" id="btn-submit" class="btn-primary-nexus">
+            Generate <i class="bi bi-stars"></i>
+        </button>
+    </div>
+</form>
+
+<!-- AI Tool Result -->
+<div id="ai-result-container" style="display: none; margin-top: 2rem; border-top: 1px solid rgba(130,120,255,0.12); padding-top: 1.5rem;">
+    <h3 style="font-size: 1.1rem; color: var(--lg-text); font-family: 'Syne', sans-serif; margin-bottom: 1rem;">
+        <i class="bi bi-magic" style="color:var(--lg-cyan);"></i> Result
+    </h3>
+    
+    <!-- Skeleton Loading State -->
+    <div id="result-skeleton" style="display: none;">
+        <div class="skeleton-line" style="width: 80%;"></div>
+        <div class="skeleton-line" style="width: 90%;"></div>
+        <div class="skeleton-line" style="width: 70%;"></div>
+        <div class="skeleton-line" style="width: 85%;"></div>
+        <div class="skeleton-line" style="width: 60%;"></div>
+    </div>
+    
+    <!-- Formatted Output Zone -->
+    <div id="result-output" class="tool-code out" style="min-height: 150px; background: rgba(8,6,22,0.50); border: 1px solid rgba(120,110,255,0.10); border-radius: 12px; padding: 1.25rem; color: var(--lg-text); white-space: pre-wrap; font-family: 'Inter', sans-serif; font-size: 0.95rem; line-height: 1.6; display: none;"></div>
+
+    <!-- Actions (Copy / Reset) -->
+    <div id="result-actions" style="display: none; gap: 0.75rem; margin-top: 1rem;">
+        <button type="button" id="btn-copy" class="btn-sm"><i class="bi bi-clipboard"></i> Copy to Clipboard</button>
+        <button type="button" id="btn-reset" class="btn-ghost-nexus"><i class="bi bi-arrow-counterclockwise"></i> Start Over</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block tool_css %}
+<style>
+/* Enhanced AI UI Styles */
+.skeleton-line {
+    height: 14px;
+    background: linear-gradient(90deg, rgba(130,120,255,0.06) 25%, rgba(130,120,255,0.15) 50%, rgba(130,120,255,0.06) 75%);
+    background-size: 200% 100%;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    animation: shimmer 1.5s infinite linear;
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.json-output {
+    background: rgba(10,8,28,0.7) !important;
+    font-family: 'Fira Code', monospace !important;
+    font-size: 0.85rem !important;
+    border-left: 3px solid var(--lg-cyan) !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('ai-tool-form');
+    const submitBtn = document.getElementById('btn-submit');
+    const statusBox = document.getElementById('form-status');
+    const resultContainer = document.getElementById('ai-result-container');
+    const skeleton = document.getElementById('result-skeleton');
+    const output = document.getElementById('result-output');
+    const resultActions = document.getElementById('result-actions');
+    const copyBtn = document.getElementById('btn-copy');
+    const resetBtn = document.getElementById('btn-reset');
+    
+    // The unified tool slug
+    const TOOL_SLUG = "{{ tool.slug }}";
+    const RESPONSE_FORMAT = "{{ tool.response_format|default:'text' }}";
+
+    function showStatus(msg, isError = false) {
+        statusBox.textContent = msg;
+        statusBox.className = isError ? 'status err' : 'status ok';
+        statusBox.style.display = 'flex';
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Build payload from dynamic inputs
+        const formData = new FormData(form);
+        const payload = Object.fromEntries(formData.entries());
+        
+        // UI State: Loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Generating... <span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span>';
+        statusBox.style.display = 'none';
+        
+        resultContainer.style.display = 'block';
+        skeleton.style.display = 'block';
+        output.style.display = 'none';
+        resultActions.style.display = 'none';
+
+        try {
+            const res = await fetch(`/api/tools/${TOOL_SLUG}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await res.json();
+            
+            if (!data.ok) {
+                throw new Error(data.message || 'Generation failed. Please try again.');
+            }
+            
+            // Success Render
+            skeleton.style.display = 'none';
+            output.style.display = 'block';
+            
+            if (data.format === 'json' || typeof data.result === 'object') {
+                output.classList.add('json-output');
+                output.textContent = JSON.stringify(data.result, null, 2);
+            } else {
+                output.classList.remove('json-output');
+                output.textContent = data.result;
+            }
+            
+            resultActions.style.display = 'flex';
+            
+        } catch (err) {
+            // Error Render
+            skeleton.style.display = 'none';
+            resultContainer.style.display = 'none';
+            showStatus(err.message, true);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Generate <i class="bi bi-stars"></i>';
+        }
+    });
+    
+    // Actions
+    copyBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(output.textContent);
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+            copyBtn.style.color = 'var(--lg-cyan)';
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+                copyBtn.style.color = '';
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy', err);
+        }
+    });
+    
+    resetBtn.addEventListener('click', () => {
+        form.reset();
+        resultContainer.style.display = 'none';
+        output.textContent = '';
+        statusBox.style.display = 'none';
+        // Auto focus the first input
+        const firstInput = form.querySelector('.tool-input');
+        if(firstInput) firstInput.focus();
+    });
+});
+</script>
+{% endblock %}

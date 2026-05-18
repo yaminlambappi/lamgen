@@ -78,7 +78,6 @@ INSTALLED_APPS = [
     "apps.ai_providers.apps.AiProvidersConfig",
     "apps.ai_tools_core.apps.AiToolsCoreConfig",
     "orchestration.apps.OrchestrationConfig",
-    "structured_outputs.apps.StructuredOutputsConfig",
 
     # Tool & Feature Apps
     "apps.ai_tools.apps.AiToolsConfig",
@@ -244,6 +243,14 @@ OPENROUTER_API_KEY = env_str("OPENROUTER_API_KEY", default="")
 ANTHROPIC_API_KEY = env_str("ANTHROPIC_API_KEY", default="")
 AI_PROVIDER_TIMEOUT = env_int("AI_PROVIDER_TIMEOUT", default=120)
 
+# AI Service Layer — tuning (overridable per environment)
+AI_RATE_LIMIT_CALLS = env_int("AI_RATE_LIMIT_CALLS", default=20)   # max calls per window
+AI_RATE_LIMIT_WINDOW = env_int("AI_RATE_LIMIT_WINDOW", default=60)  # seconds
+AI_MAX_RETRIES = env_int("AI_MAX_RETRIES", default=3)
+AI_RETRY_MIN_WAIT = env_int("AI_RETRY_MIN_WAIT", default=1)
+AI_RETRY_MAX_WAIT = env_int("AI_RETRY_MAX_WAIT", default=8)
+AI_DEFAULT_CACHE_TTL = env_int("AI_DEFAULT_CACHE_TTL", default=3600)  # seconds
+
 # ---------------------------------------------------------------------------
 # Anthropic / Generation (Legacy)
 # ---------------------------------------------------------------------------
@@ -310,6 +317,11 @@ LOGGING = {
         "django.request": {
             "handlers": ["file"],
             "level": "ERROR",
+            "propagate": False,
+        },
+        "ai_service": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
             "propagate": False,
         },
     },
