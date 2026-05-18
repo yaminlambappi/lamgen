@@ -243,6 +243,15 @@ OPENROUTER_API_KEY = env_str("OPENROUTER_API_KEY", default="")
 ANTHROPIC_API_KEY = env_str("ANTHROPIC_API_KEY", default="")
 AI_PROVIDER_TIMEOUT = env_int("AI_PROVIDER_TIMEOUT", default=120)
 
+# Gemini model selection (applies to both API Studio and Vertex AI)
+GEMINI_MODEL = env_str("GEMINI_MODEL", default="gemini-2.5-flash")
+
+# Google Cloud / Vertex AI — set these to use Vertex AI instead of API Studio
+VERTEX_AI = env_bool("VERTEX_AI", default=False)
+GOOGLE_CLOUD_PROJECT_ID = env_str("GOOGLE_CLOUD_PROJECT_ID", default="")
+GOOGLE_CLOUD_LOCATION = env_str("GOOGLE_CLOUD_LOCATION", default="us-central1")
+GOOGLE_APPLICATION_CREDENTIALS = env_str("GOOGLE_APPLICATION_CREDENTIALS", default="")
+
 # AI Service Layer — tuning (overridable per environment)
 AI_RATE_LIMIT_CALLS = env_int("AI_RATE_LIMIT_CALLS", default=20)   # max calls per window
 AI_RATE_LIMIT_WINDOW = env_int("AI_RATE_LIMIT_WINDOW", default=60)  # seconds

@@ -40,9 +40,17 @@ class BaseProvider(ABC):
             return len(text) // 4 # Fallback to character count
 
     def log_usage(self, prompt_tokens: int, completion_tokens: int, cost: float = 0.0):
-        AIProviderUsage.objects.create(
-            provider_name=self.provider_name,
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-            cost=cost,
-        )
+        try:
+            from apps.ai_providers.models import AIProvider
+            provider_obj, _ = AIProvider.objects.get_or_create(
+                name=self.provider_name,
+                defaults={"health_score": 1.0},
+            )
+            AIProviderUsage.objects.create(
+                provider=provider_obj,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                cost=cost,
+            )
+        except Exception:
+            pass  # usage logging must never break generation
