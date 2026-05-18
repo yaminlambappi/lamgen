@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}LamGen: Your AI-Powered Productivity Ecosystem{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{{ ai_tools_schema|safe }}
+</script>
+<script type="application/ld+json">
+{{ utility_tools_schema|safe }}
+</script>
+<script type="application/ld+json">
+{{ faq_schema|safe }}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- 1. Hero Section -->
+<div class="lg-hero lg-fade-in">
+    <h1 class="lg-hero-title lg-fade-in lg-stagger-1">
+        LamGen: Your AI-Powered<br>
+        <span class="lg-gradient-text">Productivity Ecosystem</span>
+    </h1>
+    <p class="lg-hero-sub lg-fade-in lg-stagger-2">
+        Go beyond simple tools. LamGen integrates cutting-edge AI into your daily workflows, from writing and coding to data analysis.
+    </p>
+    <div class="lg-hero-actions lg-fade-in lg-stagger-3">
+        <a href="#ai-tools" class="lg-btn">Explore AI Tools</a>
+        <a href="{% url 'tools:index' %}" class="lg-btn-ghost">View All Tools</a>
+    </div>
+</div>
+
+<!-- 2. AI Tools Section -->
+<div id="ai-tools" class="container my-5">
+    <h2 class="text-center mb-4">Flagship AI Tools</h2>
+    <div class="row">
+        {% for tool in ai_tools %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="{{ tool.get_absolute_url }}">{{ tool.name }}</a></h5>
+                    <p class="card-text">{{ tool.short_desc }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- 3. Browser-side / Utility Tools Section -->
+<div class="container my-5">
+    <h3 class="text-center mb-4">Instant Utility Tools</h3>
+    <div class="row">
+        {% for tool in utility_tools %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="{{ tool.get_absolute_url }}">{{ tool.name }}</a></h5>
+                    <p class="card-text">{{ tool.short_desc }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- 4. Category Navigation -->
+<div class="container my-5">
+    <h3 class="text-center mb-4">Explore by Category</h3>
+    <div class="row">
+        {% for category in categories %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="{{ category.get_absolute_url }}">{{ category.name }}</a></h5>
+                    <p class="card-text">{{ category.short_desc }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- 5. Why LamGen Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">More Than Just a Tool Directory</h2>
+    <p class="text-center">Explanation of the ecosystem vision.</p>
+</div>
+
+<!-- 6. SEO Content Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Unlock Your Potential</h2>
+    <p>Detailed SEO-rich content about productivity, AI, and workflows.</p>
+</div>
+
+<!-- 7. FAQ Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+    <!-- Placeholder for FAQs -->
+    <div class="accordion" id="faqAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    FAQ Question 1
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Answer to FAQ question 1.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -51,7 +51,7 @@ if USE_NEW_SITEMAP:
 else:
     sitemaps = get_sitemaps()
 
-from apps.tools.views import index as control_center_view
+from apps.tools.views import new_homepage_view, index as control_center_view
 from apps.tools.admin_views import tool_system_health_view
 
 _urlpatterns_prefix = []
@@ -65,6 +65,7 @@ if settings.DEBUG:
 urlpatterns = _urlpatterns_prefix + [
     path("admin/system-health/", admin.site.admin_view(tool_system_health_view), name="admin_tool_system_health"),
     path("admin/", admin.site.urls),
+    path("api/ai-tools/", include("apps.ai_tools.api.urls")),
     path("favicon.ico", RedirectView.as_view(url=settings.STATIC_URL + "img/favicon.svg", permanent=False)),
     path("robots.txt", robots_txt, name="robots_txt"),
     path("og-image/<slug:category_slug>/<slug:tool_slug>.png", og_image_view, name="og_image"),
@@ -96,7 +97,7 @@ urlpatterns = _urlpatterns_prefix + [
 ]
 
 urlpatterns += i18n_patterns(
-    path("", control_center_view, name="home"),
+    path("", new_homepage_view, name="home"),
     path("tools/", include("apps.tools.urls", namespace="tools")),
     path("content/", include("apps.seo.urls", namespace="seo")),
     path("blog/", include("apps.blog.urls", namespace="blog")),

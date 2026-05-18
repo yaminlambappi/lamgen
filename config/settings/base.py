@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
+    "rest_framework",
 
     # Core LamGen Apps
     "apps.core.apps.CoreConfig",
@@ -74,6 +75,10 @@ INSTALLED_APPS = [
     "apps.analytics.apps.AnalyticsConfig",
     "apps.search.apps.SearchConfig",
     "apps.recommendations.apps.RecommendationsConfig",
+    "apps.ai_providers.apps.AiProvidersConfig",
+    "apps.ai_tools_core.apps.AiToolsCoreConfig",
+    "orchestration.apps.OrchestrationConfig",
+    "structured_outputs.apps.StructuredOutputsConfig",
 
     # Tool & Feature Apps
     "apps.ai_tools.apps.AiToolsConfig",
@@ -230,10 +235,19 @@ TOOLS_PER_PAGE = 24
 SEO_PAGES_PER_PAGE = 20
 
 # ---------------------------------------------------------------------------
-# Anthropic / Generation
+# AI Providers
 # ---------------------------------------------------------------------------
 
+GEMINI_API_KEY = env_str("GEMINI_API_KEY", default="")
+OPENAI_API_KEY = env_str("OPENAI_API_KEY", default="")
+OPENROUTER_API_KEY = env_str("OPENROUTER_API_KEY", default="")
 ANTHROPIC_API_KEY = env_str("ANTHROPIC_API_KEY", default="")
+AI_PROVIDER_TIMEOUT = env_int("AI_PROVIDER_TIMEOUT", default=120)
+
+# ---------------------------------------------------------------------------
+# Anthropic / Generation (Legacy)
+# ---------------------------------------------------------------------------
+
 CLAUDE_MODEL = env_str("CLAUDE_MODEL", default="claude-sonnet-4-5")
 CLAUDE_MAX_TOKENS = env_int("CLAUDE_MAX_TOKENS", default=4000)
 CLAUDE_MAX_TOKENS_PER_JOB = env_int("CLAUDE_MAX_TOKENS_PER_JOB", default=40000)
@@ -245,6 +259,7 @@ WRITING_TONE_DEFAULT = env_str("WRITING_TONE_DEFAULT", default="critical_analyti
 SECTION_MODE = env_str("SECTION_MODE", default="auto")
 SECTION_COUNT_DEFAULT = env_int("SECTION_COUNT_DEFAULT", default=5)
 MAX_GENERATION_BUDGET_CENTS = env_int("MAX_GENERATION_BUDGET_CENTS", default=25)
+
 
 # ---------------------------------------------------------------------------
 # Tool categories

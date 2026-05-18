@@ -161,7 +161,6 @@ class Tool(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse("tools:tool", kwargs={
-            "category_slug": self.category.slug,
             "tool_slug": self.slug,
         })
 

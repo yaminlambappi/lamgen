@@ -39,8 +39,13 @@ urlpatterns = [
     path('bookmark/toggle/', views.toggle_bookmark, name='bookmark'),
     path('bookmark/save/', views.toggle_bookmark_auth, name='bookmark_auth'),
     path('usage/record/', views.record_usage, name='record_usage'),
+    
+    # Old routing redirect (SEO fallback)
     path('<slug:category_slug>/<slug:tool_slug>/embed/', views.embed_view, name='embed'),
-    path('<slug:category_slug>/<slug:tool_slug>/<slug:variant_slug>/', views.longtail_view, name='longtail'),
-    path('<slug:category_slug>/', views.category_view, name='category'),
-    path('<slug:category_slug>/<slug:tool_slug>/', views.tool_view, name='tool'),
+    path('<slug:category_slug>/<slug:tool_slug>/<slug:variant_slug>/', views.longtail_redirect_view, name='longtail'),
+    path('<slug:category_slug>/<slug:tool_slug>/', views.tool_redirect_view, name='tool_redirect_old'),
+    
+    # New Dynamic Routing & Dispatcher
+    path('<slug:category_slug>/', views.category_or_tool_dispatcher, name='category'),
+    path('<slug:tool_slug>/', views.category_or_tool_dispatcher, name='tool'),
 ]

@@ -630,6 +630,9 @@
         {% block tool_content %}{% endblock %}
     </section>
 
+    <!-- ── Examples ── -->
+    {% block tool_examples %}{% endblock %}
+
     {% if elite %}
     <section class="tool-seo-section">
         <h2><i class="bi bi-stars"></i> Why use this tool</h2>
@@ -744,6 +747,29 @@
     {% if internal_links %}
         {% include "seo/internal_links.html" with internal_links=internal_links section_title="Related Tools" columns=4 %}
     {% endif %}
+
+    <!-- ── Related Tools ── -->
+    {% block related_tools %}
+    {% if related_tools %}
+    <section class="tool-related-section">
+        <h2 class="tool-related-title">Related {{ category.name }} Tools</h2>
+        <div class="tool-related-grid">
+            {% for rel in related_tools|slice:":8" %}
+            <a href="{{ rel.route|default:rel.get_absolute_url }}" class="tool-related-link">
+                <i class="bi bi-{{ rel.icon|default:'cpu' }}"></i> {{ rel.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    {% endblock %}
+
+    <!-- ── CTA Section ── -->
+    <section class="text-center py-8" style="background: rgba(100,90,255,0.05); border: 1px solid rgba(130,120,255,0.12); border-radius: 16px; margin-top: 1.5rem;">
+        <h2 class="lg-hero-title mb-2" style="font-size: 1.25rem;">Unlock More with LamGen OS</h2>
+        <p class="lg-hero-sub mb-4" style="font-size: 0.9rem;">Explore 300+ free AI and developer tools.</p>
+        <a href="/" class="btn-primary-nexus" style="text-decoration: none;">Explore Ecosystem <i class="bi bi-arrow-right"></i></a>
+    </section>
 
     <!-- ── Trust Footer ── -->
     <footer class="tool-trust-footer" aria-label="Trust indicators">

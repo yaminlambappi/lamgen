@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block meta %}
+    <meta name="description" content="{{ meta_description }}">
+    <meta property="og:title" content="{{ page_title }}">
+    <meta property="og:description" content="{{ meta_description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:image" content="{% static 'img/og-default.png' %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ page_title }}">
+    <meta name="twitter:description" content="{{ meta_description }}">
+    <meta name="twitter:image" content="{% static 'img/og-default.png' %}">
+    <link rel="canonical" href="{{ canonical_url }}" />
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Refined Homepage Specific Styles to enhance lg-card and grid */
+.home-tool-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 180px;
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border, rgba(130,120,255,0.14));
+    border-radius: var(--lg-r-xl, 20px);
+    padding: var(--lg-sp-6);
+    box-shadow: var(--lg-card-shadow, 0 8px 32px rgba(0,0,12,0.50));
+    transition: transform var(--lg-t-base),
+                border-color var(--lg-t-base),
+                box-shadow var(--lg-t-base);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    z-index: 1;
+}
+
+.home-tool-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(139,127,255,0.06), transparent 40%);
+    opacity: 0;
+    transition: opacity var(--lg-t-base);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.home-tool-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 1.5rem; right: 1.5rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139,127,255,0.2), transparent);
+    opacity: 0.5;
+}
+
+.home-tool-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--lg-card-hover-border, rgba(140,130,255,0.30));
+    box-shadow: var(--lg-card-hover-shadow, 0 16px 48px rgba(0,0,12,0.60));
+}
+
+.home-tool-card:hover::before {
+    opacity: 1;
+}
+
+.home-tool-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(139,127,255,0.12);
+    border: 1px solid rgba(139,127,255,0.20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: var(--lg-violet-bright);
+    margin-bottom: var(--lg-sp-5);
+    transition: transform var(--lg-t-base), background var(--lg-t-base);
+}
+
+.home-tool-card:hover .home-tool-card-icon {
+    transform: scale(1.05);
+    background: rgba(139,127,255,0.18);
+    border-color: rgba(139,127,255,0.35);
+}
+
+.home-tool-card-title {
+    font-family: var(--lg-font-display);
+    font-size: var(--lg-fs-base);
+    font-weight: var(--lg-fw-bold);
+    color: var(--lg-text);
+    margin: 0 0 var(--lg-sp-2);
+    line-height: var(--lg-lh-tight);
+    /* Wrap nicely */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.home-tool-card-desc {
+    font-size: var(--lg-fs-sm);
+    color: var(--lg-text-muted);
+    line-height: var(--lg-lh-base);
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* Category Headers */
+.home-cat-title {
+    font-family: var(--lg-font-display);
+    font-size: var(--lg-fs-xl);
+    font-weight: var(--lg-fw-bold);
+    color: var(--lg-text);
+    margin: 0 0 var(--lg-sp-6);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.home-cat-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--lg-border, rgba(140,130,255,0.14)), transparent);
+}
+
+.home-section-spacing {
+    margin-bottom: var(--lg-sp-20);
+}
+
+.home-hero-container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* Stat Cards */
+.stat-card {
+    padding: var(--lg-sp-6);
+    background: var(--lg-card-bg);
+    border: 1px solid var(--lg-card-border);
+    border-radius: var(--lg-r-xl);
+    text-align: center;
+    box-shadow: var(--lg-card-shadow);
+}
+
+.stat-number {
+    font-family: var(--lg-font-display);
+    font-size: var(--lg-fs-hero);
+    font-weight: var(--lg-fw-extrabold);
+    color: var(--lg-text);
+    margin-bottom: var(--lg-sp-1);
+    background: linear-gradient(135deg, var(--lg-violet-bright) 0%, var(--lg-cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stat-label {
+    font-size: var(--lg-fs-sm);
+    color: var(--lg-text-muted);
+    font-weight: var(--lg-fw-medium);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+</style>
+{% endblock %}
+
+{% block extra_head %}
+    <script type="application/ld+json">{{ ai_tools_schema|safe }}</script>
+    <script type="application/ld+json">{{ browser_utilities_schema|safe }}</script>
+    <script type="application/ld+json">{{ faq_schema|safe }}</script>
+{% endblock %}
+
+{% block content %}
+<div class="lg-shell">
+
+    <!-- Hero Section -->
+    <header class="lg-hero lg-fade-in">
+        <div class="home-hero-container">
+            <h1 class="lg-hero-title lg-fade-in lg-stagger-1">
+                Your AI Productivity <br/>
+                <span class="lg-gradient-text">Ecosystem.</span>
+            </h1>
+            
+            <p class="lg-hero-sub lg-fade-in lg-stagger-2">
+                Discover premium AI tools for career, content, development, and growth — beautifully designed and operating at lightspeed.
+            </p>
+            
+            <div class="lg-hero-actions lg-fade-in lg-stagger-3 mb-8">
+                <a href="#ai-tools" class="lg-btn">
+                    Explore AI Tools <i class="bi bi-arrow-right"></i>
+                </a>
+                <a href="#utility-tools" class="lg-btn-ghost">
+                    Browse Utilities
+                </a>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="lg-fade-in lg-stagger-4">
+        
+        <!-- Featured AI Tools -->
+        <section id="ai-tools" class="home-section-spacing">
+            <h2 class="lg-section-label">Featured AI Ecosystems</h2>
+            
+            {% for category in ai_tools_categories %}
+                <div class="mb-12">
+                    <h3 class="home-cat-title">
+                        {{ category.name }}
+                    </h3>
+                    <div class="lg-grid lg-grid-4">
+                        {% for tool in category.tools %}
+                            <a href="{{ tool.route }}" class="home-tool-card">
+                                <div class="home-tool-card-icon">
+                                    <i class="bi bi-{{ tool.icon|default:'cpu' }}"></i>
+                                </div>
+                                <h4 class="home-tool-card-title">{{ tool.name }}</h4>
+                                <p class="home-tool-card-desc">{{ tool.description }}</p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+
+        <!-- Trending Section -->
+        <section class="home-section-spacing">
+            <h2 class="lg-section-label">Trending Now</h2>
+            <div class="lg-grid lg-grid-5">
+                {% for tool in trending_tools %}
+                    <a href="{{ tool.route }}" class="home-tool-card" style="min-height: 140px; padding: var(--lg-sp-5);">
+                        <h4 class="home-tool-card-title" style="margin-bottom: var(--lg-sp-1);">{{ tool.name }}</h4>
+                        <p class="home-tool-card-desc" style="font-size: var(--lg-fs-xs);">{{ tool.category }}</p>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Instant Utility Tools -->
+        <section id="utility-tools" class="home-section-spacing">
+            <h2 class="lg-section-label">Browser Utilities</h2>
+            
+             {% for category in browser_utilities_categories %}
+                <div class="mb-10">
+                    <h3 class="home-cat-title" style="font-size: var(--lg-fs-lg);">
+                        {{ category.name }}
+                    </h3>
+                    <div class="lg-grid lg-grid-auto" style="grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));">
+                        {% for tool in category.tools %}
+                            <a href="{{ tool.route }}" class="home-tool-card" style="min-height: auto; padding: var(--lg-sp-4);">
+                                <h4 class="home-tool-card-title" style="margin: 0; font-size: var(--lg-fs-sm);">{{ tool.name }}</h4>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+
+        <!-- Category Explorer -->
+        <section id="categories" class="home-section-spacing">
+            <h2 class="lg-section-label">Explore by Category</h2>
+            <div class="lg-grid lg-grid-4">
+                {% for category in categories %}
+                    <a href="{{ category.route }}" class="home-tool-card" style="align-items: center; text-align: center;">
+                        <div class="home-tool-card-icon" style="margin-bottom: var(--lg-sp-3);">
+                            <i class="bi bi-{{ category.icon }}"></i>
+                        </div>
+                        <h3 class="home-tool-card-title" style="font-size: var(--lg-fs-md);">{{ category.name }}</h3>
+                        <p class="home-tool-card-desc mb-4">{{ category.description }}</p>
+                        <span class="lg-chip" style="margin-top: auto;">{{ category.tool_count }} tools</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Social Proof / Stats -->
+        <section class="home-section-spacing">
+             <div class="lg-grid lg-grid-4">
+                <div class="stat-card">
+                    <div class="stat-number">{{ dynamic_stats.ai_tools }}</div>
+                    <div class="stat-label">AI Tools</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ dynamic_stats.utilities }}</div>
+                    <div class="stat-label">Utilities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ dynamic_stats.categories }}</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ dynamic_stats.users_helped }}</div>
+                    <div class="stat-label">Users Helped</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why LamGen -->
+        <section class="home-section-spacing spatial-panel">
+            <div class="text-center mb-8">
+                <h2 class="lg-hero-title" style="font-size: var(--lg-fs-2xl);">Why Choose LamGen?</h2>
+                <p class="lg-hero-sub">Built from the ground up to redefine your workflow.</p>
+            </div>
+            <div class="lg-grid lg-grid-3">
+                <div class="text-center px-4">
+                    <div class="home-tool-card-icon mx-auto mb-4" style="background: rgba(139,127,255,0.08); border-color: transparent;"><i class="bi bi-lightning-charge"></i></div>
+                    <h3 class="home-tool-card-title">AI-Powered Efficiency</h3>
+                    <p class="home-tool-card-desc">Leverage cutting-edge AI to streamline your workflows and boost productivity instantly.</p>
+                </div>
+                <div class="text-center px-4">
+                    <div class="home-tool-card-icon mx-auto mb-4" style="background: rgba(62,236,216,0.08); border-color: transparent; color: var(--lg-cyan);"><i class="bi bi-shield-check"></i></div>
+                    <h3 class="home-tool-card-title">Secure & Private</h3>
+                    <p class="home-tool-card-desc">Your data stays safe. Our utilities are designed with a privacy-first approach.</p>
+                </div>
+                <div class="text-center px-4">
+                    <div class="home-tool-card-icon mx-auto mb-4" style="background: rgba(245,166,35,0.08); border-color: transparent; color: var(--lg-warning);"><i class="bi bi-layers"></i></div>
+                    <h3 class="home-tool-card-title">Unified Ecosystem</h3>
+                    <p class="home-tool-card-desc">From career to coding, our integrated ecosystem supports all aspects of your professional life.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="home-section-spacing">
+            <h2 class="lg-section-label justify-center">Frequently Asked Questions</h2>
+            <div class="max-w-3xl mx-auto mt-8" style="display: flex; flex-direction: column; gap: var(--lg-sp-5);">
+                {% for faq in faqs %}
+                    <div class="home-tool-card" style="min-height: auto; padding: var(--lg-sp-6);">
+                        <h3 class="home-tool-card-title" style="font-size: var(--lg-fs-md); margin-bottom: var(--lg-sp-2);">{{ faq.question }}</h3>
+                        <p class="home-tool-card-desc" style="color: var(--lg-text-muted);">{{ faq.answer }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Testimonials Placeholder -->
+        <section class="home-section-spacing spatial-panel text-center">
+            <h2 class="lg-hero-title mb-4" style="font-size: var(--lg-fs-xl);">Trusted by Professionals Worldwide</h2>
+            <p class="lg-hero-sub mb-8">Join the thousands of users who have streamlined their workflow.</p>
+            
+            <style>
+                .review-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: var(--lg-sp-6);
+                    align-items: stretch;
+                }
+                .review-card {
+                    background: var(--lg-card-bg);
+                    border: 1px solid var(--lg-field-border);
+                    border-radius: var(--lg-r-lg);
+                    padding: var(--lg-sp-6);
+                    text-align: left;
+                    display: flex;
+                    flex-direction: column;
+                    min-width: 0; /* Prevents overflow */
+                    transition: transform 0.2s, box-shadow 0.2s;
+                }
+                .review-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                    border-color: var(--lg-violet);
+                }
+                .review-text {
+                    flex-grow: 1;
+                    color: var(--lg-text-muted);
+                    font-size: 0.95rem;
+                    line-height: 1.6;
+                    margin-bottom: var(--lg-sp-5);
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                .review-author {
+                    font-size: var(--lg-fs-sm);
+                    color: var(--lg-text);
+                    font-weight: 600;
+                    margin-top: auto;
+                }
+                .review-stars {
+                    color: var(--lg-warning);
+                    margin-bottom: var(--lg-sp-4);
+                    font-size: 1.1rem;
+                }
+            </style>
+
+            <div class="review-grid">
+                <div class="review-card">
+                    <div class="review-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="review-text">"LamGen completely revolutionized how I write my cover letters and format my JSON data. It's an absolute lifesaver for my daily workflows."</p>
+                    <strong class="review-author">Sarah J., Content Marketer</strong>
+                </div>
+                <div class="review-card">
+                    <div class="review-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="review-text">"The AI Resume Builder got me interviews at top tech companies. Highly recommended for any developer looking to stand out in the job market."</p>
+                    <strong class="review-author">Michael T., Software Engineer</strong>
+                </div>
+                <div class="review-card">
+                    <div class="review-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="review-text">"I use the browser utilities daily. Having all these tools in one place is incredibly convenient and saves me so much context switching."</p>
+                    <strong class="review-author">Elena R., SEO Specialist</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog/Resources -->
+        <section class="home-section-spacing">
+            <h2 class="lg-section-label">Latest Resources & Guides</h2>
+            <div class="lg-grid lg-grid-3">
+                <a href="/blog/" class="home-tool-card">
+                    <h3 class="home-tool-card-title mb-2">How to Optimize Your Resume for ATS</h3>
+                    <p class="home-tool-card-desc">Learn the best practices to ensure your resume passes applicant tracking systems.</p>
+                </a>
+                <a href="/blog/" class="home-tool-card">
+                    <h3 class="home-tool-card-title mb-2">The Ultimate Guide to SEO Metadata</h3>
+                    <p class="home-tool-card-desc">A deep dive into crafting meta titles and descriptions that rank higher.</p>
+                </a>
+                <a href="/blog/" class="home-tool-card">
+                    <h3 class="home-tool-card-title mb-2">10 Developer Utilities You Didn't Know You Needed</h3>
+                    <p class="home-tool-card-desc">Boost your productivity with these hidden gems in our utility toolkit.</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Final CTA -->
+        <section class="text-center py-16 spatial-panel">
+            <h2 class="lg-hero-title mb-6" style="font-size: var(--lg-fs-2xl);">Unlock Your Productivity Potential</h2>
+            <p class="lg-hero-sub mb-8">Join thousands of professionals scaling their output with LamGen.</p>
+            <div class="lg-hero-actions">
+                <a href="#ai-tools" class="lg-btn" style="padding: 14px 32px; font-size: var(--lg-fs-md);">
+                    Start Exploring Tools <i class="bi bi-rocket"></i>
+                </a>
+            </div>
+        </section>
+
+    </main>
+</div>
+{% endblock %}

@@ -4,6 +4,7 @@
 # Local dev always uses local settings
 LOCAL_ENV = DJANGO_SETTINGS_MODULE=config.settings.local DJANGO_ENV=local
 
+
 help:
 	@echo "LamGen — common targets"
 	@echo "  make server           Django dev server (local)"
@@ -67,3 +68,6 @@ startup-check:
 
 deploy-verify:
 	$(LOCAL_ENV) python3 manage.py deployment_verify
+
+check:
+	$(LOCAL_ENV) python3 manage.py check

@@ -39,4 +39,8 @@ app.conf.beat_schedule = {
         "task": "tools.tasks.cleanup_uploaded_files",
         "schedule": crontab(minute="*/30"),
     },
+    "update-provider-stats-hourly": {
+        "task": "apps.ai_providers.tasks.update_provider_stats",
+        "schedule": crontab(minute=0, hour="*/1"),
+    },
 }

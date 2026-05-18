@@ -1,0 +1,48 @@
+ {% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block meta %}
+    <meta name="description" content="{{ meta_description }}">
+    <meta property="og:title" content="{{ page_title }}">
+    <meta property="og:description" content="{{ meta_description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ canonical_url }}">
+    <meta property="og:image" content="{% static 'img/og-default.png' %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ page_title }}">
+    <meta name="twitter:description" content="{{ meta_description }}">
+    <meta name="twitter:image" content="{% static 'img/og-default.png' %}">
+    <link rel="canonical" href="{{ canonical_url }}" />
+{% endblock %}
+
+{% block content %}
+<div class="lg-shell">
+
+    <!-- Hero Section -->
+    <header class="lg-hero">
+        <h1 class="lg-hero-title">{{ tool.name }}</h1>
+        <p class="lg-hero-sub">{{ tool.short_desc }}</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="py-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="lg-card">
+                <div class="lg-card-body">
+                    {% block tool_content %}
+                        <div class="text-center py-12">
+                            <i class="bi bi-tools" style="font-size: 3rem; color: var(--lg-text-muted); margin-bottom: 1rem; display: block;"></i>
+                            <h3 style="font-family: var(--lg-font-display); font-size: 1.5rem; margin-bottom: 0.5rem;">Tool is currently being upgraded</h3>
+                            <p style="color: var(--lg-text-muted); margin-bottom: 2rem;">We are making improvements to <strong>{{ tool.name }}</strong>. Please check back soon.</p>
+                            <a href="{% url 'tools:index' %}" class="lg-btn">Back to Tools Hub</a>
+                        </div>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+</div>
+{% endblock %}

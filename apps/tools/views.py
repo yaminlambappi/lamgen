@@ -21,6 +21,129 @@ logger = logging.getLogger(__name__)
 
 
 @cache_control(public=True, max_age=60)
+def new_homepage_view(request):
+    """The new, redesigned homepage."""
+    import json
+    from config.homepage_data import (
+        HERO_CHIPS,
+        AI_TOOLS,
+        BROWSER_UTILITIES,
+        CATEGORIES,
+        TRENDING_TOOLS,
+        FAQS,
+        FOOTER_DATA
+    )
+
+    def get_item_list_schema(tool_list, list_name):
+        elements = []
+        position = 1
+        for category in tool_list:
+            for tool in category.get("tools", []):
+                elements.append({
+                    "@type": "ListItem",
+                    "position": position,
+                    "item": {
+                        "@type": "SoftwareApplication",
+                        "name": tool["name"],
+                        "url": request.build_absolute_uri(tool["route"]),
+                        "description": tool.get("description", ""),
+                    }
+                })
+                position += 1
+
+        return {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": list_name,
+            "itemListElement": elements
+        }
+
+    ai_tools_schema = get_item_list_schema(AI_TOOLS, "AI Tools")
+    browser_utilities_schema = get_item_list_schema(BROWSER_UTILITIES, "Browser Utilities")
+
+    faq_schema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": faq["question"],
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": faq["answer"],
+                }
+            } for faq in FAQS
+        ]
+    }
+
+    from django.db.models import Count, Q
+    from apps.tools.models import ToolCategory
+
+    # Recalculate tools count logic from actual dataset source
+    db_categories = ToolCategory.objects.filter(is_active=True).annotate(
+        computed_tool_count=Count('tools', filter=Q(tools__is_active=True))
+    ).order_by('order', 'name')
+
+    dynamic_categories = []
+    for cat in db_categories:
+        dynamic_categories.append({
+            'name': cat.name,
+            'slug': cat.slug,
+            'icon': cat.icon.replace('bi-', '') if cat.icon.startswith('bi-') else cat.icon,
+            'tool_count': cat.computed_tool_count,
+            'description': cat.short_desc or cat.description,
+            'route': cat.get_absolute_url(),
+        })
+
+    from django.db.models import Sum
+    from apps.tools.models import Tool
+    
+    ai_tools_count = Tool.objects.filter(is_active=True, is_ai_powered=True).count()
+    utilities_count = Tool.objects.filter(is_active=True, is_ai_powered=False).count()
+    categories_count = db_categories.count()
+    
+    usage_stats = Tool.objects.filter(is_active=True).aggregate(
+        total_views=Sum('view_count'),
+        total_usage=Sum('usage_count')
+    )
+    total_users = (usage_stats['total_views'] or 0) + (usage_stats['total_usage'] or 0)
+    # Provide a realistic baseline if the DB is freshly seeded
+    total_users = max(10000, total_users)
+    
+    if total_users >= 1000000:
+        users_helped_formatted = f"{total_users // 1000000}m+"
+    elif total_users >= 1000:
+        users_helped_formatted = f"{total_users // 1000}k+"
+    else:
+        users_helped_formatted = f"{total_users}+"
+
+    dynamic_stats = {
+        'ai_tools': f"{ai_tools_count}+" if ai_tools_count > 0 else "30+",
+        'utilities': f"{utilities_count}+" if utilities_count > 0 else "15+",
+        'categories': categories_count if categories_count > 0 else 8,
+        'users_helped': users_helped_formatted
+    }
+
+    context = {
+        "hero_chips": HERO_CHIPS,
+        "ai_tools_categories": AI_TOOLS,
+        "browser_utilities_categories": BROWSER_UTILITIES,
+        "categories": dynamic_categories,
+        "dynamic_stats": dynamic_stats,
+        "trending_tools": TRENDING_TOOLS,
+        "faqs": FAQS,
+        "footer_data": FOOTER_DATA,
+        "ai_tools_schema": json.dumps(ai_tools_schema),
+        "browser_utilities_schema": json.dumps(browser_utilities_schema),
+        "faq_schema": json.dumps(faq_schema),
+        "page_title": "LamGen: Your AI Productivity Ecosystem",
+        "meta_description": "Discover powerful AI tools for career, content, development, productivity, and growth — all in one place.",
+        "canonical_url": request.build_absolute_uri("/"),
+    }
+    return render(request, "pages/home_new.html", context)
+
+
+@cache_control(public=True, max_age=60)
 def index(request):
     """All tools homepage — categorized grid."""
     from django.db.models import Prefetch
@@ -237,7 +360,7 @@ def tool_view(request, category_slug, tool_slug):
     try:
         get_template(actual_template)
     except TemplateDoesNotExist:
-        actual_template = "tools/generic_tool.html"
+        actual_template = "tools/tool_redirect.html"
 
     # ── Full metadata engine ──
     import json as _json
@@ -322,6 +445,7 @@ def tool_view(request, category_slug, tool_slug):
             "seo_intro": seo_intro,
             "seo_use_cases": seo_use_cases,
             "seo_faq_items": seo_faq_items,
+            "tool_template": tool.template_name,
         },
     )
 
@@ -376,7 +500,7 @@ def longtail_view(request, category_slug, tool_slug, variant_slug):
     try:
         get_template(actual_template)
     except TemplateDoesNotExist:
-        actual_template = "tools/generic_tool.html"
+        actual_template = "tools/tool_redirect.html"
 
     return render(
         request,
@@ -398,6 +522,7 @@ def longtail_view(request, category_slug, tool_slug, variant_slug):
             "seo_intro": seo_intro,
             "seo_use_cases": seo_use_cases,
             "seo_faq_items": seo_faq_items,
+            "tool_template": tool.template_name,
         },
     )
 
@@ -662,4 +787,31 @@ def games_data_api(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+# --- New Dynamic Routing Views ---
+from django.shortcuts import redirect
 
+@cache_control(public=True, max_age=60)
+def dynamic_tool_view(request, tool_slug):
+    """Dynamic tool view relying on registry and db fallback."""
+    tool = Tool.objects.filter(slug=tool_slug, is_active=True).select_related('category').first()
+    if not tool:
+        # Suggest related tools in the fallback view if needed
+        # Or just render the fallback template
+        return render(request, 'tools/tool_fallback.html', {'slug': tool_slug}, status=404)
+    return tool_view(request, tool.category.slug, tool.slug)
+
+def category_or_tool_dispatcher(request, category_slug=None, tool_slug=None):
+    """Dispatcher to handle overlapping category and tool slugs."""
+    slug = category_slug or tool_slug
+    if ToolCategory.objects.filter(slug=slug, is_active=True).exists():
+        return category_view(request, slug)
+    return dynamic_tool_view(request, slug)
+
+def tool_redirect_view(request, category_slug, tool_slug):
+    """Redirect old /category/tool/ paths to /tool/."""
+    return redirect('tools:tool', tool_slug=tool_slug, permanent=True)
+
+def longtail_redirect_view(request, category_slug, tool_slug, variant_slug):
+    """Redirect old longtail paths."""
+    # Could map this to a new longtail route if needed, for now just redirect to the tool
+    return redirect('tools:tool', tool_slug=tool_slug, permanent=True)
