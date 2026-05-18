@@ -38,18 +38,29 @@ def _normalize_tool(tool: Dict[str, Any], order_hint: int) -> Dict[str, Any]:
     t.setdefault("is_trending", False)
     t.setdefault("tags", "")
     t.setdefault("icon", "bi-wrench")
-    # Ensure template_name always resolves to a file that exists on disk.
-    # Tools without a specific template use the universal generic_tool.html.
+
+    # Resolve template_name:
+    #   - If the specified template exists on disk → keep it (custom template)
+    #   - If is_ai_powered=True and no valid template → use ai_tools/detail.html (AI form UI)
+    #   - Otherwise → use tools/generic_tool.html (browser-side tool UI)
+    from django.template.loader import get_template
     tmpl = t.get("template_name") or ""
+    tmpl_valid = False
     if tmpl:
         try:
-            from django.template.loader import get_template, TemplateDoesNotExist
             get_template(tmpl)
+            tmpl_valid = True
         except Exception:
+            tmpl_valid = False
+
+    if not tmpl_valid:
+        if t.get("is_ai_powered"):
+            t["template_name"] = "ai_tools/detail.html"
+        else:
             t["template_name"] = "tools/generic_tool.html"
-    else:
-        t["template_name"] = "tools/generic_tool.html"
+
     return t
+
 
 
 
