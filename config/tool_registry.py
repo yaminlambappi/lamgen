@@ -67,13 +67,12 @@ def prepare_registry(categories: Optional[List[Dict[str, Any]]] = None) -> List[
         for tool in AI_TOOLS:
             slug = tool.get('slug')
             if slug in existing_slugs:
-                # Update existing tool's properties to mark it as AI-powered
+                # Update existing tool's properties to mark it as AI-powered and use dynamic template
                 for c in src:
                     for t in c.get('tools', []):
                         if t.get('slug') == slug:
                             t['is_ai_powered'] = True
-                            if not t.get('template_name'):
-                                t['template_name'] = 'ai_tools/detail.html'
+                            t['template_name'] = 'ai_tools/detail.html'
                 continue  # Skip if already exists in the main registry
             
             cat_slug = tool.get('category', 'ai-other')
